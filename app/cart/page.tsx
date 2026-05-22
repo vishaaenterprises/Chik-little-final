@@ -105,11 +105,11 @@ export default function CartPage() {
     )
 
     // Product Link
-    if (item.id) {
-      lines.push(
-        `🔗 Product: ${SITE_URL}/product/${item.id}`,
-      )
-    }
+    if (item.slug) {
+  lines.push(
+    `🔗 Product: ${SITE_URL}/product/${item.slug}`,
+  )
+}
 
     lines.push('')
   })

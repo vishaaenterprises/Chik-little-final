@@ -100,7 +100,7 @@ export default function Navbar() {
             <Link href="/" className="flex items-center shrink-0">
               <div className="relative w-[170px] sm:w-[210px] lg:w-[250px] h-[70px]">
                 <Image
-                  src="/logo1.png"
+                  src="/logo.png"
                   alt="Little Chiku"
                   fill
                   priority

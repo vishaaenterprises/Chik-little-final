@@ -4,11 +4,13 @@ import { motion } from 'framer-motion'
 import { Heart, Eye, ShoppingBag, Star } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
+
 import { useCart } from '@/context/cart-context'
+
 import type { LegacyProduct } from '@/lib/sanity/types'
 
 interface ProductCardProps {
-  product: Product | LegacyProduct
+  product: LegacyProduct
   compact?: boolean
 }
 
@@ -48,9 +50,7 @@ export default function ProductCard({
       )
     : null
 
-  const handleWishlistToggle = (
-    e: React.MouseEvent
-  ) => {
+  const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -71,28 +71,26 @@ export default function ProductCard({
     }
   }
 
-  const handleQuickAdd = (
-  e: React.MouseEvent
-) => {
-  e.preventDefault()
-  e.stopPropagation()
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
 
-  addToCart({
-    id,
-    slug: product.slug,
-    name,
-    price,
-    originalPrice,
-    image,
-    category,
-  })
+    addToCart({
+      id,
+      slug: product.slug,
+      name,
+      price,
+      originalPrice,
+      image,
+      category,
+    })
 
-  setAddedToCart(true)
+    setAddedToCart(true)
 
-  setTimeout(() => {
-    setAddedToCart(false)
-  }, 2000)
-}
+    setTimeout(() => {
+      setAddedToCart(false)
+    }, 2000)
+  }
 
   return (
     <motion.div
@@ -105,13 +103,13 @@ export default function ProductCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative h-full overflow-hidden rounded-[1.8rem] border border-[#E7EEEE] bg-white shadow-[0_10px_30px_rgba(79,189,186,0.06)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(79,189,186,0.16)] flex flex-col">
-        
+
         {/* Glow Effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#DDF5F4]/20 via-transparent to-[#FFF4D6]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {/* Image Container */}
         <div className="relative overflow-hidden bg-[#F6FBFB] aspect-[4/5]">
-          <Link href={`/product/slug/${product.slug}`}>
+          <Link href={`/product/${product.slug}`}>
             <motion.img
               src={image}
               alt={name}
@@ -173,9 +171,7 @@ export default function ProductCard({
             >
               <Heart
                 className="w-4 h-4"
-                fill={
-                  wishlisted ? 'currentColor' : 'none'
-                }
+                fill={wishlisted ? 'currentColor' : 'none'}
               />
             </motion.button>
 
@@ -212,21 +208,13 @@ export default function ProductCard({
               onClick={handleQuickAdd}
             >
               <ShoppingBag className="w-4 h-4" />
-
-              {addedToCart
-                ? 'Added!'
-                : inCart
-                ? 'Add More'
-                : 'Quick Add'}
+              {addedToCart ? 'Added!' : inCart ? 'Add More' : 'Quick Add'}
             </motion.button>
           </motion.div>
         </div>
 
         {/* Content */}
-        <Link
-          href={`/product/slug/${product.slug}`}
-          className="flex flex-1 flex-col"
-        >
+        <Link href={`/product/${product.slug}`} className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col p-4 md:p-5">
             <div className="flex-1">
               {/* Category */}
@@ -245,12 +233,10 @@ export default function ProductCard({
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 fill-[#F6C453] text-[#F6C453]" />
-
                   <span className="text-xs md:text-sm font-semibold text-[#2B2B2B]">
                     {rating}
                   </span>
                 </div>
-
                 <span className="hidden sm:inline text-[11px] md:text-xs text-[#6B6B6B]">
                   (128 reviews)
                 </span>
@@ -261,11 +247,9 @@ export default function ProductCard({
                 <span className="font-heading text-lg md:text-xl font-bold text-[#2B2B2B]">
                   Rs. {price.toLocaleString()}
                 </span>
-
                 {originalPrice && (
                   <span className="text-xs md:text-sm text-[#8B8B8B] line-through">
-                    Rs.{' '}
-                    {originalPrice.toLocaleString()}
+                    Rs. {originalPrice.toLocaleString()}
                   </span>
                 )}
               </div>
@@ -280,10 +264,7 @@ export default function ProductCard({
                 }`}
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
-
-                {addedToCart
-                  ? 'Added!'
-                  : 'Add to Cart'}
+                {addedToCart ? 'Added!' : 'Add to Cart'}
               </button>
             </div>
           </div>

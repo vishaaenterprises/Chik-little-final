@@ -73,7 +73,7 @@ function convertToLegacyProduct(product: SanityProduct): LegacyProduct {
     rating:        product.rating ?? 4.5,
     isNew:         product.newArrival === true || product.badge === 'new',
     isBestseller:  product.badge === 'bestseller',
-    description:   product.shortDescription ?? '',              // shortDescription → description
+    shortDescription: product.shortDescription ?? '',              // shortDescription → description
     sizes:         product.sizes ?? [],
     colors:        product.colors ?? [],
   }

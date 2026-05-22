@@ -77,7 +77,7 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
                   <Star
                     key={i}
                     className={`w-4 h-4 ${
-                      i < testimonial.rating
+                      i < (testimonial.rating || 5)
                         ? 'fill-[#F6C453] text-[#F6C453]'
                         : 'text-[#E7EEEE] fill-[#E7EEEE]'
                     }`}

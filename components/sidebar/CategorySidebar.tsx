@@ -3,19 +3,27 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ChevronRight, Grid2X2 } from 'lucide-react'
-import { categories } from '@/data/categories'
+
+interface CategoryItem {
+  slug: string
+  name: string
+  image: string
+}
 
 interface CategorySidebarProps {
+  categories?: CategoryItem[]
   currentSlug?: string
   onCategoryClick?: () => void
 }
 
 export default function CategorySidebar({
+  categories = [],
   currentSlug,
   onCategoryClick,
 }: CategorySidebarProps) {
   return (
     <div className="relative overflow-hidden rounded-[2rem] border border-[#E7EEEE] bg-white p-5 shadow-[0_10px_35px_rgba(79,189,186,0.08)]">
+      
       {/* Decorative Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#DDF5F4]/40 rounded-full blur-3xl" />
@@ -24,9 +32,9 @@ export default function CategorySidebar({
       </div>
 
       {/* Header */}
-      <div className="relative flex items-center gap-3 mb-6 px-1">
-        <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#DDF5F4] border border-[#BFE9E7]">
-          <Grid2X2 className="w-5 h-5 text-[#2F7F7C]" />
+      <div className="relative mb-6 flex items-center gap-3 px-1">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#BFE9E7] bg-[#DDF5F4]">
+          <Grid2X2 className="h-5 w-5 text-[#2F7F7C]" />
         </div>
 
         <div>
@@ -34,7 +42,7 @@ export default function CategorySidebar({
             Categories
           </h3>
 
-          <p className="text-xs text-[#6B6B6B] mt-0.5">
+          <p className="mt-0.5 text-xs text-[#6B6B6B]">
             Explore collections
           </p>
         </div>
@@ -42,6 +50,7 @@ export default function CategorySidebar({
 
       {/* Category List */}
       <div className="relative space-y-2">
+
         {/* All Products */}
         <Link
           href="/category/all"
@@ -49,16 +58,16 @@ export default function CategorySidebar({
           className={`group flex items-center justify-between rounded-2xl px-4 py-3 transition-all duration-300 ${
             currentSlug === 'all'
               ? 'bg-[#4FBDBA] text-white shadow-[0_12px_30px_rgba(79,189,186,0.25)]'
-              : 'bg-[#F8FBFB] hover:bg-[#DDF5F4] text-[#2B2B2B]'
+              : 'bg-[#F8FBFB] text-[#2B2B2B] hover:bg-[#DDF5F4]'
           }`}
         >
           <div>
-            <span className="font-semibold text-sm">
+            <span className="text-sm font-semibold">
               All Products
             </span>
 
             <p
-              className={`text-xs mt-1 ${
+              className={`mt-1 text-xs ${
                 currentSlug === 'all'
                   ? 'text-white/70'
                   : 'text-[#6B6B6B]'
@@ -69,7 +78,7 @@ export default function CategorySidebar({
           </div>
 
           <ChevronRight
-            className={`w-4 h-4 transition-transform duration-300 ${
+            className={`h-4 w-4 transition-transform duration-300 ${
               currentSlug === 'all'
                 ? 'text-white'
                 : 'text-[#6B6B6B] group-hover:translate-x-1 group-hover:text-[#2F7F7C]'
@@ -78,9 +87,9 @@ export default function CategorySidebar({
         </Link>
 
         {/* Categories */}
-        {categories.map((cat, idx) => (
+        {(categories || []).map((cat, idx) => (
           <motion.div
-            key={cat.slug}
+            key={cat.slug || idx}
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{
@@ -94,12 +103,13 @@ export default function CategorySidebar({
               className={`group flex items-center gap-3 rounded-2xl px-3 py-3 transition-all duration-300 ${
                 currentSlug === cat.slug
                   ? 'bg-[#4FBDBA] text-white shadow-[0_12px_30px_rgba(79,189,186,0.25)]'
-                  : 'bg-white hover:bg-[#F6FBFB] text-[#2B2B2B]'
+                  : 'bg-white text-[#2B2B2B] hover:bg-[#F6FBFB]'
               }`}
             >
+
               {/* Image */}
               <div
-                className={`relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border transition-all duration-300 ${
+                className={`relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border transition-all duration-300 ${
                   currentSlug === cat.slug
                     ? 'border-white/30'
                     : 'border-[#E7EEEE]'
@@ -108,36 +118,41 @@ export default function CategorySidebar({
                 <img
                   src={cat.image}
                   alt={cat.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
 
-                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
               </div>
 
               {/* Content */}
-              <div className="flex-1 min-w-0">
-                <span className="block font-semibold text-sm truncate">
+              <div className="min-w-0 flex-1">
+                <h4
+                  className={`truncate text-sm font-semibold ${
+                    currentSlug === cat.slug
+                      ? 'text-white'
+                      : 'text-[#2B2B2B]'
+                  }`}
+                >
                   {cat.name}
-                </span>
+                </h4>
 
                 <p
-                  className={`text-xs mt-1 truncate ${
+                  className={`mt-0.5 text-xs ${
                     currentSlug === cat.slug
                       ? 'text-white/70'
                       : 'text-[#6B6B6B]'
                   }`}
                 >
-                  {cat.subcategories.length} subcategories
+                  Explore collection
                 </p>
               </div>
 
               {/* Arrow */}
               <ChevronRight
-                className={`w-4 h-4 transition-all duration-300 ${
+                className={`h-4 w-4 transition-all duration-300 ${
                   currentSlug === cat.slug
                     ? 'text-white'
-                    : 'text-[#6B6B6B] group-hover:text-[#2F7F7C] group-hover:translate-x-1'
+                    : 'text-[#A0A0A0] group-hover:translate-x-1 group-hover:text-[#2F7F7C]'
                 }`}
               />
             </Link>

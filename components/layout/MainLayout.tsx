@@ -13,8 +13,7 @@ export default function MainLayout({
   return (
     <div className="min-h-screen flex flex-col bg-[#F6FBFB] overflow-x-hidden">
       
-      {/* Navbar */}
-      <Navbar />
+      
 
       {/* Main Content */}
       <main className="flex-1 pb-16 md:pb-0 relative">
@@ -34,8 +33,7 @@ export default function MainLayout({
         </div>
       </main>
 
-      {/* Footer */}
-      <Footer />
+      
     </div>
   )
 }

@@ -175,6 +175,12 @@ export interface LegacyProduct {
   stock?: number
 }
 
+// ── Product is an alias for LegacyProduct ────────────────────
+// Kept for backward-compatibility with any imports that use
+// `import type { Product } from '@/lib/sanity/types'`
+
+export type Product = LegacyProduct
+
 // ── Adapter: SanityProduct → LegacyProduct ───────────────────
 
 export function sanityProductToLegacy(

@@ -27,6 +27,7 @@ export interface CartItem {
 
 export interface WishlistItem {
   id: string
+  slug?: string
   name: string
   price: number
   originalPrice?: number

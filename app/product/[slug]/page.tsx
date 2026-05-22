@@ -1,13 +1,5 @@
 'use client'
 
-// app/product/slug/[slug]/page.tsx
-// ─────────────────────────────────────────────────────────────
-//  Product detail page — fully dynamic from Sanity.
-//
-//  Two product sections at the bottom:
-//  1. "You May Also Like" — admin-curated via alsoLike[] field
-//  2. "Related Products"  — auto: same category, 4 products
-// ─────────────────────────────────────────────────────────────
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
@@ -42,7 +34,7 @@ import {
   Loader2,
 } from 'lucide-react'
 
-// ── UI-only defaults ──────────────────────────────────────────
+// ── UI-only defaults 
 
 const DEFAULT_COLORS = [
   { name: 'Sage Green', hex: '#7E8B5B' },
@@ -53,10 +45,11 @@ const DEFAULT_COLORS = [
 
 const DEFAULT_SIZES = ['0-12 months', '1-3 years', '3-5 years']
 
-// ── Page ──────────────────────────────────────────────────────
+// ── Page 
 
 export default function ProductPage() {
   const params = useParams()
+  // params.slug comes from the [slug] folder name
   const slug = params.slug as string
 
   const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } =
@@ -74,7 +67,7 @@ export default function ProductPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [addedToCart, setAddedToCart] = useState(false)
 
-  // ── Fetch ─────────────────────────────────────────────────
+  // ── Fetch by slug ─────────────────────────────────────────
   useEffect(() => {
     if (!slug) return
     async function fetchProduct() {
@@ -96,11 +89,15 @@ export default function ProductPage() {
     fetchProduct()
   }, [slug])
 
-  // ── Derived ───────────────────────────────────────────────
+  // ── Derived 
   const displayProduct = sanityProduct
     ? {
         id: sanityProduct._id,
-        slug: sanityProduct.slug,
+        // Always resolve to a plain string — GROQ returns "slug": slug.current
+        slug:
+          typeof sanityProduct.slug === 'string'
+            ? sanityProduct.slug
+            : (sanityProduct.slug as any)?.current ?? '',
         name: sanityProduct.productName,
         price: sanityProduct.price,
         originalPrice: sanityProduct.originalPrice,
@@ -132,12 +129,12 @@ export default function ProductPage() {
       ].filter(Boolean)
     : []
 
-  // ── "You May Also Like" — from alsoLike[] in Sanity ───────
+  // "You May Also Like" — admin-curated via alsoLike[] in Sanity
   const alsoLikeProducts = (sanityProduct?.alsoLike ?? []).map(
     (p: SanityProductCard) => sanityProductToLegacy(p, getImageUrl(p.mainImage))
   )
 
-  // ── Related Products — same category, auto ────────────────
+  // Related products — same category, auto-fetched
   const displayRelatedProducts = relatedProducts.map((p) =>
     sanityProductToLegacy(p, getImageUrl(p.mainImage))
   )
@@ -158,7 +155,7 @@ export default function ProductPage() {
   const prevImage = () =>
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
 
-  // ── Cart / Wishlist ───────────────────────────────────────
+ 
   const handleAddToCart = () => {
     if (!displayProduct) return
     const colorObj = displayProduct.colors[selectedColorIndex] as {
@@ -168,6 +165,7 @@ export default function ProductPage() {
     addToCart(
       {
         id: displayProduct.id,
+    
         slug: displayProduct.slug,
         name: displayProduct.name,
         price: displayProduct.price,
@@ -183,6 +181,7 @@ export default function ProductPage() {
     setTimeout(() => setAddedToCart(false), 2000)
   }
 
+  // ── Wishlist
   const handleWishlistToggle = () => {
     if (!displayProduct) return
     if (isWishlisted) {
@@ -593,16 +592,10 @@ export default function ProductPage() {
       {/* ── Product Tabs (Details, Materials, Care) ── */}
       <ProductTabs product={sanityProduct} />
 
-      {/* ════════════════════════════════════════════════════════
-          SECTION 1 — "You May Also Like"
-          Admin-curated via alsoLike[] field in Sanity Studio.
-          Only rendered when admin has selected products.
-      ════════════════════════════════════════════════════════ */}
+      {/* ── "You May Also Like" — admin-curated ── */}
       {alsoLikeProducts.length > 0 && (
         <section className="py-16 bg-[#F6FBFB] border-t border-[#E7EEEE]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {/* Header */}
             <div className="flex items-end justify-between mb-8">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#DDF5F4] rounded-full mb-2">
@@ -616,8 +609,6 @@ export default function ProductPage() {
                 </h2>
               </div>
             </div>
-
-            {/* Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {alsoLikeProducts.map((product, idx) => (
                 <motion.div
@@ -635,16 +626,10 @@ export default function ProductPage() {
         </section>
       )}
 
-      {/* ════════════════════════════════════════════════════════
-          SECTION 2 — "Related Products"
-          Auto-fetched: same category, up to 4 products.
-          Only rendered when related products exist.
-      ════════════════════════════════════════════════════════ */}
+      {/* ── Related Products — same category, auto ── */}
       {displayRelatedProducts.length > 0 && (
         <section className="py-16 bg-[#FFFDF7]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {/* Header */}
             <div className="flex items-end justify-between mb-8">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFF4D6] rounded-full mb-2">
@@ -665,8 +650,6 @@ export default function ProductPage() {
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-
-            {/* Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {displayRelatedProducts.map((product, idx) => (
                 <motion.div

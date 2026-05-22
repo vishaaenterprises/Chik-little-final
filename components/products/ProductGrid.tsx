@@ -1,18 +1,19 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
-import ProductCard from './ProductCard'
-import type { Product } from '@/data/products'
-import type { LegacyProduct } from '@/lib/sanity/types'
+import { motion } from "framer-motion";
+
+import ProductCard from "./ProductCard";
+
+import type { Product, LegacyProduct } from "@/lib/sanity/types";
 
 interface ProductGridProps {
-  products: (Product | LegacyProduct)[]
-  columns?: 'default' | 'compact'
+  products: (Product | LegacyProduct)[];
+  columns?: "default" | "compact";
 }
 
 export default function ProductGrid({
-  products,
-  columns = 'default',
+  products = [],
+  columns = "default",
 }: ProductGridProps) {
   return (
     <div className="relative">
@@ -24,20 +25,26 @@ export default function ProductGrid({
       {/* Grid */}
       <div
         className={`relative grid gap-4 md:gap-6 ${
-          columns === 'compact'
-            ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-            : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+          columns === "compact"
+            ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+            : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         }`}
       >
         {products.map((product, idx) => (
           <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
+            key={"id" in product ? product.id : idx}
+            initial={{
+              opacity: 0,
+              y: 25,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             transition={{
               duration: 0.45,
               delay: idx * 0.05,
-              ease: 'easeOut',
+              ease: "easeOut",
             }}
             whileHover={{
               y: -4,
@@ -53,7 +60,7 @@ export default function ProductGrid({
               <div className="relative">
                 <ProductCard
                   product={product}
-                  compact={columns === 'compact'}
+                  compact={columns === "compact"}
                 />
               </div>
             </div>
@@ -61,5 +68,5 @@ export default function ProductGrid({
         ))}
       </div>
     </div>
-  )
+  );
 }
