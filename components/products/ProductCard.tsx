@@ -5,7 +5,6 @@ import { Heart, Eye, ShoppingBag, Star } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/context/cart-context'
-import type { Product } from '@/data/products'
 import type { LegacyProduct } from '@/lib/sanity/types'
 
 interface ProductCardProps {
@@ -181,7 +180,7 @@ export default function ProductCard({
             </motion.button>
 
             {/* Preview */}
-            <Link href={`/product/slug/${product.slug}`}>
+            <Link href={`/product/${product.slug}`}>
               <motion.div
                 className="p-2.5 rounded-xl bg-white/90 text-[#2B2B2B] hover:bg-white backdrop-blur-md border border-white/40 shadow-md transition-all"
                 whileHover={{ scale: 1.08 }}
