@@ -1,0 +1,227 @@
+@import 'tailwindcss';
+@source "../components/**/*.tsx";
+@source "../app/**/*.tsx";
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ─── PRIMARY: Muted Turquoise ─── */
+  --primary: #4FBDBA;
+  --primary-foreground: #FFFFFF;
+
+  /* ─── BACKGROUND: Soft Ivory-Teal ─── */
+  --background: #F6FBFB;
+  --foreground: #2B2B2B;
+
+  /* ─── CARD ─── */
+  --card: #FFFFFF;
+  --card-foreground: #2B2B2B;
+  --popover: #FFFFFF;
+  --popover-foreground: #2B2B2B;
+
+  /* ─── SECONDARY: Dusty Teal ─── */
+  --secondary: #A8D8D6;
+  --secondary-foreground: #2B2B2B;
+
+  /* ─── MUTED: Warm Sand ─── */
+  --muted: #EDF6F6;
+  --muted-foreground: #6B6B6B;
+
+  /* ─── ACCENT: Sunflower Yellow ─── */
+  --accent: #F6C453;
+  --accent-foreground: #2B2B2B;
+
+  /* ─── DESTRUCTIVE ─── */
+  --destructive: #E07070;
+  --destructive-foreground: #FFFFFF;
+
+  /* ─── BORDER & INPUT ─── */
+  --border: #E7EEEE;
+  --input: #EDF6F6;
+  --ring: #4FBDBA;
+
+  /* ─── SECTION BACKGROUNDS ─── */
+  --section-bath:        #E4F7F6;
+  --section-bedding:     #EDF8E9;
+  --section-bags:        #FFF8E8;
+  --section-accessories: #FFF4D6;
+  --section-clothing:    #F9F3E8;
+  --section-mom:         #FFF8F0;
+  --section-gifts:       #F0FAFA;
+
+  /* ─── BRAND ACCENTS ─── */
+  --dusty-blue:      #A8D8D6;
+  --muted-mustard:   #E8A825;
+  --soft-terracotta: #E07070;
+  --warm-brown:      #8B6B5C;
+  --warm-blush:      #FFF4D6;
+  --light-sage:      #DDF5F4;
+  --soft-sand:       #EDF6F6;
+
+  /* ─── CHART ─── */
+  --chart-1: #4FBDBA;
+  --chart-2: #F6C453;
+  --chart-3: #A8D8D6;
+  --chart-4: #E07070;
+  --chart-5: #8B6B5C;
+
+  --radius: 1.5rem;
+
+  /* ─── SIDEBAR ─── */
+  --sidebar: #F6FBFB;
+  --sidebar-foreground: #2B2B2B;
+  --sidebar-primary: #4FBDBA;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EDF6F6;
+  --sidebar-accent-foreground: #2B2B2B;
+  --sidebar-border: #E7EEEE;
+  --sidebar-ring: #4FBDBA;
+}
+
+.dark {
+  --primary: #5ECFCC;
+  --primary-foreground: #0F2221;
+  --background: #0F2221;
+  --foreground: #F0FAFA;
+  --card: #162E2D;
+  --card-foreground: #F0FAFA;
+  --popover: #162E2D;
+  --popover-foreground: #F0FAFA;
+  --secondary: #2A5A58;
+  --secondary-foreground: #F0FAFA;
+  --muted: #1E3736;
+  --muted-foreground: #8AB8B6;
+  --accent: #D4A030;
+  --accent-foreground: #F0FAFA;
+  --destructive: #C05555;
+  --destructive-foreground: #F0FAFA;
+  --border: #1E3736;
+  --input: #1E3736;
+  --ring: #5ECFCC;
+  --sidebar: #0F2221;
+  --sidebar-foreground: #F0FAFA;
+  --sidebar-primary: #5ECFCC;
+  --sidebar-primary-foreground: #0F2221;
+  --sidebar-accent: #1E3736;
+  --sidebar-accent-foreground: #F0FAFA;
+  --sidebar-border: #1E3736;
+  --sidebar-ring: #5ECFCC;
+}
+
+@theme inline {
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-baloo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-section-bath:        var(--section-bath);
+  --color-section-bedding:     var(--section-bedding);
+  --color-section-bags:        var(--section-bags);
+  --color-section-accessories: var(--section-accessories);
+  --color-section-clothing:    var(--section-clothing);
+  --color-section-mom:         var(--section-mom);
+  --color-section-gifts:       var(--section-gifts);
+
+  --color-dusty-blue:      var(--dusty-blue);
+  --color-muted-mustard:   var(--muted-mustard);
+  --color-soft-terracotta: var(--soft-terracotta);
+  --color-warm-brown:      var(--warm-brown);
+  --color-warm-blush:      var(--warm-blush);
+  --color-light-sage:      var(--light-sage);
+  --color-soft-sand:       var(--soft-sand);
+
+  --radius-sm:  calc(var(--radius) - 8px);
+  --radius-md:  calc(var(--radius) - 4px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-[#2B2B2B] antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+html[data-scroll-behavior="smooth"] {
+  scroll-behavior: smooth;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--muted); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+.text-balance { text-wrap: balance; }
+
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (pointer: coarse) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "chikulittle-sanity-studio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "sanity dev --port 3333",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "start": "sanity start --port 3333"
+  },
+  "dependencies": {
+    "@sanity/icons": "^3.7.0",
+    "@sanity/vision": "^3.91.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sanity": "^3.91.0",
+    "styled-components": "^6.1.18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.3"
+  }
+}
