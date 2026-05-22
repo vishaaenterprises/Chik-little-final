@@ -68,26 +68,93 @@ export default function ProductPage() {
   const [addedToCart, setAddedToCart] = useState(false)
 
   // ── Fetch by slug ─────────────────────────────────────────
-  useEffect(() => {
-    if (!slug) return
-    async function fetchProduct() {
-      setLoading(true)
-      try {
-        const res = await fetch(`/api/sanity/product?slug=${slug}`)
-        const data = await res.json()
-        if (data?.product) {
-          setSanityProduct(data.product)
-          setRelatedProducts(data.relatedProducts ?? [])
-          setSelectedSize(data.product.sizes?.[0] ?? DEFAULT_SIZES[0])
+useEffect(() => {
+
+  if (!slug) return
+
+  async function fetchProduct() {
+
+    setLoading(true)
+
+    try {
+
+      // IMPORTANT
+      const res = await fetch(
+        `http://localhost:3000/api/sanity/product?slug=${slug}`,
+        {
+          cache: 'no-store',
         }
-      } catch (err) {
-        console.error('[ProductPage] fetch error:', err)
-      } finally {
-        setLoading(false)
+      )
+
+      // RESPONSE CHECK
+      if (!res.ok) {
+
+        throw new Error(
+          'Failed to fetch product'
+        )
       }
+
+      // CONTENT TYPE CHECK
+      const contentType =
+        res.headers.get(
+          'content-type'
+        )
+
+      if (
+        !contentType ||
+        !contentType.includes(
+          'application/json'
+        )
+      ) {
+
+        throw new Error(
+          'Invalid JSON response'
+        )
+      }
+
+      const data =
+        await res.json()
+
+      // PRODUCT EXISTS
+
+      if (data?.product) {
+
+        setSanityProduct(
+          data.product
+        )
+
+        setRelatedProducts(
+          data.relatedProducts ?? []
+        )
+
+        setSelectedSize(
+          data.product.sizes?.[0]
+            ?? DEFAULT_SIZES[0]
+        )
+
+      } else {
+
+        console.error(
+          '[ProductPage] Product not found'
+        )
+      }
+
+    } catch (err) {
+
+      console.error(
+        '[ProductPage] fetch error:',
+        err
+      )
+
+    } finally {
+
+      setLoading(false)
     }
-    fetchProduct()
-  }, [slug])
+  }
+
+  fetchProduct()
+
+}, [slug])
 
   // ── Derived 
   const displayProduct = sanityProduct

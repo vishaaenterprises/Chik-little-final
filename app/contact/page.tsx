@@ -80,16 +80,16 @@ const contactCards = [
     bg: '#FFF4D6',
     shadow: 'rgba(246,196,83,0.2)',
   },
-  {
-    icon: MapPin,
-    title: 'Visit Us',
-    description: 'By appointment only',
-    value: 'Jaipur, Rajasthan',
-    link: '#',
-    accent: '#2F7F7C',
-    bg: '#DDF5F4',
-    shadow: 'rgba(47,127,124,0.12)',
-  },
+  // {
+  //   icon: MapPin,
+  //   title: 'Visit Us',
+  //   description: 'By appointment only',
+  //   value: 'Jaipur, Rajasthan',
+  //   link: '#',
+  //   accent: '#2F7F7C',
+  //   bg: '#DDF5F4',
+  //   shadow: 'rgba(47,127,124,0.12)',
+  // },
 ]
 
 export default function ContactPage() {
@@ -104,14 +104,45 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+
+  try {
     setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: JSON.stringify(formState),
+    })
+
+    const data = await response.json()
+
+    if (data.success) {
+      setIsSubmitted(true)
+
+      setFormState({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+      })
+    } else {
+      alert(data.message || 'Failed to send message')
+    }
+  } catch (error) {
+    console.log(error)
+
+    alert('Something went wrong')
+  } finally {
     setIsSubmitting(false)
-    setIsSubmitted(true)
-    setFormState({ name: '', email: '', phone: '', subject: '', message: '' })
   }
+}
 
   const inputClass =
     'w-full px-4 py-3.5 bg-[#F6FBFB] border border-[#E7EEEE] rounded-2xl text-[#2B2B2B] placeholder:text-[#A0B4B4] focus:outline-none focus:border-[#4FBDBA] focus:ring-2 focus:ring-[#4FBDBA]/20 transition-all duration-200 text-sm'
@@ -225,276 +256,207 @@ export default function ContactPage() {
       </section>
 
       {/* ── Form + Info ── */}
-      <section className="py-20 bg-[#F6FBFB]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-14 items-start">
-            {/* Form — wider column */}
-            <motion.div
-              className="lg:col-span-3"
-              initial={{ opacity: 0, x: -24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="bg-white border border-[#E7EEEE] rounded-[2rem] p-8 md:p-10 shadow-[0_10px_40px_rgba(79,189,186,0.08)]">
-                <div className="mb-8">
-                  <h2 className="font-heading text-3xl font-bold text-[#2B2B2B] mb-2">
-                    Send Us a Message
-                  </h2>
-                  <p className="text-[#6B6B6B] text-sm">
-                    We&apos;ll get back to you within 24 hours.
-                  </p>
-                </div>
+<section className="py-20 bg-[#F6FBFB]">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-14 items-start">
+      {/* Form — wider column */}
+      <motion.div
+        className="lg:col-span-3"
+        initial={{ opacity: 0, x: -24 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="bg-white border border-[#E7EEEE] rounded-[2rem] p-8 md:p-10 shadow-[0_10px_40px_rgba(79,189,186,0.08)]">
+          <div className="mb-8">
+            <h2 className="font-heading text-3xl font-bold text-[#2B2B2B] mb-2">
+              Send Us a Message
+            </h2>
 
-                <AnimatePresence mode="wait">
-                  {isSubmitted ? (
-                    <motion.div
-                      key="success"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="flex flex-col items-center text-center py-10"
-                    >
-                      <div className="w-20 h-20 rounded-full bg-[#DDF5F4] flex items-center justify-center mb-5 shadow-[0_8px_24px_rgba(79,189,186,0.2)]">
-                        <Send className="w-9 h-9 text-[#4FBDBA]" />
-                      </div>
-                      <h3 className="font-heading text-2xl font-bold text-[#2B2B2B] mb-2">
-                        Message Sent! 🎉
-                      </h3>
-                      <p className="text-[#6B6B6B] mb-6 max-w-xs">
-                        Thank you for reaching out. We&apos;ll be in touch
-                        within 24 hours.
-                      </p>
-                      <button
-                        onClick={() => setIsSubmitted(false)}
-                        className="text-[#4FBDBA] text-sm font-semibold hover:text-[#2F7F7C] underline underline-offset-2 transition-colors"
-                      >
-                        Send another message
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <motion.form
-                      key="form"
-                      onSubmit={handleSubmit}
-                      className="space-y-5"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                          <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
-                            Your Name
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={formState.name}
-                            onChange={(e) =>
-                              setFormState({ ...formState, name: e.target.value })
-                            }
-                            className={inputClass}
-                            placeholder="Meera Sharma"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            required
-                            value={formState.email}
-                            onChange={(e) =>
-                              setFormState({
-                                ...formState,
-                                email: e.target.value,
-                              })
-                            }
-                            className={inputClass}
-                            placeholder="meera@email.com"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                          <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
-                            Phone Number
-                          </label>
-                          <input
-                            type="tel"
-                            value={formState.phone}
-                            onChange={(e) =>
-                              setFormState({
-                                ...formState,
-                                phone: e.target.value,
-                              })
-                            }
-                            className={inputClass}
-                            placeholder="+91 98765 43210"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
-                            Subject
-                          </label>
-                          <select
-                            value={formState.subject}
-                            onChange={(e) =>
-                              setFormState({
-                                ...formState,
-                                subject: e.target.value,
-                              })
-                            }
-                            className={inputClass}
-                          >
-                            <option value="">Select a topic</option>
-                            <option value="order">Order Inquiry</option>
-                            <option value="product">Product Question</option>
-                            <option value="return">Returns & Exchanges</option>
-                            <option value="bulk">Bulk Orders</option>
-                            <option value="other">Other</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
-                          Your Message
-                        </label>
-                        <textarea
-                          required
-                          rows={5}
-                          value={formState.message}
-                          onChange={(e) =>
-                            setFormState({
-                              ...formState,
-                              message: e.target.value,
-                            })
-                          }
-                          className={`${inputClass} resize-none`}
-                          placeholder="Tell us how we can help..."
-                        />
-                      </div>
-
-                      <motion.button
-                        type="submit"
-                        disabled={isSubmitting}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full sm:w-auto px-8 py-4 bg-[#4FBDBA] hover:bg-[#2F7F7C] text-white font-semibold rounded-2xl shadow-[0_12px_30px_rgba(79,189,186,0.28)] hover:shadow-[0_16px_40px_rgba(47,127,124,0.32)] transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-70 text-sm"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            Send Message
-                          </>
-                        )}
-                      </motion.button>
-                    </motion.form>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-
-            {/* Info sidebar */}
-            <motion.div
-              className="lg:col-span-2 space-y-6"
-              initial={{ opacity: 0, x: 24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.15 }}
-            >
-              {/* Business Hours */}
-              <div className="bg-white border border-[#E7EEEE] rounded-[2rem] p-7 shadow-[0_10px_30px_rgba(79,189,186,0.07)]">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-2xl bg-[#FFF4D6] flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-[#F6C453]" />
-                  </div>
-                  <h3 className="font-heading font-bold text-[#2B2B2B] text-base">
-                    Business Hours
-                  </h3>
-                </div>
-                <div className="space-y-3 text-sm">
-                  {[
-                    { day: 'Monday – Friday', hours: '10:00 AM – 7:00 PM' },
-                    { day: 'Saturday', hours: '10:00 AM – 5:00 PM' },
-                    { day: 'Sunday', hours: 'Closed' },
-                  ].map(({ day, hours }) => (
-                    <div
-                      key={day}
-                      className="flex justify-between items-center py-2 border-b border-[#F0F7F7] last:border-0"
-                    >
-                      <span className="text-[#6B6B6B]">{day}</span>
-                      <span
-                        className={`font-semibold ${hours === 'Closed' ? 'text-[#A0B4B4]' : 'text-[#2B2B2B]'}`}
-                      >
-                        {hours}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Social */}
-              <div className="bg-white border border-[#E7EEEE] rounded-[2rem] p-7 shadow-[0_10px_30px_rgba(79,189,186,0.07)]">
-                <h3 className="font-heading font-bold text-[#2B2B2B] text-base mb-4">
-                  Follow Little Chiku
-                </h3>
-                <div className="flex gap-3">
-                  {[
-                    {
-                      icon: Instagram,
-                      label: 'Instagram',
-                      bg: '#FFF4D6',
-                      color: '#F6C453',
-                    },
-                    {
-                      icon: Facebook,
-                      label: 'Facebook',
-                      bg: '#DDF5F4',
-                      color: '#4FBDBA',
-                    },
-                    {
-                      icon: MessageCircle,
-                      label: 'WhatsApp',
-                      bg: '#EDFFF5',
-                      color: '#25D366',
-                    },
-                  ].map(({ icon: Icon, label, bg, color }) => (
-                    <motion.a
-                      key={label}
-                      href="#"
-                      aria-label={label}
-                      whileHover={{ scale: 1.08, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200"
-                      style={{ backgroundColor: bg }}
-                    >
-                      <Icon className="w-5 h-5" style={{ color }} />
-                    </motion.a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Image */}
-              <div className="rounded-[2rem] overflow-hidden aspect-[4/3] shadow-[0_16px_40px_rgba(79,189,186,0.12)] border border-[#E7EEEE]">
-                <img
-                  src="/mom-1.jpg"
-                  alt="Our team"
-                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                />
-              </div>
-            </motion.div>
+            <p className="text-[#6B6B6B] text-sm">
+              We&apos;ll get back to you within 24 hours.
+            </p>
           </div>
+
+          <AnimatePresence mode="wait">
+            {isSubmitted ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex flex-col items-center text-center py-10"
+              >
+                <div className="w-20 h-20 rounded-full bg-[#DDF5F4] flex items-center justify-center mb-5 shadow-[0_8px_24px_rgba(79,189,186,0.2)]">
+                  <Send className="w-9 h-9 text-[#4FBDBA]" />
+                </div>
+
+                <h3 className="font-heading text-2xl font-bold text-[#2B2B2B] mb-2">
+                  Message Sent! 🎉
+                </h3>
+
+                <p className="text-[#6B6B6B] mb-6 max-w-xs">
+                  Thank you for reaching out. We&apos;ll be in touch
+                  within 24 hours.
+                </p>
+
+                <button
+                  onClick={() => setIsSubmitted(false)}
+                  className="text-[#4FBDBA] text-sm font-semibold hover:text-[#2F7F7C] underline underline-offset-2 transition-colors"
+                >
+                  Send another message
+                </button>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="form"
+                onSubmit={handleSubmit}
+                className="space-y-5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
+                      Your Name
+                    </label>
+
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={formState.name}
+                      onChange={(e) =>
+                        setFormState({
+                          ...formState,
+                          name: e.target.value,
+                        })
+                      }
+                      className={inputClass}
+                      placeholder="Meera Sharma"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
+                      Email Address
+                    </label>
+
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={formState.email}
+                      onChange={(e) =>
+                        setFormState({
+                          ...formState,
+                          email: e.target.value,
+                        })
+                      }
+                      className={inputClass}
+                      placeholder="meera@email.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
+                      Phone Number
+                    </label>
+
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      value={formState.phone}
+                      onChange={(e) =>
+                        setFormState({
+                          ...formState,
+                          phone: e.target.value,
+                        })
+                      }
+                      className={inputClass}
+                      placeholder="+91 98765 43210"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
+                      Subject
+                    </label>
+
+                    <select
+                      name="subject"
+                      required
+                      value={formState.subject}
+                      onChange={(e) =>
+                        setFormState({
+                          ...formState,
+                          subject: e.target.value,
+                        })
+                      }
+                      className={inputClass}
+                    >
+                      <option value="">Select a topic</option>
+                      <option value="order">Order Inquiry</option>
+                      <option value="product">Product Question</option>
+                      <option value="return">Returns & Exchanges</option>
+                      <option value="bulk">Bulk Orders</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#2B2B2B] mb-2 tracking-wide uppercase">
+                    Your Message
+                  </label>
+
+                  <textarea
+                    name="message"
+                    required
+                    rows={5}
+                    value={formState.message}
+                    onChange={(e) =>
+                      setFormState({
+                        ...formState,
+                        message: e.target.value,
+                      })
+                    }
+                    className={`${inputClass} resize-none`}
+                    placeholder="Tell us how we can help..."
+                  />
+                </div>
+
+                <motion.button
+                  type="submit"
+                  disabled={isSubmitting}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:w-auto px-8 py-4 bg-[#4FBDBA] hover:bg-[#2F7F7C] text-white font-semibold rounded-2xl shadow-[0_12px_30px_rgba(79,189,186,0.28)] hover:shadow-[0_16px_40px_rgba(47,127,124,0.32)] transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-70 text-sm"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send Message
+                    </>
+                  )}
+                </motion.button>
+              </motion.form>
+            )}
+          </AnimatePresence>
         </div>
-      </section>
+      </motion.div>
+    </div>
+  </div>
+</section>
 
       {/* ── FAQ ── */}
       <section className="py-20 bg-white">

@@ -1,21 +1,41 @@
 // lib/sanity/client.ts
 
 import { createClient } from 'next-sanity'
-import { apiVersion, dataset, projectId } from './env'
 
-// ── Server-side client (SSR / API routes / RSC) ───────────────
-// useCdn: true is fine on the server
+// ─────────────────────────────────────────────
+// Environment Variables
+// ─────────────────────────────────────────────
+
+const projectId =
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'rapjrk3z'
+
+const dataset =
+  process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
+
+const apiVersion =
+  process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2023-10-01'
+
+// ─────────────────────────────────────────────
+// Sanity Client
+// ─────────────────────────────────────────────
+
 export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: typeof window === 'undefined', // true on server, false on browser
+
+  // false for fresh search results
+  useCdn: false,
+
   perspective: 'published',
+
   stega: false,
 })
 
-// ── Universal fetch helper ────────────────────────────────────
-// Works on both server and client components
+// ─────────────────────────────────────────────
+// Universal Fetch Helper
+// ─────────────────────────────────────────────
+
 export async function sanityFetch<T>({
   query,
   params = {},
@@ -25,9 +45,45 @@ export async function sanityFetch<T>({
   params?: Record<string, unknown>
   revalidate?: number | false
 }): Promise<T> {
-  return client.fetch<T>(query, params, {
-    next: {
-      revalidate: revalidate === false ? false : revalidate,
-    },
-  })
+
+  try {
+
+    // ─────────────────────────────────────────
+    // NO CACHE
+    // ─────────────────────────────────────────
+
+    if (revalidate === false) {
+
+      return await client.fetch<T>(
+        query,
+        params,
+        {
+          cache: 'no-store',
+        }
+      )
+    }
+
+    // ─────────────────────────────────────────
+    // WITH REVALIDATE CACHE
+    // ─────────────────────────────────────────
+
+    return await client.fetch<T>(
+      query,
+      params,
+      {
+        next: {
+          revalidate,
+        },
+      }
+    )
+
+  } catch (error) {
+
+    console.error(
+      'SANITY FETCH ERROR:',
+      error
+    )
+
+    throw error
+  }
 }

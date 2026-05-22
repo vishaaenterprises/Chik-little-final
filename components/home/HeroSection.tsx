@@ -58,9 +58,9 @@ export default function HeroSection({ banner }: HeroSectionProps) {
               Thoughtfully handmade for Moms, Kids & Babies at
               <span className="text-[#D79B2D] font-bold italic">
                 {" "}
-                very reasonable{" "}
+                made with care & value{" "}
               </span>
-              prices crafted with love and care.
+              crafted with love and care.
             </p>
 
             {/* FEATURES */}
@@ -82,9 +82,9 @@ export default function HeroSection({ banner }: HeroSectionProps) {
                 <Tag className="w-6 h-6 sm:w-7 sm:h-7 text-[#D79B2D] mb-2" />
 
                 <h3 className="text-[12px] sm:text-[15px] font-semibold text-center text-[#2D2A26] leading-5">
-                  Wholesale
+                  Affordable 
                   <br />
-                  Prices
+                  Luxury
                 </h3>
               </div>
 

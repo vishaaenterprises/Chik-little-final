@@ -1,4 +1,6 @@
-import imageUrlBuilder from '@sanity/image-url'
+// lib/sanity/image.ts
+
+import { createImageUrlBuilder } from '@sanity/image-url'
 
 import type {
   SanityImageSource,
@@ -10,7 +12,7 @@ import { client } from './client'
 // Builder
 // ─────────────────────────────────────────────
 
-const builder = imageUrlBuilder(client)
+const builder = createImageUrlBuilder(client)
 
 // ─────────────────────────────────────────────
 // Base URL generator
@@ -32,14 +34,27 @@ export function getImageUrl(
     | null
     | undefined
 ): string {
+
   if (!source) {
     return '/placeholder.jpg'
   }
 
-  return urlFor(source)
-    .auto('format')
-    .fit('max')
-    .url()
+  try {
+
+    return urlFor(source)
+      .auto('format')
+      .fit('max')
+      .url()
+
+  } catch (error) {
+
+    console.error(
+      'SANITY IMAGE ERROR:',
+      error
+    )
+
+    return '/placeholder.jpg'
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -56,20 +71,33 @@ export function getImageUrlWithSize(
 
   height?: number
 ): string {
+
   if (!source) {
     return '/placeholder.jpg'
   }
 
-  let imageBuilder =
-    urlFor(source).width(width)
+  try {
 
-  if (height) {
-    imageBuilder =
-      imageBuilder.height(height)
+    let imageBuilder =
+      urlFor(source).width(width)
+
+    if (height) {
+      imageBuilder =
+        imageBuilder.height(height)
+    }
+
+    return imageBuilder
+      .auto('format')
+      .fit('crop')
+      .url()
+
+  } catch (error) {
+
+    console.error(
+      'SANITY IMAGE SIZE ERROR:',
+      error
+    )
+
+    return '/placeholder.jpg'
   }
-
-  return imageBuilder
-    .auto('format')
-    .fit('crop')
-    .url()
 }
