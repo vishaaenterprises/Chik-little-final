@@ -5,17 +5,10 @@ import { Search, X, ArrowRight, TrendingUp, Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { createClient } from '@sanity/client'
+import { client } from '@/lib/sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
-// ─── Sanity client — useCdn:false avoids apicdn.sanity.io CORS issues ─────────
-const client = createClient({
-  projectId:  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:    process.env.NEXT_PUBLIC_SANITY_DATASET ?? 'production',
-  apiVersion: '2024-01-01',
-  useCdn:     false,   // use api.sanity.io not apicdn.sanity.io
-})
-
+// ─── Image builder using existing client ──────────────────────
 const builder = imageUrlBuilder(client)
 
 function resolveImage(mainImage: unknown): string {
@@ -30,7 +23,7 @@ function resolveImage(mainImage: unknown): string {
   }
 }
 
-// ─── GROQ — do NOT wrap $q in quotes, pass the wildcard via the param ─────────
+// ─── GROQ ─────────────────────────────────────────────────────
 const SEARCH_QUERY = `*[
   _type == "product"
   && (
@@ -103,11 +96,9 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setLoading(true)
       setError(null)
       try {
-        // Pass wildcard in the PARAM — not inside the query string
-        // This produces: $q = "Baby Towels*"  (GROQ match understands the *)
         const data = await client.fetch<SearchResult[]>(
           SEARCH_QUERY,
-          { q: trimmed + '*' }   // e.g. "Baby Towels*" — correct GROQ wildcard
+          { q: trimmed + '*' }
         )
         if (!cancelled) setResults(Array.isArray(data) ? data : [])
       } catch (err) {
