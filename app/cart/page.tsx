@@ -23,7 +23,7 @@ const WHATSAPP_NUMBER = "917728009522";
 const SITE_URL = "https://chik-little-final.vercel.app";
 
 export default function CartPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartTotal } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,7 +39,6 @@ export default function CartPage() {
   const shipping = cartTotal > 1499 ? 0 : 99;
   const total = cartTotal + shipping;
 
-  // Detect mobile
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -61,9 +60,7 @@ export default function CartPage() {
       document.body.style.top = "";
       document.body.style.width = "";
       document.body.style.overflow = "";
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || "0") * -1);
-      }
+      if (scrollY) window.scrollTo(0, parseInt(scrollY || "0") * -1);
     }
     return () => {
       document.body.style.position = "";
@@ -99,11 +96,7 @@ export default function CartPage() {
     lines.push(`Address: ${formData.address}`);
     lines.push(`City: ${formData.city}`);
     lines.push(`Pincode: ${formData.pincode}`);
-    lines.push(
-      `Payment Method: ${
-        formData.paymentMethod === "cod" ? "Cash on Delivery" : "Prepaid (Online)"
-      }`
-    );
+    lines.push(`Payment Method: ${formData.paymentMethod === "cod" ? "Cash on Delivery" : "Prepaid (Online)"}`);
     lines.push("");
     lines.push("🛒 *Cart Details*");
     lines.push("");
@@ -126,69 +119,107 @@ export default function CartPage() {
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
   };
 
-  // Shared form JSX
+  // ── Input field style helper ──
+  const inputBase: React.CSSProperties = {
+    width: "100%",
+    height: "44px",
+    padding: "0 14px",
+    borderRadius: "12px",
+    outline: "none",
+    fontSize: "14px",
+    background: "#F6FBFB",
+    color: "#2B2B2B",
+    border: "1.5px solid #E7EEEE",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    boxSizing: "border-box" as const,
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.target.style.borderColor = "#4FBDBA";
+    e.target.style.boxShadow = "0 0 0 3px rgba(79,189,186,0.12)";
+  };
+
+  const handleBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+    hasError: boolean
+  ) => {
+    e.target.style.borderColor = hasError ? "#e53e3e" : "#E7EEEE";
+    e.target.style.boxShadow = "none";
+  };
+
+  // ── Shared form fields ──
   const FormFields = (
-    <div className="space-y-3">
-      {(
-        [
-          { id: "name", label: "Full Name", placeholder: "Enter your full name", type: "text" },
-          { id: "phone", label: "Phone Number", placeholder: "10-digit mobile number", type: "tel" },
-        ] as const
-      ).map(({ id, label, placeholder, type }) => (
-        <div key={id}>
-          <label className="block text-xs font-semibold mb-1" style={{ color: "#2B2B2B" }}>
-            {label} *
-          </label>
-          <input
-            type={type}
-            value={formData[id]}
-            onChange={(e) => {
-              const val = id === "phone"
-                ? e.target.value.replace(/\D/g, "").slice(0, 10)
-                : e.target.value;
-              setFormData({ ...formData, [id]: val });
-            }}
-            className="w-full h-11 px-3 rounded-xl outline-none transition-all text-sm"
-            style={{
-              border: `1.5px solid ${errors[id] ? "#e53e3e" : "#E7EEEE"}`,
-              background: "#F6FBFB",
-              color: "#2B2B2B",
-            }}
-            placeholder={placeholder}
-            onFocus={(e) => { e.target.style.borderColor = "#4FBDBA"; e.target.style.boxShadow = "0 0 0 3px rgba(79,189,186,0.12)"; }}
-            onBlur={(e) => { e.target.style.borderColor = errors[id] ? "#e53e3e" : "#E7EEEE"; e.target.style.boxShadow = "none"; }}
-          />
-          {errors[id] && <p className="text-red-500 text-[11px] mt-0.5">{errors[id]}</p>}
-        </div>
-      ))}
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", paddingBottom: "8px" }}>
+
+      {/* Full Name */}
+      <div>
+        <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "6px", color: "#2B2B2B", textTransform: "uppercase" }}>
+          Full Name *
+        </label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          style={{ ...inputBase, borderColor: errors.name ? "#e53e3e" : "#E7EEEE" }}
+          placeholder="Enter your full name"
+          onFocus={handleFocus}
+          onBlur={(e) => handleBlur(e, !!errors.name)}
+        />
+        {errors.name && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors.name}</p>}
+      </div>
+
+      {/* Phone */}
+      <div>
+        <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "6px", color: "#2B2B2B", textTransform: "uppercase" }}>
+          Phone Number *
+        </label>
+        <input
+          type="tel"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+          style={{ ...inputBase, borderColor: errors.phone ? "#e53e3e" : "#E7EEEE" }}
+          placeholder="10-digit mobile number"
+          onFocus={handleFocus}
+          onBlur={(e) => handleBlur(e, !!errors.phone)}
+        />
+        {errors.phone && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors.phone}</p>}
+      </div>
 
       {/* Address */}
       <div>
-        <label className="block text-xs font-semibold mb-1" style={{ color: "#2B2B2B" }}>
+        <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "6px", color: "#2B2B2B", textTransform: "uppercase" }}>
           Delivery Address *
         </label>
         <textarea
           value={formData.address}
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          className="w-full px-3 py-2.5 rounded-xl outline-none transition-all resize-none text-sm"
           style={{
+            width: "100%",
             height: "80px",
-            border: `1.5px solid ${errors.address ? "#e53e3e" : "#E7EEEE"}`,
+            padding: "12px 14px",
+            borderRadius: "12px",
+            outline: "none",
+            fontSize: "14px",
             background: "#F6FBFB",
             color: "#2B2B2B",
+            border: `1.5px solid ${errors.address ? "#e53e3e" : "#E7EEEE"}`,
+            resize: "none",
+            transition: "border-color 0.2s, box-shadow 0.2s",
+            boxSizing: "border-box",
+            fontFamily: "inherit",
           }}
           placeholder="House/Flat No., Street, Area"
-          onFocus={(e) => { e.target.style.borderColor = "#4FBDBA"; e.target.style.boxShadow = "0 0 0 3px rgba(79,189,186,0.12)"; }}
-          onBlur={(e) => { e.target.style.borderColor = errors.address ? "#e53e3e" : "#E7EEEE"; e.target.style.boxShadow = "none"; }}
+          onFocus={handleFocus}
+          onBlur={(e) => handleBlur(e, !!errors.address)}
         />
-        {errors.address && <p className="text-red-500 text-[11px] mt-0.5">{errors.address}</p>}
+        {errors.address && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors.address}</p>}
       </div>
 
       {/* City & Pincode */}
-      <div className="grid grid-cols-2 gap-2">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
         {(["city", "pincode"] as const).map((field) => (
           <div key={field}>
-            <label className="block text-xs font-semibold mb-1" style={{ color: "#2B2B2B" }}>
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "6px", color: "#2B2B2B", textTransform: "uppercase" }}>
               {field === "city" ? "City" : "Pincode"} *
             </label>
             <input
@@ -200,27 +231,22 @@ export default function CartPage() {
                   : e.target.value;
                 setFormData({ ...formData, [field]: val });
               }}
-              className="w-full h-11 px-3 rounded-xl outline-none transition-all text-sm"
-              style={{
-                border: `1.5px solid ${errors[field] ? "#e53e3e" : "#E7EEEE"}`,
-                background: "#F6FBFB",
-                color: "#2B2B2B",
-              }}
-              placeholder={field === "city" ? "City" : "6-digit"}
-              onFocus={(e) => { e.target.style.borderColor = "#4FBDBA"; e.target.style.boxShadow = "0 0 0 3px rgba(79,189,186,0.12)"; }}
-              onBlur={(e) => { e.target.style.borderColor = errors[field] ? "#e53e3e" : "#E7EEEE"; e.target.style.boxShadow = "none"; }}
+              style={{ ...inputBase, borderColor: errors[field] ? "#e53e3e" : "#E7EEEE" }}
+              placeholder={field === "city" ? "Your city" : "6-digit"}
+              onFocus={handleFocus}
+              onBlur={(e) => handleBlur(e, !!errors[field])}
             />
-            {errors[field] && <p className="text-red-500 text-[11px] mt-0.5">{errors[field]}</p>}
+            {errors[field] && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors[field]}</p>}
           </div>
         ))}
       </div>
 
       {/* Payment Method */}
       <div>
-        <label className="block text-xs font-semibold mb-2" style={{ color: "#2B2B2B" }}>
+        <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "10px", color: "#2B2B2B", textTransform: "uppercase" }}>
           Payment Method *
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
           {[
             { value: "cod", icon: Truck, label: "Cash on Delivery" },
             { value: "prepaid", icon: CreditCard, label: "Prepaid (Online)" },
@@ -231,14 +257,31 @@ export default function CartPage() {
                 key={value}
                 type="button"
                 onClick={() => setFormData({ ...formData, paymentMethod: value as "cod" | "prepaid" })}
-                className="py-3 px-2 rounded-xl transition-all duration-200 flex flex-col items-center gap-1.5"
                 style={{
+                  padding: "14px 8px",
+                  borderRadius: "14px",
                   border: `2px solid ${isActive ? "#4FBDBA" : "#E7EEEE"}`,
                   background: isActive ? "#DDF5F4" : "white",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  width: "100%",
                 }}
               >
-                <Icon className="w-5 h-5" style={{ color: isActive ? "#4FBDBA" : "#6B6B6B" }} />
-                <span className="font-semibold text-xs text-center leading-tight" style={{ color: isActive ? "#2F7F7C" : "#2B2B2B" }}>
+                <Icon
+                  style={{ width: "20px", height: "20px", color: isActive ? "#4FBDBA" : "#9CA3AF" }}
+                />
+                <span style={{
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  textAlign: "center",
+                  lineHeight: "1.3",
+                  color: isActive ? "#2F7F7C" : "#4B5563",
+                  fontFamily: "inherit",
+                }}>
                   {label}
                 </span>
               </button>
@@ -247,18 +290,31 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* Mini Order Summary */}
-      <div className="rounded-xl p-3" style={{ background: "#F6FBFB", border: "1px solid #E7EEEE" }}>
-        <div className="flex justify-between items-center">
-          <span className="text-sm" style={{ color: "#6B6B6B" }}>Order Total</span>
-          <span className="text-lg font-bold" style={{ color: "#4FBDBA", fontFamily: "Georgia, serif" }}>
-            Rs. {total.toLocaleString()}
-          </span>
+      {/* Order Summary */}
+      <div style={{
+        borderRadius: "14px",
+        padding: "14px 16px",
+        background: "#F6FBFB",
+        border: "1px solid #E7EEEE",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <p style={{ fontSize: "12px", color: "#6B6B6B", marginBottom: "2px" }}>Subtotal</p>
+            <p style={{ fontSize: "12px", color: "#6B6B6B" }}>
+              Shipping: <span style={{ color: shipping === 0 ? "#4FBDBA" : "#2B2B2B", fontWeight: 600 }}>
+                {shipping === 0 ? "FREE 🎉" : `Rs. ${shipping}`}
+              </span>
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p style={{ fontSize: "11px", color: "#6B6B6B" }}>Grand Total</p>
+            <p style={{ fontSize: "22px", fontWeight: 800, color: "#4FBDBA", fontFamily: "Georgia, serif", lineHeight: 1.1 }}>
+              Rs. {total.toLocaleString()}
+            </p>
+          </div>
         </div>
-        {shipping === 0 ? (
-          <p className="text-xs mt-1" style={{ color: "#4FBDBA" }}>🎉 You qualify for FREE shipping!</p>
-        ) : (
-          <p className="text-xs mt-1" style={{ color: "#6B6B6B" }}>
+        {shipping !== 0 && (
+          <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "8px", paddingTop: "8px", borderTop: "1px dashed #E7EEEE" }}>
             Add Rs. {(1499 - cartTotal).toLocaleString()} more for FREE shipping
           </p>
         )}
@@ -266,7 +322,37 @@ export default function CartPage() {
     </div>
   );
 
-  // Empty cart
+  // ── WhatsApp Button ──
+  const WhatsAppBtn = (
+    <motion.button
+      onClick={handleCheckout}
+      whileHover={{ scale: 1.015, y: -1 }}
+      whileTap={{ scale: 0.97 }}
+      style={{
+        width: "100%",
+        padding: "15px 24px",
+        background: "linear-gradient(135deg, #25D366 0%, #1DA851 100%)",
+        color: "white",
+        fontWeight: 800,
+        borderRadius: "14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        fontSize: "15px",
+        border: "none",
+        cursor: "pointer",
+        boxShadow: "0 8px 24px rgba(37,211,102,0.38), 0 2px 8px rgba(37,211,102,0.2)",
+        letterSpacing: "0.01em",
+        fontFamily: "inherit",
+      }}
+    >
+      <MessageCircle style={{ width: "20px", height: "20px" }} />
+      Place Order via WhatsApp
+    </motion.button>
+  );
+
+  // ── Empty Cart ──
   if (cartItems.length === 0 && !showCheckout) {
     return (
       <MainLayout>
@@ -363,154 +449,242 @@ export default function CartPage() {
       <AnimatePresence>
         {showCheckout && (
           <>
-            {/* Backdrop */}
+            {/* ── Backdrop ── */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowCheckout(false)}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-              style={{ zIndex: 9998 }}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.55)",
+                backdropFilter: "blur(4px)",
+                WebkitBackdropFilter: "blur(4px)",
+                zIndex: 9998,
+              }}
             />
 
-            {/* ── DESKTOP: Centered dialog ── */}
+            {/* ════ DESKTOP: Overlay with top-aligned modal ════ */}
             {!isMobile && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                initial={{ opacity: 0, y: -16, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.97 }}
+                transition={{ type: "spring", damping: 30, stiffness: 320 }}
                 onClick={(e) => e.stopPropagation()}
-                className="fixed inset-0 flex items-center justify-center"
-                style={{ zIndex: 9999 }}
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 9999,
+                  display: "flex",
+                  alignItems: "flex-start",        // ← top-aligned, not centered
+                  justifyContent: "center",
+                  paddingTop: "88px",              // ← clears navbar (64px) + breathing room
+                  paddingBottom: "24px",
+                  paddingLeft: "16px",
+                  paddingRight: "16px",
+                  overflowY: "auto",
+                  WebkitOverflowScrolling: "touch",
+                }}
               >
                 <div
-                  className="bg-white w-full flex flex-col"
                   style={{
+                    background: "white",
+                    width: "100%",
                     maxWidth: "480px",
-                    maxHeight: "90vh",
                     borderRadius: "24px",
-                    boxShadow: "0 32px 80px rgba(0,0,0,0.18)",
+                    boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.08)",
+                    display: "flex",
+                    flexDirection: "column",
+                    maxHeight: "calc(100vh - 120px)",
+                    overflow: "hidden",
                   }}
                 >
-                  {/* Header */}
-                  <div className="flex items-start justify-between px-6 pt-6 pb-4 flex-shrink-0"
-                    style={{ borderBottom: "1px solid #F0F4F4" }}>
+                  {/* Fixed Header */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      padding: "24px 24px 20px",
+                      borderBottom: "1px solid #F0F6F6",
+                      flexShrink: 0,
+                    }}
+                  >
                     <div>
-                      <span className="text-[10px] uppercase tracking-[0.2em] font-semibold" style={{ color: "#4FBDBA" }}>
+                      <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 700, color: "#4FBDBA" }}>
                         ✦ Almost there!
                       </span>
-                      <h2 className="text-2xl font-bold mt-0.5" style={{ color: "#2B2B2B", fontFamily: "Georgia, serif" }}>
+                      <h2 style={{ fontSize: "24px", fontWeight: 800, marginTop: "4px", color: "#2B2B2B", fontFamily: "Georgia, serif", lineHeight: 1.2 }}>
                         Checkout Details
                       </h2>
                     </div>
                     <button
                       onClick={() => setShowCheckout(false)}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl transition-colors flex-shrink-0"
-                      style={{ background: "#F6FBFB", border: "1px solid #E7EEEE" }}
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "10px",
+                        background: "#F6FBFB",
+                        border: "1px solid #E7EEEE",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        marginTop: "2px",
+                      }}
                     >
-                      <X className="w-4 h-4" style={{ color: "#2B2B2B" }} />
+                      <X style={{ width: "16px", height: "16px", color: "#2B2B2B" }} />
                     </button>
                   </div>
 
-                  {/* Scrollable form */}
+                  {/* Scrollable Content — ONLY this scrolls */}
                   <div
-                    className="flex-1 overflow-y-auto px-6 py-4"
-                    style={{ WebkitOverflowScrolling: "touch" }}
+                    style={{
+                      flex: 1,
+                      overflowY: "auto",
+                      overflowX: "hidden",
+                      WebkitOverflowScrolling: "touch",
+                      padding: "20px 24px",
+                      minHeight: 0,
+                      scrollbarWidth: "none",          // Firefox: hide scrollbar
+                      msOverflowStyle: "none",          // IE: hide scrollbar
+                    }}
+                    className="hide-scrollbar"
                   >
                     {FormFields}
                   </div>
 
-                  {/* Footer button */}
-                  <div className="px-6 py-4 flex-shrink-0" style={{ borderTop: "1px solid #F0F4F4" }}>
-                    <motion.button
-                      onClick={handleCheckout}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="w-full py-4 text-white font-bold rounded-2xl flex items-center justify-center gap-2"
-                      style={{ background: "#25D366", boxShadow: "0 8px 24px rgba(37,211,102,0.35)" }}
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      Place Order via WhatsApp
-                    </motion.button>
+                  {/* Sticky Footer */}
+                  <div
+                    style={{
+                      padding: "16px 24px 24px",
+                      borderTop: "1px solid #F0F6F6",
+                      background: "white",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {WhatsAppBtn}
+                    <p style={{ fontSize: "11px", textAlign: "center", marginTop: "10px", color: "#9CA3AF" }}>
+                      🔒 Your details are shared only via WhatsApp
+                    </p>
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* ── MOBILE: Bottom sheet ── */}
+            {/* ════ MOBILE: Bottom sheet ════ */}
             {isMobile && (
               <motion.div
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 30, stiffness: 320 }}
+                transition={{ type: "spring", damping: 32, stiffness: 340 }}
                 onClick={(e) => e.stopPropagation()}
-                className="fixed left-0 right-0 bottom-0 bg-white flex flex-col overflow-hidden"
                 style={{
+                  position: "fixed",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
                   zIndex: 9999,
+                  background: "white",
                   borderRadius: "24px 24px 0 0",
-                  maxHeight: "calc(100dvh - 56px)",
-                  boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
+                  boxShadow: "0 -8px 40px rgba(0,0,0,0.18)",
+                  display: "flex",
+                  flexDirection: "column",
+                  // KEY: leaves top of screen accessible, doesn't overflow
+                  maxHeight: "calc(100dvh - 72px)",
+                  overflow: "hidden",
                 }}
               >
-                {/* Drag handle */}
-                <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-                  <div className="w-10 h-1 rounded-full" style={{ background: "#D1D5DB" }} />
+                {/* Drag Handle */}
+                <div style={{ display: "flex", justifyContent: "center", paddingTop: "12px", paddingBottom: "4px", flexShrink: 0 }}>
+                  <div style={{ width: "40px", height: "4px", borderRadius: "100px", background: "#D1D5DB" }} />
                 </div>
 
-                {/* Header */}
-                <div className="flex items-start justify-between px-4 pt-2 pb-3 flex-shrink-0"
-                  style={{ borderBottom: "1px solid #F0F4F4" }}>
+                {/* Fixed Header */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    padding: "12px 20px 16px",
+                    borderBottom: "1px solid #F0F6F6",
+                    flexShrink: 0,
+                  }}
+                >
                   <div>
-                    <span className="text-[10px] uppercase tracking-[0.2em] font-semibold" style={{ color: "#4FBDBA" }}>
+                    <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 700, color: "#4FBDBA" }}>
                       ✦ Almost there!
                     </span>
-                    <h2 className="text-xl font-bold mt-0.5" style={{ color: "#2B2B2B", fontFamily: "Georgia, serif" }}>
+                    <h2 style={{ fontSize: "20px", fontWeight: 800, marginTop: "2px", color: "#2B2B2B", fontFamily: "Georgia, serif" }}>
                       Checkout Details
                     </h2>
                   </div>
                   <button
                     onClick={() => setShowCheckout(false)}
-                    className="w-8 h-8 flex items-center justify-center rounded-xl flex-shrink-0 mt-1"
-                    style={{ background: "#F6FBFB", border: "1px solid #E7EEEE" }}
+                    style={{
+                      width: "34px",
+                      height: "34px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: "10px",
+                      background: "#F6FBFB",
+                      border: "1px solid #E7EEEE",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      marginTop: "2px",
+                    }}
                   >
-                    <X className="w-4 h-4" style={{ color: "#2B2B2B" }} />
+                    <X style={{ width: "15px", height: "15px", color: "#2B2B2B" }} />
                   </button>
                 </div>
 
-                {/* Scrollable form */}
+                {/* Scrollable Content */}
                 <div
-                  className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3"
-                  style={{ WebkitOverflowScrolling: "touch" }}
+                  style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    WebkitOverflowScrolling: "touch",
+                    padding: "16px 20px",
+                    minHeight: 0,
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                  }}
+                  className="hide-scrollbar"
                 >
                   {FormFields}
                 </div>
 
-                {/* Sticky WhatsApp button — above navbar */}
+                {/* Sticky Footer — sits above bottom nav bar */}
                 <div
-                  className="flex-shrink-0 px-4 pt-3 bg-white"
                   style={{
-                    paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 76px)",
-                    boxShadow: "0 -8px 20px rgba(0,0,0,0.06)",
+                    padding: "14px 20px",
+                    paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 76px)`,
+                    borderTop: "1px solid #F0F6F6",
+                    background: "white",
+                    flexShrink: 0,
+                    boxShadow: "0 -4px 20px rgba(0,0,0,0.06)",
                   }}
                 >
-                  <motion.button
-                    onClick={handleCheckout}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="w-full py-4 text-white font-bold rounded-2xl flex items-center justify-center gap-2 text-sm"
-                    style={{ background: "#25D366", boxShadow: "0 8px 24px rgba(37,211,102,0.35)" }}
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    Place Order via WhatsApp
-                  </motion.button>
+                  {WhatsAppBtn}
                 </div>
               </motion.div>
             )}
           </>
         )}
       </AnimatePresence>
+
+      {/* Global scrollbar hide style */}
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </MainLayout>
   );
 }
