@@ -80,16 +80,7 @@ const contactCards = [
     bg: '#FFF4D6',
     shadow: 'rgba(246,196,83,0.2)',
   },
-  // {
-  //   icon: MapPin,
-  //   title: 'Visit Us',
-  //   description: 'By appointment only',
-  //   value: 'Jaipur, Rajasthan',
-  //   link: '#',
-  //   accent: '#2F7F7C',
-  //   bg: '#DDF5F4',
-  //   shadow: 'rgba(47,127,124,0.12)',
-  // },
+  
 ]
 
 export default function ContactPage() {
