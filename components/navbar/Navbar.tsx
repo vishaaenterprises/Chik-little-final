@@ -100,7 +100,7 @@ export default function Navbar() {
             <Link href="/" className="flex items-center shrink-0">
               <div className="relative w-[170px] sm:w-[210px] lg:w-[250px] h-[70px]">
                 <Image
-                  src="/logo.png"
+                  src="/logo2.png"
                   alt="Little Chiku"
                   fill
                   priority
@@ -204,7 +204,7 @@ export default function Navbar() {
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 hover:bg-[#EDF6F6] rounded-full transition-colors"
               >
-                <Search className="w-5 h-5 text-[#2B2B2B]" />
+                <Search className="hidden md:block w-5 h-5 text-black" />
               </button>
 
               {/* WISHLIST */}
