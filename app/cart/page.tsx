@@ -19,8 +19,8 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-const WHATSAPP_NUMBER = "918969457707";
-const SITE_URL = "https://little-chiku.vercel.app";
+const WHATSAPP_NUMBER = "917728009522";
+const SITE_URL = "https://chik-little-final.vercel.app";
 
 export default function CartPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
