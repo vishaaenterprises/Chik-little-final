@@ -1,12 +1,4 @@
 // lib/sanity/queries.ts
-// ─────────────────────────────────────────────────────────────
-//  All GROQ queries.
-//
-//  Product detail page has TWO product sections:
-//  1. alsoLike  — manually curated by admin in Sanity Studio
-//  2. related   — auto-fetched: same category, excludes current
-// ─────────────────────────────────────────────────────────────
-
 import { groq } from 'next-sanity'
 
 // ── Shared fragment: lightweight card fields ──────────────────
@@ -27,6 +19,7 @@ const PRODUCT_CARD_FIELDS = groq`
   rating,
   reviewsCount,
   productType,
+  subcategory,
   category->{
     _id,
     title,
@@ -57,6 +50,7 @@ const PRODUCT_DETAIL_FIELDS = groq`
   rating,
   reviewsCount,
   productType,
+  subcategory,
   tags,
   storyTitle,
   storyDescription,
@@ -123,6 +117,17 @@ export const productsByCategoryQuery = groq`
   }
 `
 
+// New: fetch by category + subcategory together (used by API route if needed)
+export const productsByCategoryAndSubcategoryQuery = groq`
+  *[
+    _type == "product"
+    && category->slug.current == $categorySlug
+    && subcategory == $subcategory
+  ] | order(_createdAt desc) {
+    ${PRODUCT_CARD_FIELDS}
+  }
+`
+
 export const featuredProductsQuery = groq`
   *[_type == "product" && featuredProduct == true] | order(_createdAt desc)[0...8] {
     ${PRODUCT_CARD_FIELDS}
@@ -135,30 +140,21 @@ export const newArrivalsQuery = groq`
   }
 `
 
-// ===== PRODUCT DETAIL — full doc with curated alsoLike ========
+// ===== PRODUCT DETAIL =========================================
 
-/**
- * By slug — primary route.
- * Returns full product including resolved alsoLike[] references.
- */
 export const productBySlugQuery = groq`
   *[_type == "product" && slug.current == $slug][0] {
     ${PRODUCT_DETAIL_FIELDS}
   }
 `
 
-/**
- * By _id — legacy [id] route.
- */
 export const productByIdQuery = groq`
   *[_type == "product" && _id == $id][0] {
     ${PRODUCT_DETAIL_FIELDS}
   }
 `
 
-// ===== RELATED PRODUCTS — auto, same category =================
-// Fetches up to 4 products from the same category,
-// excluding the current product. Used BELOW alsoLike section.
+// ===== RELATED PRODUCTS =======================================
 
 export const relatedProductsQuery = groq`
   *[

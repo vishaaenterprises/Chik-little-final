@@ -1,4 +1,5 @@
 import { defineField, defineType } from 'sanity'
+import { SubcategoryInput } from './SubcategoryInput'
 
 export const product = defineType({
   name: 'product',
@@ -49,10 +50,15 @@ export const product = defineType({
       validation: (Rule) => Rule.required(),
     }),
 
+    // ── Subcategory — category ke baad automatically update hoti hai ──
     defineField({
-      name: 'productType',
-      title: 'Product Type / Subcategory',
+      name: 'subcategory',
+      title: 'Subcategory',
       type: 'string',
+      description: 'Category select karne ke baad yahan options aayenge.',
+      components: {
+        input: SubcategoryInput,
+      },
     }),
 
     defineField({
@@ -92,10 +98,10 @@ export const product = defineType({
       type: 'string',
       options: {
         list: [
-          { title: 'New', value: 'new' },
-          { title: 'Bestseller', value: 'bestseller' },
-          { title: 'Sale', value: 'sale' },
-          { title: 'Limited Edition', value: 'limited' },
+          { title: 'New',             value: 'new'        },
+          { title: 'Bestseller',      value: 'bestseller' },
+          { title: 'Sale',            value: 'sale'       },
+          { title: 'Limited Edition', value: 'limited'    },
         ],
       },
     }),
@@ -140,7 +146,7 @@ export const product = defineType({
           type: 'object',
           fields: [
             { name: 'name', title: 'Color Name', type: 'string' },
-            { name: 'hex', title: 'Hex Code', type: 'string' },
+            { name: 'hex',  title: 'Hex Code',   type: 'string' },
           ],
           preview: {
             select: { title: 'name', subtitle: 'hex' },
@@ -271,22 +277,19 @@ export const product = defineType({
 
     // ══════════════════════════════════════════════════════════
     // ── CURATED SECTION : You May Also Like ───────────────────
-    // Admin manually picks products to show in this section.
-    // Shown ABOVE the auto related products section.
     // ══════════════════════════════════════════════════════════
 
     defineField({
       name: 'alsoLike',
       title: 'You May Also Like',
       description:
-        'Manually pick up to 8 products to show in the "You May Also Like" section on this product page. These are hand-curated by you.',
+        'Manually pick up to 8 products to show in the "You May Also Like" section on this product page.',
       type: 'array',
       of: [
         {
           type: 'reference',
           to: [{ type: 'product' }],
           options: {
-            // Prevent selecting the product itself
             filter: ({ document }: { document: { _id?: string } }) => ({
               filter: '_id != $self',
               params: { self: document._id },
@@ -297,7 +300,7 @@ export const product = defineType({
       validation: (Rule) => Rule.max(8).unique(),
     }),
 
-    // Legacy field kept for backward compat
+    // Legacy
     defineField({
       name: 'brandStory',
       title: 'Brand Story (Legacy)',
@@ -310,15 +313,17 @@ export const product = defineType({
 
   preview: {
     select: {
-      title: 'productName',
-      media: 'mainImage',
-      price: 'price',
-      category: 'category.title',
+      title:       'productName',
+      media:       'mainImage',
+      price:       'price',
+      category:    'category.title',
+      subcategory: 'subcategory',
     },
-    prepare({ title, media, price, category }) {
+    prepare({ title, media, price, category, subcategory }) {
+      const sub = subcategory ? ` › ${subcategory}` : ''
       return {
         title,
-        subtitle: `${category ? category + ' · ' : ''}₹${price}`,
+        subtitle: `${category ? category + sub + ' · ' : ''}₹${price}`,
         media,
       }
     },

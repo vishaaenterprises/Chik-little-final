@@ -1,3 +1,4 @@
+// schemas/category.ts
 import { defineType, defineField } from 'sanity'
 
 export const category = defineType({
@@ -25,9 +26,7 @@ export const category = defineType({
       name: 'image',
       title: 'Image',
       type: 'image',
-      options: {
-        hotspot: true,
-      },
+      options: { hotspot: true },
     }),
     defineField({
       name: 'description',
@@ -58,6 +57,7 @@ export const category = defineType({
       title: 'Subcategories',
       type: 'array',
       of: [{ type: 'string' }],
+      description: 'Add subcategory names here. These appear in the product subcategory dropdown.',
     }),
     defineField({
       name: 'order',

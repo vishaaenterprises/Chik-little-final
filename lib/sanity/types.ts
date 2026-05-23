@@ -1,8 +1,4 @@
 // lib/sanity/types.ts
-// ─────────────────────────────────────────────────────────────
-//  Full TypeScript interfaces for all Sanity document types.
-// ─────────────────────────────────────────────────────────────
-
 import type { PortableTextBlock } from '@portabletext/types'
 
 // ── Sanity image reference ────────────────────────────────────
@@ -59,7 +55,6 @@ export interface ProductColor {
 }
 
 // ── Minimal product shape used inside alsoLike[] ─────────────
-// (resolved references return card-level fields only)
 
 export interface SanityProductCard {
   _id: string
@@ -77,6 +72,8 @@ export interface SanityProductCard {
   rating?: number
   reviewsCount?: number
   productType?: string
+  /** Plain string matching one entry in category.subcategories */
+  subcategory?: string
   category?: {
     _id: string
     title: string
@@ -87,70 +84,55 @@ export interface SanityProductCard {
 // ── Core Sanity product (full document) ───────────────────────
 
 export interface SanityProduct {
-  // Identifiers
   _id: string
   _type?: 'product'
   _createdAt?: string
 
-  // Core Info
   productName: string
   slug: string
   shortDescription?: string
   fullDescription?: PortableTextBlock[]
 
-  // Category
   category?: {
     _id: string
     title: string
     slug: string
   }
   productType?: string
+  /** Plain string matching one entry in category.subcategories */
+  subcategory?: string
   tags?: string[]
 
-  // Pricing
   price: number
   originalPrice?: number
   discountPercentage?: number
 
-  // Flags
   badge?: 'new' | 'bestseller' | 'sale' | 'limited'
   featuredProduct?: boolean
   newArrival?: boolean
 
-  // Images
   mainImage: SanityImageAsset
   galleryImages?: SanityImageAsset[]
 
-  // Variants
   colors?: ProductColor[]
   sizes?: string[]
 
-  // Inventory
   stock?: number
   sku?: string
 
-  // Reviews
   rating?: number
   reviewsCount?: number
 
-  // ── Tab 1: Details & Story ──────────────────────────────────
   storyTitle?: string
   storyDescription?: string
   dimensions?: string
   features?: string[]
 
-  // ── Tab 2: Materials ────────────────────────────────────────
   materials?: ProductMaterial[]
-
-  // ── Tab 3: Care Instructions ────────────────────────────────
   careInstructions?: string[]
 
-  // ── Curated "You May Also Like" section ────────────────────
-  // Admin manually selects these in Sanity Studio.
-  // Resolved references — already expanded to card-level fields.
   alsoLike?: SanityProductCard[]
 
-  // Legacy
   brandStory?: string
 }
 
@@ -165,6 +147,8 @@ export interface LegacyProduct {
   rating: number
   image: string
   category: string
+  categorySlug?: string
+  /** Matches category.subcategories entry — used for frontend filtering */
   subcategory?: string
   isNew?: boolean
   isBestseller?: boolean
@@ -174,10 +158,6 @@ export interface LegacyProduct {
   reviewsCount?: number
   stock?: number
 }
-
-// ── Product is an alias for LegacyProduct ────────────────────
-// Kept for backward-compatibility with any imports that use
-// `import type { Product } from '@/lib/sanity/types'`
 
 export type Product = LegacyProduct
 
@@ -196,9 +176,10 @@ export function sanityProductToLegacy(
     rating: product.rating ?? 4.5,
     image: imageUrl,
     category: product.category?.title ?? 'Products',
-    subcategory: product.productType,
-    isNew:
-      (product as SanityProduct).newArrival ?? product.badge === 'new',
+    categorySlug: product.category?.slug ?? 'all',
+    // ← subcategory now carried through
+    subcategory: product.subcategory,
+    isNew: (product as SanityProduct).newArrival ?? product.badge === 'new',
     isBestseller: product.badge === 'bestseller',
     shortDescription: product.shortDescription,
     colors: product.colors,
