@@ -20,8 +20,9 @@ import {
 } from "lucide-react";
 
 const WHATSAPP_NUMBER = "917728009522";
-const SITE_URL = "https://chik-little-final.vercel.app";
-
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  
 export default function CartPage() {
   const { cartItems, cartTotal } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
