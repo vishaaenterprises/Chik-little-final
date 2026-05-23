@@ -1,12 +1,11 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Eye, ShoppingBag, Star } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 
 import { useCart } from '@/context/cart-context'
-
 import type { LegacyProduct } from '@/lib/sanity/types'
 
 interface ProductCardProps {
@@ -41,19 +40,23 @@ export default function ProductCard({
     isBestseller,
   } = product
 
+  // FIX: GROQ already resolves slug to a plain string via "slug": slug.current
+  // So product.slug is always a string — never use product.slug?.current
+  const slugStr =
+    typeof product.slug === 'string'
+      ? product.slug
+      : (product.slug as any)?.current ?? ''
+
   const wishlisted = isInWishlist(id)
   const inCart = isInCart(id)
 
   const discount = originalPrice
-    ? Math.round(
-        ((originalPrice - price) / originalPrice) * 100
-      )
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : null
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-
     if (wishlisted) {
       removeFromWishlist(id)
     } else {
@@ -74,22 +77,17 @@ export default function ProductCard({
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-
     addToCart({
       id,
-      slug: product.slug,
+      slug: slugStr,
       name,
       price,
       originalPrice,
       image,
       category,
     })
-
     setAddedToCart(true)
-
-    setTimeout(() => {
-      setAddedToCart(false)
-    }, 2000)
+    setTimeout(() => setAddedToCart(false), 2000)
   }
 
   return (
@@ -109,18 +107,14 @@ export default function ProductCard({
 
         {/* Image Container */}
         <div className="relative overflow-hidden bg-[#F6FBFB] aspect-[4/5]">
-          <Link href={`/product/${product.slug}`}>
+          {/* FIX: use slugStr (plain string), not product.slug?.current */}
+          <Link href={`/product/${slugStr}`}>
             <motion.img
               src={image}
               alt={name}
               className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-              animate={{
-                scale: isHovered ? 1.08 : 1,
-              }}
-              transition={{
-                duration: 0.45,
-                ease: 'easeOut',
-              }}
+              animate={{ scale: isHovered ? 1.08 : 1 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
             />
           </Link>
 
@@ -134,13 +128,11 @@ export default function ProductCard({
                 {discount}% OFF
               </span>
             )}
-
             {isNew && (
               <span className="px-2.5 md:px-3 py-1 bg-[#4FBDBA] text-white text-[10px] md:text-xs font-bold rounded-full shadow-sm">
                 NEW
               </span>
             )}
-
             {isBestseller && (
               <span className="px-2.5 md:px-3 py-1 bg-[#2F7F7C] text-white text-[10px] md:text-xs font-bold rounded-full shadow-sm">
                 BEST
@@ -169,14 +161,11 @@ export default function ProductCard({
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Heart
-                className="w-4 h-4"
-                fill={wishlisted ? 'currentColor' : 'none'}
-              />
+              <Heart className="w-4 h-4" fill={wishlisted ? 'currentColor' : 'none'} />
             </motion.button>
 
-            {/* Preview */}
-            <Link href={`/product/${product.slug}`}>
+            {/* FIX: use slugStr here too */}
+            <Link href={`/product/${slugStr}`}>
               <motion.div
                 className="p-2.5 rounded-xl bg-white/90 text-[#2B2B2B] hover:bg-white backdrop-blur-md border border-white/40 shadow-md transition-all"
                 whileHover={{ scale: 1.08 }}
@@ -191,10 +180,7 @@ export default function ProductCard({
           <motion.div
             className="absolute bottom-4 left-4 right-4 hidden md:block"
             initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: isHovered ? 1 : 0,
-              y: isHovered ? 0 : 20,
-            }}
+            animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 20 }}
             transition={{ duration: 0.25 }}
           >
             <motion.button
@@ -214,15 +200,13 @@ export default function ProductCard({
         </div>
 
         {/* Content */}
-        <Link href={`/product/${product.slug}`} className="flex flex-1 flex-col">
+        {/* FIX: use slugStr for the content link too */}
+        <Link href={`/product/${slugStr}`} className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col p-4 md:p-5">
             <div className="flex-1">
-              {/* Category */}
               <p className="mb-2 text-[10px] md:text-xs font-semibold uppercase tracking-[0.18em] text-[#6B6B6B] line-clamp-1">
                 {category}
               </p>
-
-              {/* Product Name */}
               <h3 className="font-heading text-sm md:text-base font-bold leading-snug text-[#2B2B2B] transition-colors duration-300 group-hover:text-[#2F7F7C] line-clamp-2">
                 {name}
               </h3>
@@ -233,9 +217,7 @@ export default function ProductCard({
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 fill-[#F6C453] text-[#F6C453]" />
-                  <span className="text-xs md:text-sm font-semibold text-[#2B2B2B]">
-                    {rating}
-                  </span>
+                  <span className="text-xs md:text-sm font-semibold text-[#2B2B2B]">{rating}</span>
                 </div>
                 <span className="hidden sm:inline text-[11px] md:text-xs text-[#6B6B6B]">
                   (128 reviews)

@@ -1,6 +1,5 @@
 'use client'
 
-
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
@@ -34,8 +33,6 @@ import {
   Loader2,
 } from 'lucide-react'
 
-// ── UI-only defaults 
-
 const DEFAULT_COLORS = [
   { name: 'Sage Green', hex: '#7E8B5B' },
   { name: 'Dusty Blue', hex: '#AFC8D6' },
@@ -45,122 +42,71 @@ const DEFAULT_COLORS = [
 
 const DEFAULT_SIZES = ['0-12 months', '1-3 years', '3-5 years']
 
-// ── Page 
-
 export default function ProductPage() {
   const params = useParams()
-  // params.slug comes from the [slug] folder name
-  const slug = params.slug as string
 
-  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } =
-    useCart()
+  // FIX: params.slug from Next.js dynamic route [slug] is always a string
+  // useParams returns string | string[] — cast safely
+  const slug = Array.isArray(params.slug) ? params.slug[0] : (params.slug as string)
 
-  // ── Server state ──────────────────────────────────────────
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useCart()
+
   const [sanityProduct, setSanityProduct] = useState<SanityProduct | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>([])
   const [loading, setLoading] = useState(true)
 
-  // ── UI state ──────────────────────────────────────────────
   const [selectedColorIndex, setSelectedColorIndex] = useState(0)
   const [selectedSize, setSelectedSize] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [addedToCart, setAddedToCart] = useState(false)
 
-  // ── Fetch by slug ─────────────────────────────────────────
-useEffect(() => {
+  useEffect(() => {
+    if (!slug) return
 
-  if (!slug) return
-
-  async function fetchProduct() {
-
-    setLoading(true)
-
-    try {
-
-      // IMPORTANT
-      const res = await fetch(
-        `http://localhost:3000/api/sanity/product?slug=${slug}`,
-        {
+    async function fetchProduct() {
+      setLoading(true)
+      try {
+        // FIX: use a relative URL — works in all environments (local, Vercel, etc.)
+        // Never hardcode localhost:3000
+        const res = await fetch(`/api/sanity/product?slug=${encodeURIComponent(slug)}`, {
           cache: 'no-store',
+        })
+
+        if (!res.ok) {
+          throw new Error(`API responded with status ${res.status}`)
         }
-      )
 
-      // RESPONSE CHECK
-      if (!res.ok) {
+        const contentType = res.headers.get('content-type') ?? ''
+        if (!contentType.includes('application/json')) {
+          throw new Error('Expected JSON response from API')
+        }
 
-        throw new Error(
-          'Failed to fetch product'
-        )
+        const data = await res.json()
+
+        if (data?.product) {
+          setSanityProduct(data.product)
+          setRelatedProducts(data.relatedProducts ?? [])
+          setSelectedSize(data.product.sizes?.[0] ?? DEFAULT_SIZES[0])
+        } else {
+          console.warn('[ProductPage] Product not found for slug:', slug)
+        }
+      } catch (err) {
+        console.error('[ProductPage] fetch error:', err)
+      } finally {
+        setLoading(false)
       }
-
-      // CONTENT TYPE CHECK
-      const contentType =
-        res.headers.get(
-          'content-type'
-        )
-
-      if (
-        !contentType ||
-        !contentType.includes(
-          'application/json'
-        )
-      ) {
-
-        throw new Error(
-          'Invalid JSON response'
-        )
-      }
-
-      const data =
-        await res.json()
-
-      // PRODUCT EXISTS
-
-      if (data?.product) {
-
-        setSanityProduct(
-          data.product
-        )
-
-        setRelatedProducts(
-          data.relatedProducts ?? []
-        )
-
-        setSelectedSize(
-          data.product.sizes?.[0]
-            ?? DEFAULT_SIZES[0]
-        )
-
-      } else {
-
-        console.error(
-          '[ProductPage] Product not found'
-        )
-      }
-
-    } catch (err) {
-
-      console.error(
-        '[ProductPage] fetch error:',
-        err
-      )
-
-    } finally {
-
-      setLoading(false)
     }
-  }
 
-  fetchProduct()
+    fetchProduct()
+  }, [slug])
 
-}, [slug])
-
-  // ── Derived 
+  // ── Derived display product ───────────────────────────────
   const displayProduct = sanityProduct
     ? {
         id: sanityProduct._id,
-        // Always resolve to a plain string — GROQ returns "slug": slug.current
+        // FIX: GROQ resolves "slug": slug.current, so it's already a plain string
+        // Defensive fallback handles edge cases
         slug:
           typeof sanityProduct.slug === 'string'
             ? sanityProduct.slug
@@ -171,7 +117,11 @@ useEffect(() => {
         rating: sanityProduct.rating ?? 4.9,
         image: getImageUrl(sanityProduct.mainImage),
         category: sanityProduct.category?.title ?? 'Products',
-        categorySlug: sanityProduct.category?.slug ?? 'all',
+        // FIX: same slug resolution for category
+        categorySlug:
+          typeof sanityProduct.category?.slug === 'string'
+            ? sanityProduct.category.slug
+            : (sanityProduct.category?.slug as any)?.current ?? 'all',
         subcategory: sanityProduct.productType ?? '',
         isNew: sanityProduct.newArrival ?? sanityProduct.badge === 'new',
         isBestseller: sanityProduct.badge === 'bestseller',
@@ -196,12 +146,10 @@ useEffect(() => {
       ].filter(Boolean)
     : []
 
-  // "You May Also Like" — admin-curated via alsoLike[] in Sanity
   const alsoLikeProducts = (sanityProduct?.alsoLike ?? []).map(
     (p: SanityProductCard) => sanityProductToLegacy(p, getImageUrl(p.mainImage))
   )
 
-  // Related products — same category, auto-fetched
   const displayRelatedProducts = relatedProducts.map((p) =>
     sanityProductToLegacy(p, getImageUrl(p.mainImage))
   )
@@ -216,13 +164,11 @@ useEffect(() => {
       )
     : 0
 
-  // ── Image navigation ──────────────────────────────────────
   const nextImage = () =>
     setCurrentImageIndex((prev) => (prev + 1) % images.length)
   const prevImage = () =>
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
 
- 
   const handleAddToCart = () => {
     if (!displayProduct) return
     const colorObj = displayProduct.colors[selectedColorIndex] as {
@@ -232,7 +178,6 @@ useEffect(() => {
     addToCart(
       {
         id: displayProduct.id,
-    
         slug: displayProduct.slug,
         name: displayProduct.name,
         price: displayProduct.price,
@@ -248,7 +193,6 @@ useEffect(() => {
     setTimeout(() => setAddedToCart(false), 2000)
   }
 
-  // ── Wishlist
   const handleWishlistToggle = () => {
     if (!displayProduct) return
     if (isWishlisted) {
@@ -315,11 +259,10 @@ useEffect(() => {
   // ── Render ────────────────────────────────────────────────
   return (
     <MainLayout>
-      {/* Ambient glows */}
       <div className="absolute top-0 right-0 w-[600px] h-[400px] bg-[#4FBDBA]/5 rounded-full blur-3xl pointer-events-none -z-0" />
       <div className="absolute top-40 left-0 w-80 h-80 bg-[#F6C453]/6 rounded-full blur-3xl pointer-events-none -z-0" />
 
-      {/* ── Breadcrumb ── */}
+      {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2 relative z-10">
         <nav className="flex items-center gap-1.5 text-sm text-[#6B6B6B] overflow-hidden whitespace-nowrap text-ellipsis">
           <Link href="/" className="hover:text-[#4FBDBA] transition-colors duration-200">
@@ -339,19 +282,18 @@ useEffect(() => {
         </nav>
       </div>
 
-      {/* ── Product Section ── */}
+      {/* Product Section */}
       <section className="pb-16 md:pb-24 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
 
-            {/* ── Image Gallery ── */}
+            {/* Image Gallery */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
-              {/* Main Image */}
               <div className="relative bg-[#DDF5F4]/40 rounded-[2rem] overflow-hidden aspect-square group shadow-[0_10px_40px_rgba(79,189,186,0.1)] border border-[#E7EEEE]">
                 {images.length > 0 && (
                   <AnimatePresence mode="wait">
@@ -435,7 +377,7 @@ useEffect(() => {
               )}
             </motion.div>
 
-            {/* ── Product Info ── */}
+            {/* Product Info */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -454,7 +396,9 @@ useEffect(() => {
                     try {
                       await navigator.clipboard.writeText(window.location.href)
                       alert('Product link copied!')
-                    } catch { /* unavailable */ }
+                    } catch {
+                      // clipboard unavailable
+                    }
                   }}
                   className="p-2.5 border border-[#E7EEEE] bg-white rounded-2xl hover:bg-[#DDF5F4] hover:border-[#4FBDBA]/40 transition-all duration-200 flex-shrink-0 shadow-sm"
                   aria-label="Copy product link"
@@ -519,7 +463,10 @@ useEffect(() => {
               {/* Color Selection */}
               <div>
                 <label className="block text-sm font-semibold text-[#2B2B2B] mb-3">
-                  Color: <span className="font-normal text-[#6B6B6B]">{currentColor?.name ?? 'Default'}</span>
+                  Color:{' '}
+                  <span className="font-normal text-[#6B6B6B]">
+                    {currentColor?.name ?? 'Default'}
+                  </span>
                 </label>
                 <div className="flex gap-3 flex-wrap">
                   {displayProduct.colors.map((color, idx) => {
@@ -537,7 +484,11 @@ useEffect(() => {
                         title={c.name}
                       >
                         {selectedColorIndex === idx && (
-                          <Check className={`w-4 h-4 ${c.hex === '#F8F2E8' ? 'text-[#2B2B2B]' : 'text-white'}`} />
+                          <Check
+                            className={`w-4 h-4 ${
+                              c.hex === '#F8F2E8' ? 'text-[#2B2B2B]' : 'text-white'
+                            }`}
+                          />
                         )}
                       </button>
                     )
@@ -549,7 +500,8 @@ useEffect(() => {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-[#2B2B2B]">
-                    Size: <span className="font-normal text-[#6B6B6B]">{selectedSize}</span>
+                    Size:{' '}
+                    <span className="font-normal text-[#6B6B6B]">{selectedSize}</span>
                   </label>
                   <button className="text-sm text-[#4FBDBA] hover:text-[#2F7F7C] font-semibold flex items-center gap-1 transition-colors duration-200">
                     <Ruler className="w-3.5 h-3.5" />
@@ -583,7 +535,9 @@ useEffect(() => {
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="w-12 text-center font-bold text-[#2B2B2B] text-lg">{quantity}</span>
+                  <span className="w-12 text-center font-bold text-[#2B2B2B] text-lg">
+                    {quantity}
+                  </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
                     className="w-10 h-10 rounded-xl hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B]"
@@ -603,12 +557,24 @@ useEffect(() => {
                 >
                   <AnimatePresence mode="wait">
                     {addedToCart ? (
-                      <motion.span key="added" className="flex items-center gap-2" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+                      <motion.span
+                        key="added"
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                      >
                         <Check className="w-5 h-5" />
                         Added to Cart!
                       </motion.span>
                     ) : (
-                      <motion.span key="add" className="flex items-center gap-2" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+                      <motion.span
+                        key="add"
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                      >
                         <Package className="w-5 h-5" />
                         Add to Cart · Rs. {(displayProduct.price * quantity).toLocaleString()}
                       </motion.span>
@@ -639,7 +605,10 @@ useEffect(() => {
                 ].map((badge) => {
                   const Icon = badge.icon
                   return (
-                    <div key={badge.title} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[#E7EEEE] shadow-sm">
+                    <div
+                      key={badge.title}
+                      className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[#E7EEEE] shadow-sm"
+                    >
                       <div className={`w-10 h-10 rounded-xl ${badge.color} flex items-center justify-center flex-shrink-0`}>
                         <Icon className="w-4 h-4" />
                       </div>
@@ -656,10 +625,10 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* ── Product Tabs (Details, Materials, Care) ── */}
+      {/* Product Tabs */}
       <ProductTabs product={sanityProduct} />
 
-      {/* ── "You May Also Like" — admin-curated ── */}
+      {/* You May Also Like */}
       {alsoLikeProducts.length > 0 && (
         <section className="py-16 bg-[#F6FBFB] border-t border-[#E7EEEE]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -693,7 +662,7 @@ useEffect(() => {
         </section>
       )}
 
-      {/* ── Related Products — same category, auto ── */}
+      {/* Related Products */}
       {displayRelatedProducts.length > 0 && (
         <section className="py-16 bg-[#FFFDF7]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
