@@ -20,9 +20,8 @@ import {
 } from "lucide-react";
 
 const WHATSAPP_NUMBER = "917728009522";
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+
 export default function CartPage() {
   const { cartItems, cartTotal } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
