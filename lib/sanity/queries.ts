@@ -13,6 +13,7 @@ const PRODUCT_CARD_FIELDS = groq`
   badge,
   featuredProduct,
   newArrival,
+  outOfStock,
   mainImage,
   colors,
   sizes,
@@ -41,6 +42,7 @@ const PRODUCT_DETAIL_FIELDS = groq`
   badge,
   featuredProduct,
   newArrival,
+  outOfStock,
   mainImage,
   galleryImages,
   colors,
@@ -117,7 +119,6 @@ export const productsByCategoryQuery = groq`
   }
 `
 
-// New: fetch by category + subcategory together (used by API route if needed)
 export const productsByCategoryAndSubcategoryQuery = groq`
   *[
     _type == "product"

@@ -50,7 +50,7 @@ export const product = defineType({
       validation: (Rule) => Rule.required(),
     }),
 
-    // ── Subcategory — category ke baad automatically update hoti hai ──
+    // ── Subcategory ────────────────────────────────────────────
     defineField({
       name: 'subcategory',
       title: 'Subcategory',
@@ -118,6 +118,15 @@ export const product = defineType({
       title: 'New Arrival',
       type: 'boolean',
       initialValue: false,
+    }),
+
+    // ── Out of Stock Toggle ────────────────────────────────────
+    defineField({
+      name: 'outOfStock',
+      title: 'Out of Stock',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Enable this to mark product as unavailable. Disables Add to Cart and purchase actions.',
     }),
 
     // ── Images ─────────────────────────────────────────────────
@@ -192,10 +201,7 @@ export const product = defineType({
       initialValue: 0,
     }),
 
-    // ══════════════════════════════════════════════════════════
     // ── TAB 1 : Details & Story ────────────────────────────────
-    // ══════════════════════════════════════════════════════════
-
     defineField({
       name: 'storyTitle',
       title: 'Story Title',
@@ -228,10 +234,7 @@ export const product = defineType({
       options: { layout: 'tags' },
     }),
 
-    // ══════════════════════════════════════════════════════════
     // ── TAB 2 : Materials ─────────────────────────────────────
-    // ══════════════════════════════════════════════════════════
-
     defineField({
       name: 'materials',
       title: 'Materials',
@@ -262,10 +265,7 @@ export const product = defineType({
       ],
     }),
 
-    // ══════════════════════════════════════════════════════════
     // ── TAB 3 : Care Instructions ─────────────────────────────
-    // ══════════════════════════════════════════════════════════
-
     defineField({
       name: 'careInstructions',
       title: 'Care Instructions',
@@ -275,10 +275,7 @@ export const product = defineType({
       options: { layout: 'tags' },
     }),
 
-    // ══════════════════════════════════════════════════════════
     // ── CURATED SECTION : You May Also Like ───────────────────
-    // ══════════════════════════════════════════════════════════
-
     defineField({
       name: 'alsoLike',
       title: 'You May Also Like',
@@ -318,12 +315,14 @@ export const product = defineType({
       price:       'price',
       category:    'category.title',
       subcategory: 'subcategory',
+      outOfStock:  'outOfStock',
     },
-    prepare({ title, media, price, category, subcategory }) {
+    prepare({ title, media, price, category, subcategory, outOfStock }) {
       const sub = subcategory ? ` › ${subcategory}` : ''
+      const oos = outOfStock ? ' · ⛔ Out of Stock' : ''
       return {
         title,
-        subtitle: `${category ? category + sub + ' · ' : ''}₹${price}`,
+        subtitle: `${category ? category + sub + ' · ' : ''}₹${price}${oos}`,
         media,
       }
     },

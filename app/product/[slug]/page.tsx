@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import MainLayout from "@/components/layout/MainLayout";
@@ -31,6 +31,7 @@ import {
   Sparkles,
   Leaf,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 const DEFAULT_COLORS = [
@@ -44,9 +45,6 @@ const DEFAULT_SIZES = ["0-12 months", "1-3 years", "3-5 years"];
 
 export default function ProductPage() {
   const params = useParams();
-
-  // FIX: params.slug from Next.js dynamic route [slug] is always a string
-  // useParams returns string | string[] — cast safely
   const slug = Array.isArray(params.slug)
     ? params.slug[0]
     : (params.slug as string);
@@ -54,9 +52,7 @@ export default function ProductPage() {
   const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } =
     useCart();
 
-  const [sanityProduct, setSanityProduct] = useState<SanityProduct | null>(
-    null,
-  );
+  const [sanityProduct, setSanityProduct] = useState<SanityProduct | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,30 +64,18 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!slug) return;
-
     async function fetchProduct() {
       setLoading(true);
       try {
-        // FIX: use a relative URL — works in all environments (local, Vercel, etc.)
-        // Never hardcode localhost:3000
         const res = await fetch(
           `/api/sanity/product?slug=${encodeURIComponent(slug)}`,
-          {
-            cache: "no-store",
-          },
+          { cache: "no-store" }
         );
-
-        if (!res.ok) {
-          throw new Error(`API responded with status ${res.status}`);
-        }
-
+        if (!res.ok) throw new Error(`API responded with status ${res.status}`);
         const contentType = res.headers.get("content-type") ?? "";
-        if (!contentType.includes("application/json")) {
+        if (!contentType.includes("application/json"))
           throw new Error("Expected JSON response from API");
-        }
-
         const data = await res.json();
-
         if (data?.product) {
           setSanityProduct(data.product);
           setRelatedProducts(data.relatedProducts ?? []);
@@ -105,16 +89,13 @@ export default function ProductPage() {
         setLoading(false);
       }
     }
-
     fetchProduct();
   }, [slug]);
 
-  // ── Derived display product ───────────────────────────────
+  // ── Derived display product ──────────────────────────────────
   const displayProduct = sanityProduct
     ? {
         id: sanityProduct._id,
-        // FIX: GROQ resolves "slug": slug.current, so it's already a plain string
-        // Defensive fallback handles edge cases
         slug:
           typeof sanityProduct.slug === "string"
             ? sanityProduct.slug
@@ -125,7 +106,6 @@ export default function ProductPage() {
         rating: sanityProduct.rating ?? 4.9,
         image: getImageUrl(sanityProduct.mainImage),
         category: sanityProduct.category?.title ?? "Products",
-        // FIX: same slug resolution for category
         categorySlug:
           typeof sanityProduct.category?.slug === "string"
             ? sanityProduct.category.slug
@@ -133,6 +113,7 @@ export default function ProductPage() {
         subcategory: sanityProduct.productType ?? "",
         isNew: sanityProduct.newArrival ?? sanityProduct.badge === "new",
         isBestseller: sanityProduct.badge === "bestseller",
+        outOfStock: sanityProduct.outOfStock ?? false,
         shortDescription: sanityProduct.shortDescription,
         colors:
           sanityProduct.colors && sanityProduct.colors.length > 0
@@ -156,11 +137,11 @@ export default function ProductPage() {
 
   const alsoLikeProducts = (sanityProduct?.alsoLike ?? []).map(
     (p: SanityProductCard) =>
-      sanityProductToLegacy(p, getImageUrl(p.mainImage)),
+      sanityProductToLegacy(p, getImageUrl(p.mainImage))
   );
 
   const displayRelatedProducts = relatedProducts.map((p) =>
-    sanityProductToLegacy(p, getImageUrl(p.mainImage)),
+    sanityProductToLegacy(p, getImageUrl(p.mainImage))
   );
 
   const isWishlisted = displayProduct ? isInWishlist(displayProduct.id) : false;
@@ -169,17 +150,23 @@ export default function ProductPage() {
     ? Math.round(
         ((displayProduct.originalPrice - displayProduct.price) /
           displayProduct.originalPrice) *
-          100,
+          100
       )
     : 0;
 
-  const nextImage = () =>
+  // ── Gallery navigation ───────────────────────────────────────
+  const nextImage = useCallback(() => {
+    if (images.length <= 1) return;
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  const prevImage = () =>
+  }, [images.length]);
+
+  const prevImage = useCallback(() => {
+    if (images.length <= 1) return;
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
 
   const handleAddToCart = () => {
-    if (!displayProduct) return;
+    if (!displayProduct || displayProduct.outOfStock) return;
     const colorObj = displayProduct.colors[selectedColorIndex] as {
       name: string;
       hex: string;
@@ -196,7 +183,7 @@ export default function ProductPage() {
         size: selectedSize,
         color: colorObj?.name ?? "Default",
       },
-      quantity,
+      quantity
     );
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
@@ -222,7 +209,7 @@ export default function ProductPage() {
     }
   };
 
-  // ── Loading ───────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────
   if (loading) {
     return (
       <MainLayout>
@@ -236,7 +223,7 @@ export default function ProductPage() {
     );
   }
 
-  // ── Not found ─────────────────────────────────────────────
+  // ── Not found ────────────────────────────────────────────────
   if (!displayProduct || !sanityProduct) {
     return (
       <MainLayout>
@@ -265,118 +252,145 @@ export default function ProductPage() {
     hex: string;
   };
 
-  // ── Render ────────────────────────────────────────────────
+  const isOOS = displayProduct.outOfStock;
+
+  // ── Render ───────────────────────────────────────────────────
   return (
     <MainLayout>
       <div className="absolute top-0 right-0 w-[600px] h-[400px] bg-[#4FBDBA]/5 rounded-full blur-3xl pointer-events-none -z-0" />
       <div className="absolute top-40 left-0 w-80 h-80 bg-[#F6C453]/6 rounded-full blur-3xl pointer-events-none -z-0" />
 
-      {/* Breadcrumb */}
+      {/* Breadcrumb + Back Arrow */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2 relative z-10">
-        <nav className="flex items-center gap-1.5 text-sm text-[#6B6B6B] overflow-hidden whitespace-nowrap text-ellipsis">
-          <Link
-            href="/"
-            className="hover:text-[#4FBDBA] transition-colors duration-200"
-          >
-            Home
-          </Link>
-          <span className="text-[#E7EEEE]">/</span>
+        <div className="flex items-center gap-3">
+          {/* Back button */}
           <Link
             href={`/category/${displayProduct.categorySlug}`}
-            className="hover:text-[#4FBDBA] transition-colors duration-200"
+            className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-[#E7EEEE] shadow-sm hover:bg-[#DDF5F4] hover:border-[#4FBDBA]/40 hover:text-[#4FBDBA] text-[#6B6B6B] transition-all duration-200"
+            aria-label="Go back"
           >
-            {displayProduct.category}
+            <ChevronLeft className="w-4 h-4" />
           </Link>
-          <span className="text-[#E7EEEE]">/</span>
-          <span className="text-[#2B2B2B] font-medium truncate">
-            {displayProduct.name}
-          </span>
-        </nav>
+          <nav className="flex items-center gap-1.5 text-sm text-[#6B6B6B] overflow-hidden whitespace-nowrap min-w-0">
+            <Link href="/" className="hover:text-[#4FBDBA] transition-colors duration-200 flex-shrink-0">
+              Home
+            </Link>
+            <span className="text-[#E7EEEE] flex-shrink-0">/</span>
+            <Link
+              href={`/category/${displayProduct.categorySlug}`}
+              className="hover:text-[#4FBDBA] transition-colors duration-200 flex-shrink-0"
+            >
+              {displayProduct.category}
+            </Link>
+            <span className="text-[#E7EEEE] flex-shrink-0">/</span>
+            <span className="text-[#2B2B2B] font-medium truncate">
+              {displayProduct.name}
+            </span>
+          </nav>
+        </div>
       </div>
 
       {/* Product Section */}
       <section className="pb-16 md:pb-24 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
-            {/* Image Gallery */}
+
+            {/* ── Image Gallery ──────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
-              <div className="relative bg-white rounded-[2rem] overflow-hidden h-[560px] group shadow-[0_10px_40px_rgba(79,189,186,0.1)] border border-[#E7EEEE]">
+              {/*
+                Main image container — explicit height on every breakpoint.
+                h-[380px] on mobile → h-[480px] sm → h-[560px] lg.
+                position:relative so the absolute arrows + badges stay inside.
+                overflow:hidden + rounded corners stay clean.
+              */}
+              <div className="relative w-full h-[380px] sm:h-[480px] lg:h-[560px] bg-white rounded-[2rem] overflow-hidden border border-[#E7EEEE] shadow-[0_10px_40px_rgba(79,189,186,0.1)]">
 
-  {images.length > 0 && (
-    <AnimatePresence mode="wait">
-      <motion.img
-        key={currentImageIndex}
-        src={images[currentImageIndex]}
-        alt={displayProduct.name}
-        className="w-full h-full object-cover object-center"
-        initial={{ opacity: 0, scale: 1.02 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.98 }}
-        transition={{ duration: 0.35 }}
-      />
-    </AnimatePresence>
-  )}
+                {/* Main image — crossfade on index change */}
+                {images.length > 0 && (
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={currentImageIndex}
+                      src={images[currentImageIndex]}
+                      alt={displayProduct.name}
+                      className="absolute inset-0 w-full h-full object-contain p-4"
+                      initial={{ opacity: 0, scale: 1.02 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.35 }}
+                    />
+                  </AnimatePresence>
+                )}
+
+                {/* ── Left Arrow — always visible on mobile & desktop ── */}
                 {images.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white hover:shadow-[0_6px_24px_rgba(79,189,186,0.2)] hover:scale-110"
+                      aria-label="Previous image"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/90 backdrop-blur-sm border border-[#E7EEEE] shadow-[0_4px_16px_rgba(0,0,0,0.10)] text-[#2B2B2B] transition-all duration-200 hover:bg-white hover:border-[#4FBDBA]/50 hover:shadow-[0_6px_24px_rgba(79,189,186,0.20)] hover:scale-105 active:scale-95"
                     >
-                      <ChevronLeft className="w-5 h-5 text-[#2B2B2B]" />
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
+
+                    {/* ── Right Arrow ── */}
                     <button
                       onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white hover:shadow-[0_6px_24px_rgba(79,189,186,0.2)] hover:scale-110"
+                      aria-label="Next image"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/90 backdrop-blur-sm border border-[#E7EEEE] shadow-[0_4px_16px_rgba(0,0,0,0.10)] text-[#2B2B2B] transition-all duration-200 hover:bg-white hover:border-[#4FBDBA]/50 hover:shadow-[0_6px_24px_rgba(79,189,186,0.20)] hover:scale-105 active:scale-95"
                     >
-                      <ChevronRight className="w-5 h-5 text-[#2B2B2B]" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </>
                 )}
-                {discount > 0 && (
-                  <div className="absolute top-4 left-4">
-                    <span className="px-4 py-1.5 bg-[#F6C453] text-[#2B2B2B] text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(246,196,83,0.35)]">
-                      {discount}% OFF
+
+                {/* ── OOS / Discount badge (top-left) ── */}
+                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                  {isOOS ? (
+                    <span className="px-4 py-1.5 bg-red-500 text-white text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(239,68,68,0.35)]">
+                      Out of Stock
                     </span>
-                  </div>
-                )}
+                  ) : (
+                    discount > 0 && (
+                      <span className="px-4 py-1.5 bg-[#F6C453] text-[#2B2B2B] text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(246,196,83,0.35)]">
+                        {discount}% OFF
+                      </span>
+                    )
+                  )}
+                </div>
+
+                {/* Bestseller badge (top-right) */}
                 {displayProduct.isBestseller && (
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 z-10">
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-[#4FBDBA] text-xs font-bold rounded-2xl shadow-sm border border-[#E7EEEE]">
                       <Sparkles className="w-3 h-3" />
                       Bestseller
                     </span>
                   </div>
                 )}
+
+                {/* Image counter (bottom-center) */}
                 {images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm">
-                    {images.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentImageIndex(i)}
-                        className={`rounded-full transition-all duration-200 ${
-                          i === currentImageIndex
-                            ? "w-5 h-2 bg-[#4FBDBA]"
-                            : "w-2 h-2 bg-[#E7EEEE] hover:bg-[#4FBDBA]/40"
-                        }`}
-                      />
-                    ))}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+                    <span className="px-3 py-1 bg-black/25 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                      {currentImageIndex + 1} / {images.length}
+                    </span>
                   </div>
                 )}
               </div>
 
-              {/* Thumbnails */}
+              {/* Thumbnail strip */}
               {images.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
                   {images.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
-                      className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${
+                      className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 bg-white ${
                         idx === currentImageIndex
                           ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.15)]"
                           : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 opacity-70 hover:opacity-100"
@@ -385,7 +399,7 @@ export default function ProductPage() {
                       <img
                         src={img}
                         alt={`View ${idx + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain p-1"
                       />
                     </button>
                   ))}
@@ -393,15 +407,11 @@ export default function ProductPage() {
               )}
             </motion.div>
 
-            {/* Product Info */}
+            {/* ── Product Info ────────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: 0.55,
-                delay: 0.1,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6 lg:pt-2"
             >
               {/* Category pill + Share */}
@@ -409,9 +419,7 @@ export default function ProductPage() {
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#DDF5F4] text-[#2F7F7C] text-xs font-semibold rounded-full uppercase tracking-wider">
                   <Leaf className="w-3 h-3" />
                   {displayProduct.category}
-                  {displayProduct.subcategory
-                    ? ` · ${displayProduct.subcategory}`
-                    : ""}
+                  {displayProduct.subcategory ? ` · ${displayProduct.subcategory}` : ""}
                 </span>
                 <button
                   onClick={async () => {
@@ -433,6 +441,19 @@ export default function ProductPage() {
               <h1 className="font-heading text-3xl md:text-4xl font-bold text-[#2B2B2B] leading-tight tracking-tight">
                 {displayProduct.name}
               </h1>
+
+              {/* Out of stock alert banner */}
+              {isOOS && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-red-600">Currently Unavailable</p>
+                    <p className="text-xs text-red-400 mt-0.5">
+                      This product is out of stock. You can still add it to your wishlist.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Rating */}
               <div className="flex items-center gap-3 flex-wrap">
@@ -456,9 +477,9 @@ export default function ProductPage() {
                 <span className="text-sm text-[#6B6B6B]">
                   {displayProduct.reviewsCount} reviews
                 </span>
-                <span className="inline-flex items-center gap-1 text-sm text-[#2F7F7C] font-semibold">
-                  <span className="w-2 h-2 bg-[#4FBDBA] rounded-full inline-block" />
-                  {displayProduct.stock > 0 ? "In Stock" : "Out of Stock"}
+                <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: isOOS ? '#EF4444' : '#2F7F7C' }}>
+                  <span className="w-2 h-2 rounded-full inline-block" style={{ background: isOOS ? '#EF4444' : '#4FBDBA' }} />
+                  {isOOS ? "Out of Stock" : "In Stock"}
                 </span>
               </div>
 
@@ -474,9 +495,7 @@ export default function ProductPage() {
                     </span>
                     <span className="px-3 py-1 bg-[#FFF4D6] text-[#2B2B2B] font-semibold rounded-2xl text-sm border border-[#F6C453]/30">
                       Save Rs.{" "}
-                      {(
-                        displayProduct.originalPrice - displayProduct.price
-                      ).toLocaleString()}
+                      {(displayProduct.originalPrice - displayProduct.price).toLocaleString()}
                     </span>
                   </>
                 )}
@@ -503,21 +522,22 @@ export default function ProductPage() {
                     return (
                       <button
                         key={c.name ?? idx}
-                        onClick={() => setSelectedColorIndex(idx)}
+                        onClick={() => !isOOS && setSelectedColorIndex(idx)}
                         className={`w-11 h-11 rounded-2xl border-2 transition-all duration-200 flex items-center justify-center ${
-                          selectedColorIndex === idx
+                          isOOS
+                            ? "opacity-40 cursor-not-allowed"
+                            : selectedColorIndex === idx
                             ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110"
                             : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105"
                         }`}
                         style={{ backgroundColor: c.hex }}
                         title={c.name}
+                        disabled={isOOS}
                       >
-                        {selectedColorIndex === idx && (
+                        {selectedColorIndex === idx && !isOOS && (
                           <Check
                             className={`w-4 h-4 ${
-                              c.hex === "#F8F2E8"
-                                ? "text-[#2B2B2B]"
-                                : "text-white"
+                              c.hex === "#F8F2E8" ? "text-[#2B2B2B]" : "text-white"
                             }`}
                           />
                         )}
@@ -532,9 +552,7 @@ export default function ProductPage() {
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-[#2B2B2B]">
                     Size:{" "}
-                    <span className="font-normal text-[#6B6B6B]">
-                      {selectedSize}
-                    </span>
+                    <span className="font-normal text-[#6B6B6B]">{selectedSize}</span>
                   </label>
                   <button className="text-sm text-[#4FBDBA] hover:text-[#2F7F7C] font-semibold flex items-center gap-1 transition-colors duration-200">
                     <Ruler className="w-3.5 h-3.5" />
@@ -545,9 +563,12 @@ export default function ProductPage() {
                   {displayProduct.sizes.map((size) => (
                     <button
                       key={size}
-                      onClick={() => setSelectedSize(size)}
+                      onClick={() => !isOOS && setSelectedSize(size)}
+                      disabled={isOOS}
                       className={`px-5 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all duration-200 ${
-                        selectedSize === size
+                        isOOS
+                          ? "border-[#E7EEEE] bg-white text-[#C0C0C0] cursor-not-allowed opacity-50"
+                          : selectedSize === size
                           ? "border-[#4FBDBA] bg-[#4FBDBA] text-white shadow-[0_6px_20px_rgba(79,189,186,0.28)]"
                           : "border-[#E7EEEE] bg-white text-[#2B2B2B] hover:border-[#4FBDBA]/60 hover:bg-[#DDF5F4]"
                       }`}
@@ -560,10 +581,15 @@ export default function ProductPage() {
 
               {/* Quantity + Actions */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <div className="flex items-center gap-1 bg-[#F6FBFB] border border-[#E7EEEE] rounded-2xl p-1.5 shadow-sm">
+                {/* Quantity stepper — disabled when OOS */}
+                <div
+                  className={`flex items-center gap-1 bg-[#F6FBFB] border border-[#E7EEEE] rounded-2xl p-1.5 shadow-sm ${
+                    isOOS ? "opacity-40 pointer-events-none" : ""
+                  }`}
+                >
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
+                    disabled={quantity <= 1 || isOOS}
                     className="w-10 h-10 rounded-xl hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B] disabled:opacity-30"
                   >
                     <Minus className="w-4 h-4" />
@@ -572,50 +598,60 @@ export default function ProductPage() {
                     {quantity}
                   </span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 rounded-xl hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B]"
+                    onClick={() => !isOOS && setQuantity(quantity + 1)}
+                    disabled={isOOS}
+                    className="w-10 h-10 rounded-xl hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B] disabled:opacity-30"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
 
-                <motion.button
-                  onClick={handleAddToCart}
-                  className={`flex-1 py-3.5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-[15px] ${
-                    addedToCart
-                      ? "bg-[#2F7F7C] text-white shadow-[0_12px_30px_rgba(47,127,124,0.3)]"
-                      : "bg-[#4FBDBA] text-white shadow-[0_12px_30px_rgba(79,189,186,0.28)] hover:bg-[#2F7F7C] hover:shadow-[0_16px_40px_rgba(79,189,186,0.38)] hover:-translate-y-0.5"
-                  }`}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <AnimatePresence mode="wait">
-                    {addedToCart ? (
-                      <motion.span
-                        key="added"
-                        className="flex items-center gap-2"
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                      >
-                        <Check className="w-5 h-5" />
-                        Added to Cart!
-                      </motion.span>
-                    ) : (
-                      <motion.span
-                        key="add"
-                        className="flex items-center gap-2"
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                      >
-                        <Package className="w-5 h-5" />
-                        Add to Cart · Rs.{" "}
-                        {(displayProduct.price * quantity).toLocaleString()}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </motion.button>
+                {/* Add to Cart button */}
+                {isOOS ? (
+                  <div className="flex-1 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-[15px] bg-[#F6FBFB] border-2 border-[#E7EEEE] text-[#9B9B9B] cursor-not-allowed select-none">
+                    <AlertCircle className="w-5 h-5" />
+                    Currently Unavailable
+                  </div>
+                ) : (
+                  <motion.button
+                    onClick={handleAddToCart}
+                    className={`flex-1 py-3.5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-[15px] ${
+                      addedToCart
+                        ? "bg-[#2F7F7C] text-white shadow-[0_12px_30px_rgba(47,127,124,0.3)]"
+                        : "bg-[#4FBDBA] text-white shadow-[0_12px_30px_rgba(79,189,186,0.28)] hover:bg-[#2F7F7C] hover:shadow-[0_16px_40px_rgba(79,189,186,0.38)] hover:-translate-y-0.5"
+                    }`}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <AnimatePresence mode="wait">
+                      {addedToCart ? (
+                        <motion.span
+                          key="added"
+                          className="flex items-center gap-2"
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                        >
+                          <Check className="w-5 h-5" />
+                          Added to Cart!
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="add"
+                          className="flex items-center gap-2"
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                        >
+                          <Package className="w-5 h-5" />
+                          Add to Cart · Rs.{" "}
+                          {(displayProduct.price * quantity).toLocaleString()}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                )}
 
+                {/* Wishlist — always active */}
                 <motion.button
                   onClick={handleWishlistToggle}
                   className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
@@ -626,10 +662,7 @@ export default function ProductPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.93 }}
                 >
-                  <Heart
-                    className="w-5 h-5"
-                    fill={isWishlisted ? "currentColor" : "none"}
-                  />
+                  <Heart className="w-5 h-5" fill={isWishlisted ? "currentColor" : "none"} />
                 </motion.button>
               </div>
 
@@ -670,9 +703,7 @@ export default function ProductPage() {
                         <p className="text-sm font-bold text-[#2B2B2B] leading-tight">
                           {badge.title}
                         </p>
-                        <p className="text-xs text-[#6B6B6B] mt-0.5">
-                          {badge.desc}
-                        </p>
+                        <p className="text-xs text-[#6B6B6B] mt-0.5">{badge.desc}</p>
                       </div>
                     </div>
                   );

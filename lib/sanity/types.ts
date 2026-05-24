@@ -66,6 +66,8 @@ export interface SanityProductCard {
   badge?: 'new' | 'bestseller' | 'sale' | 'limited'
   featuredProduct?: boolean
   newArrival?: boolean
+  /** When true, Add to Cart and purchase actions are disabled */
+  outOfStock?: boolean
   mainImage: SanityImageAsset
   colors?: ProductColor[]
   sizes?: string[]
@@ -110,6 +112,8 @@ export interface SanityProduct {
   badge?: 'new' | 'bestseller' | 'sale' | 'limited'
   featuredProduct?: boolean
   newArrival?: boolean
+  /** When true, Add to Cart and purchase actions are disabled */
+  outOfStock?: boolean
 
   mainImage: SanityImageAsset
   galleryImages?: SanityImageAsset[]
@@ -152,6 +156,8 @@ export interface LegacyProduct {
   subcategory?: string
   isNew?: boolean
   isBestseller?: boolean
+  /** When true, Add to Cart and purchase actions are disabled */
+  outOfStock?: boolean
   shortDescription?: string
   colors?: ProductColor[]
   sizes?: string[]
@@ -177,10 +183,10 @@ export function sanityProductToLegacy(
     image: imageUrl,
     category: product.category?.title ?? 'Products',
     categorySlug: product.category?.slug ?? 'all',
-    // ← subcategory now carried through
     subcategory: product.subcategory,
     isNew: (product as SanityProduct).newArrival ?? product.badge === 'new',
     isBestseller: product.badge === 'bestseller',
+    outOfStock: product.outOfStock ?? false,
     shortDescription: product.shortDescription,
     colors: product.colors,
     sizes: product.sizes,

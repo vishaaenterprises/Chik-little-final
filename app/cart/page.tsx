@@ -25,7 +25,21 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 export default function CartPage() {
   const { cartItems, cartTotal } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
+
+  // ── SSR-safe isMobile ──────────────────────────────────────────────────────
+  // We start with `false` on both server and client to avoid hydration mismatch.
+  // After mount we sync with the real window width.
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -39,15 +53,9 @@ export default function CartPage() {
   const shipping = cartTotal > 1499 ? 0 : 99;
   const total = cartTotal + shipping;
 
+  // Lock background scroll when checkout modal is open
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  // Lock background scroll when modal is open
-  useEffect(() => {
+    if (!mounted) return;
     if (showCheckout) {
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
@@ -68,7 +76,7 @@ export default function CartPage() {
       document.body.style.width = "";
       document.body.style.overflow = "";
     };
-  }, [showCheckout]);
+  }, [showCheckout, mounted]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -119,7 +127,7 @@ export default function CartPage() {
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
   };
 
-  // ── Input field style helper ──
+  // ── Input field style helper ──────────────────────────────────────────────
   const inputBase: React.CSSProperties = {
     width: "100%",
     height: "44px",
@@ -147,7 +155,7 @@ export default function CartPage() {
     e.target.style.boxShadow = "none";
   };
 
-  // ── Shared form fields ──
+  // ── Form fields ───────────────────────────────────────────────────────────
   const FormFields = (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px", paddingBottom: "8px" }}>
 
@@ -271,9 +279,7 @@ export default function CartPage() {
                   width: "100%",
                 }}
               >
-                <Icon
-                  style={{ width: "20px", height: "20px", color: isActive ? "#4FBDBA" : "#9CA3AF" }}
-                />
+                <Icon style={{ width: "20px", height: "20px", color: isActive ? "#4FBDBA" : "#9CA3AF" }} />
                 <span style={{
                   fontWeight: 700,
                   fontSize: "12px",
@@ -291,17 +297,15 @@ export default function CartPage() {
       </div>
 
       {/* Order Summary */}
-      <div style={{
-        borderRadius: "14px",
-        padding: "14px 16px",
-        background: "#F6FBFB",
-        border: "1px solid #E7EEEE",
-      }}>
+      <div style={{ borderRadius: "14px", padding: "14px 16px", background: "#F6FBFB", border: "1px solid #E7EEEE" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <p style={{ fontSize: "12px", color: "#6B6B6B", marginBottom: "2px" }}>Subtotal</p>
+            <p style={{ fontSize: "12px", color: "#6B6B6B", marginBottom: "2px" }}>
+              Subtotal: Rs. {cartTotal.toLocaleString()}
+            </p>
             <p style={{ fontSize: "12px", color: "#6B6B6B" }}>
-              Shipping: <span style={{ color: shipping === 0 ? "#4FBDBA" : "#2B2B2B", fontWeight: 600 }}>
+              Shipping:{" "}
+              <span style={{ color: shipping === 0 ? "#4FBDBA" : "#2B2B2B", fontWeight: 600 }}>
                 {shipping === 0 ? "FREE 🎉" : `Rs. ${shipping}`}
               </span>
             </p>
@@ -322,7 +326,7 @@ export default function CartPage() {
     </div>
   );
 
-  // ── WhatsApp Button ──
+  // ── WhatsApp CTA button ───────────────────────────────────────────────────
   const WhatsAppBtn = (
     <motion.button
       onClick={handleCheckout}
@@ -352,23 +356,33 @@ export default function CartPage() {
     </motion.button>
   );
 
-  // ── Empty Cart ──
+  // ── Empty cart ────────────────────────────────────────────────────────────
   if (cartItems.length === 0 && !showCheckout) {
     return (
       <MainLayout>
         <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
           <div className="text-center max-w-md">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: "#DDF5F4" }}>
+            <div
+              className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
+              style={{ background: "#DDF5F4" }}
+            >
               <ShoppingBag className="w-12 h-12" style={{ color: "#4FBDBA" }} />
             </div>
-            <h1 className="text-3xl font-bold mb-3" style={{ color: "#2B2B2B", fontFamily: "Georgia, serif" }}>
+            <h1
+              className="text-3xl font-bold mb-3"
+              style={{ color: "#2B2B2B", fontFamily: "Georgia, serif" }}
+            >
               Your Cart is Empty
             </h1>
             <p className="mb-8" style={{ color: "#6B6B6B" }}>
-              Discover our handcrafted collection and find something you'll love.
+              Discover our handcrafted collection and find something you&apos;ll love.
             </p>
+            {/*
+              FIX: href was "/shop" on client vs "/category/all" on server → hydration mismatch.
+              Using a single consistent href="/category/all" here resolves it.
+            */}
             <Link
-              href="/shop"
+              href="/category/all"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-semibold transition-all"
               style={{ background: "#4FBDBA", boxShadow: "0 12px 30px rgba(79,189,186,0.30)" }}
             >
@@ -381,14 +395,22 @@ export default function CartPage() {
     );
   }
 
+  // ── Main cart page ────────────────────────────────────────────────────────
   return (
     <MainLayout>
       <div className="max-w-7xl mx-auto px-4 py-10">
+        {/* Page heading */}
         <div className="mb-8">
-          <span className="text-xs uppercase tracking-[0.2em] font-semibold" style={{ color: "#4FBDBA" }}>
+          <span
+            className="text-xs uppercase tracking-[0.2em] font-semibold"
+            style={{ color: "#4FBDBA" }}
+          >
             ✦ Your Selection
           </span>
-          <h1 className="text-4xl md:text-5xl font-bold mt-2" style={{ color: "#2B2B2B", fontFamily: "Georgia, serif" }}>
+          <h1
+            className="text-4xl md:text-5xl font-bold mt-2"
+            style={{ color: "#2B2B2B", fontFamily: "Georgia, serif" }}
+          >
             Shopping Cart
           </h1>
           <p className="mt-2" style={{ color: "#6B6B6B" }}>
@@ -397,20 +419,30 @@ export default function CartPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
+          {/* ── Left: cart items + trust badges ── */}
           <div className="lg:col-span-2 space-y-4">
             <div className="space-y-4">
               {cartItems.map((item) => (
                 <CartItem key={item.id} item={item} />
               ))}
             </div>
+
+            {/* Trust badges */}
             <div className="grid grid-cols-3 gap-3 pt-4">
               {[
-                { icon: Truck, label: "Free Delivery", sub: "Orders above ₹1499" },
-                { icon: Shield, label: "Secure Checkout", sub: "WhatsApp verified" },
-                { icon: RotateCcw, label: "Easy Returns", sub: "7-day policy" },
+                { icon: Truck,     label: "Free Delivery",  sub: "Orders above ₹1499" },
+                { icon: Shield,    label: "Secure Checkout", sub: "WhatsApp verified"  },
+                { icon: RotateCcw, label: "Easy Returns",   sub: "7-day policy"        },
               ].map(({ icon: Icon, label, sub }) => (
-                <div key={label} className="p-4 rounded-2xl text-center" style={{ background: "#F6FBFB", border: "1px solid #E7EEEE" }}>
-                  <div className="w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ background: "#DDF5F4" }}>
+                <div
+                  key={label}
+                  className="p-4 rounded-2xl text-center"
+                  style={{ background: "#F6FBFB", border: "1px solid #E7EEEE" }}
+                >
+                  <div
+                    className="w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center"
+                    style={{ background: "#DDF5F4" }}
+                  >
                     <Icon className="w-5 h-5" style={{ color: "#4FBDBA" }} />
                   </div>
                   <p className="font-semibold text-sm" style={{ color: "#2B2B2B" }}>{label}</p>
@@ -418,14 +450,23 @@ export default function CartPage() {
                 </div>
               ))}
             </div>
-            <Link href="/shop" className="inline-flex items-center gap-2 mt-4 font-semibold" style={{ color: "#4FBDBA" }}>
+
+            <Link
+              href="/category/all"
+              className="inline-flex items-center gap-2 mt-4 font-semibold"
+              style={{ color: "#4FBDBA" }}
+            >
               <ArrowLeft className="w-4 h-4" />
               Continue Shopping
             </Link>
           </div>
 
+          {/* ── Right: order summary sticky card ── */}
           <div className="lg:col-span-1">
-            <div className="rounded-2xl p-6 sticky top-24" style={{ background: "white", border: "1px solid #E7EEEE" }}>
+            <div
+              className="rounded-2xl p-6 sticky top-24"
+              style={{ background: "white", border: "1px solid #E7EEEE" }}
+            >
               <CartSummary />
               <motion.button
                 onClick={() => setShowCheckout(true)}
@@ -445,69 +486,175 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* ════════════════ CHECKOUT MODAL ════════════════ */}
-      <AnimatePresence>
-        {showCheckout && (
-          <>
-            {/* ── Backdrop ── */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowCheckout(false)}
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.55)",
-                backdropFilter: "blur(4px)",
-                WebkitBackdropFilter: "blur(4px)",
-                zIndex: 9998,
-              }}
-            />
-
-            {/* ════ DESKTOP: Overlay with top-aligned modal ════ */}
-            {!isMobile && (
+      {/* ════════════════ CHECKOUT MODAL ════════════════
+          We only render the modal after the component has mounted on the client.
+          This avoids the server/client mismatch for isMobile-branched JSX.
+      ═══════════════════════════════════════════════════ */}
+      {mounted && (
+        <AnimatePresence>
+          {showCheckout && (
+            <>
+              {/* Backdrop */}
               <motion.div
-                initial={{ opacity: 0, y: -16, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -12, scale: 0.97 }}
-                transition={{ type: "spring", damping: 30, stiffness: 320 }}
-                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowCheckout(false)}
                 style={{
                   position: "fixed",
                   inset: 0,
-                  zIndex: 9999,
-                  display: "flex",
-                  alignItems: "flex-start",        // ← top-aligned, not centered
-                  justifyContent: "center",
-                  paddingTop: "88px",              // ← clears navbar (64px) + breathing room
-                  paddingBottom: "24px",
-                  paddingLeft: "16px",
-                  paddingRight: "16px",
-                  overflowY: "auto",
-                  WebkitOverflowScrolling: "touch",
+                  background: "rgba(0,0,0,0.55)",
+                  backdropFilter: "blur(4px)",
+                  WebkitBackdropFilter: "blur(4px)",
+                  zIndex: 9998,
                 }}
-              >
-                <div
+              />
+
+              {/* ── DESKTOP modal ── */}
+              {!isMobile && (
+                <motion.div
+                  initial={{ opacity: 0, y: -16, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.97 }}
+                  transition={{ type: "spring", damping: 30, stiffness: 320 }}
+                  onClick={(e) => e.stopPropagation()}
                   style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 9999,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "center",
+                    paddingTop: "88px",
+                    paddingBottom: "24px",
+                    paddingLeft: "16px",
+                    paddingRight: "16px",
+                    overflowY: "auto",
+                    WebkitOverflowScrolling: "touch",
+                  }}
+                >
+                  <div
+                    style={{
+                      background: "white",
+                      width: "100%",
+                      maxWidth: "480px",
+                      borderRadius: "24px",
+                      boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.08)",
+                      display: "flex",
+                      flexDirection: "column",
+                      maxHeight: "calc(100vh - 120px)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Fixed header */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "space-between",
+                        padding: "24px 24px 20px",
+                        borderBottom: "1px solid #F0F6F6",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div>
+                        <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 700, color: "#4FBDBA" }}>
+                          ✦ Almost there!
+                        </span>
+                        <h2 style={{ fontSize: "24px", fontWeight: 800, marginTop: "4px", color: "#2B2B2B", fontFamily: "Georgia, serif", lineHeight: 1.2 }}>
+                          Checkout Details
+                        </h2>
+                      </div>
+                      <button
+                        onClick={() => setShowCheckout(false)}
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "10px",
+                          background: "#F6FBFB",
+                          border: "1px solid #E7EEEE",
+                          cursor: "pointer",
+                          flexShrink: 0,
+                          marginTop: "2px",
+                        }}
+                      >
+                        <X style={{ width: "16px", height: "16px", color: "#2B2B2B" }} />
+                      </button>
+                    </div>
+
+                    {/* Scrollable form content */}
+                    <div
+                      style={{
+                        flex: 1,
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        WebkitOverflowScrolling: "touch",
+                        padding: "20px 24px",
+                        minHeight: 0,
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                      }}
+                      className="hide-scrollbar"
+                    >
+                      {FormFields}
+                    </div>
+
+                    {/* Sticky footer */}
+                    <div
+                      style={{
+                        padding: "16px 24px 24px",
+                        borderTop: "1px solid #F0F6F6",
+                        background: "white",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {WhatsAppBtn}
+                      <p style={{ fontSize: "11px", textAlign: "center", marginTop: "10px", color: "#9CA3AF" }}>
+                        🔒 Your details are shared only via WhatsApp
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── MOBILE bottom sheet ── */}
+              {isMobile && (
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 32, stiffness: 340 }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: "fixed",
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 9999,
                     background: "white",
-                    width: "100%",
-                    maxWidth: "480px",
-                    borderRadius: "24px",
-                    boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.08)",
+                    borderRadius: "24px 24px 0 0",
+                    boxShadow: "0 -8px 40px rgba(0,0,0,0.18)",
                     display: "flex",
                     flexDirection: "column",
-                    maxHeight: "calc(100vh - 120px)",
+                    maxHeight: "calc(100dvh - 72px)",
                     overflow: "hidden",
                   }}
                 >
-                  {/* Fixed Header */}
+                  {/* Drag handle */}
+                  <div style={{ display: "flex", justifyContent: "center", paddingTop: "12px", paddingBottom: "4px", flexShrink: 0 }}>
+                    <div style={{ width: "40px", height: "4px", borderRadius: "100px", background: "#D1D5DB" }} />
+                  </div>
+
+                  {/* Fixed header */}
                   <div
                     style={{
                       display: "flex",
                       alignItems: "flex-start",
                       justifyContent: "space-between",
-                      padding: "24px 24px 20px",
+                      padding: "12px 20px 16px",
                       borderBottom: "1px solid #F0F6F6",
                       flexShrink: 0,
                     }}
@@ -516,15 +663,15 @@ export default function CartPage() {
                       <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 700, color: "#4FBDBA" }}>
                         ✦ Almost there!
                       </span>
-                      <h2 style={{ fontSize: "24px", fontWeight: 800, marginTop: "4px", color: "#2B2B2B", fontFamily: "Georgia, serif", lineHeight: 1.2 }}>
+                      <h2 style={{ fontSize: "20px", fontWeight: 800, marginTop: "2px", color: "#2B2B2B", fontFamily: "Georgia, serif" }}>
                         Checkout Details
                       </h2>
                     </div>
                     <button
                       onClick={() => setShowCheckout(false)}
                       style={{
-                        width: "36px",
-                        height: "36px",
+                        width: "34px",
+                        height: "34px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -536,154 +683,50 @@ export default function CartPage() {
                         marginTop: "2px",
                       }}
                     >
-                      <X style={{ width: "16px", height: "16px", color: "#2B2B2B" }} />
+                      <X style={{ width: "15px", height: "15px", color: "#2B2B2B" }} />
                     </button>
                   </div>
 
-                  {/* Scrollable Content — ONLY this scrolls */}
+                  {/* Scrollable form content */}
                   <div
                     style={{
                       flex: 1,
                       overflowY: "auto",
                       overflowX: "hidden",
                       WebkitOverflowScrolling: "touch",
-                      padding: "20px 24px",
+                      padding: "16px 20px",
                       minHeight: 0,
-                      scrollbarWidth: "none",          // Firefox: hide scrollbar
-                      msOverflowStyle: "none",          // IE: hide scrollbar
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
                     }}
                     className="hide-scrollbar"
                   >
                     {FormFields}
                   </div>
 
-                  {/* Sticky Footer */}
+                  {/* Sticky footer — clears mobile bottom nav */}
                   <div
                     style={{
-                      padding: "16px 24px 24px",
+                      padding: "14px 20px",
+                      paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 76px)`,
                       borderTop: "1px solid #F0F6F6",
                       background: "white",
                       flexShrink: 0,
+                      boxShadow: "0 -4px 20px rgba(0,0,0,0.06)",
                     }}
                   >
                     {WhatsAppBtn}
-                    <p style={{ fontSize: "11px", textAlign: "center", marginTop: "10px", color: "#9CA3AF" }}>
-                      🔒 Your details are shared only via WhatsApp
-                    </p>
                   </div>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
+            </>
+          )}
+        </AnimatePresence>
+      )}
 
-            {/* ════ MOBILE: Bottom sheet ════ */}
-            {isMobile && (
-              <motion.div
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 32, stiffness: 340 }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  position: "fixed",
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 9999,
-                  background: "white",
-                  borderRadius: "24px 24px 0 0",
-                  boxShadow: "0 -8px 40px rgba(0,0,0,0.18)",
-                  display: "flex",
-                  flexDirection: "column",
-                  // KEY: leaves top of screen accessible, doesn't overflow
-                  maxHeight: "calc(100dvh - 72px)",
-                  overflow: "hidden",
-                }}
-              >
-                {/* Drag Handle */}
-                <div style={{ display: "flex", justifyContent: "center", paddingTop: "12px", paddingBottom: "4px", flexShrink: 0 }}>
-                  <div style={{ width: "40px", height: "4px", borderRadius: "100px", background: "#D1D5DB" }} />
-                </div>
-
-                {/* Fixed Header */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    justifyContent: "space-between",
-                    padding: "12px 20px 16px",
-                    borderBottom: "1px solid #F0F6F6",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div>
-                    <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 700, color: "#4FBDBA" }}>
-                      ✦ Almost there!
-                    </span>
-                    <h2 style={{ fontSize: "20px", fontWeight: 800, marginTop: "2px", color: "#2B2B2B", fontFamily: "Georgia, serif" }}>
-                      Checkout Details
-                    </h2>
-                  </div>
-                  <button
-                    onClick={() => setShowCheckout(false)}
-                    style={{
-                      width: "34px",
-                      height: "34px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: "10px",
-                      background: "#F6FBFB",
-                      border: "1px solid #E7EEEE",
-                      cursor: "pointer",
-                      flexShrink: 0,
-                      marginTop: "2px",
-                    }}
-                  >
-                    <X style={{ width: "15px", height: "15px", color: "#2B2B2B" }} />
-                  </button>
-                </div>
-
-                {/* Scrollable Content */}
-                <div
-                  style={{
-                    flex: 1,
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    WebkitOverflowScrolling: "touch",
-                    padding: "16px 20px",
-                    minHeight: 0,
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                  }}
-                  className="hide-scrollbar"
-                >
-                  {FormFields}
-                </div>
-
-                {/* Sticky Footer — sits above bottom nav bar */}
-                <div
-                  style={{
-                    padding: "14px 20px",
-                    paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 76px)`,
-                    borderTop: "1px solid #F0F6F6",
-                    background: "white",
-                    flexShrink: 0,
-                    boxShadow: "0 -4px 20px rgba(0,0,0,0.06)",
-                  }}
-                >
-                  {WhatsAppBtn}
-                </div>
-              </motion.div>
-            )}
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Global scrollbar hide style */}
+      {/* Hide scrollbars inside modal content */}
       <style>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
     </MainLayout>
   );
