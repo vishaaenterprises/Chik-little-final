@@ -47,7 +47,7 @@ export default function MobileMenu({ isOpen, onClose, categories }: MobileMenuPr
               <Link href="/" className="flex items-center shrink-0">
                 <div className="relative w-[180px] h-[70px]">
                   <Image
-                    src="/logo1.png"
+                    src="/logo2.png"
                     alt="Little Chiku"
                     fill
                     priority
@@ -56,9 +56,9 @@ export default function MobileMenu({ isOpen, onClose, categories }: MobileMenuPr
                 </div>
               </Link>
               <button
-                onClick={onClose}
-                className="p-2.5 hover:bg-[#EDF6F6] rounded-xl transition-colors"
-              >
+  onClick={onClose}
+  className="p-2.5 hover:bg-[#EDF6F6] rounded-xl transition-colors -mt-4 self-start"
+>
                 <X className="w-5 h-5 text-[#2B2B2B]" />
               </button>
             </div>

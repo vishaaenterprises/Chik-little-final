@@ -71,7 +71,7 @@ export default function Footer() {
             <Link href="/" className="inline-flex items-center mb-4">
               <div className="relative w-[170px] h-[65px]">
                 <Image
-                  src="/logo1.png"
+                  src="/logo2.png"
                   alt="Little Chiku"
                   fill
                   priority
