@@ -1,46 +1,39 @@
-// app/api/sanity/category/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
-import { client } from '@/lib/sanity/client'
-import {
-  categoriesQuery,
-  categoryBySlugQuery,
-  productsByCategoryQuery,
-  productsQuery,
-} from '@/lib/sanity/queries'
+import { sanityFetch, productsByCategoryQuery, productsQuery, categoriesQuery, type SanityProduct, type SanityCategory } from '@/lib/sanity'
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const slug = searchParams.get('slug') ?? 'all'
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const categorySlug = searchParams.get('slug')
 
   try {
-    // Always fetch ALL categories (for the filter sidebar)
-    const categories = await client.fetch(categoriesQuery)
+    // Fetch categories
+    const categories = await sanityFetch<SanityCategory[]>({
+      query: categoriesQuery,
+      revalidate: 60,
+    })
 
-    // Fetch the current category document (for the banner)
-    const currentCategory =
-      slug !== 'all'
-        ? await client.fetch(categoryBySlugQuery, { slug })
-        : null
-
-    // Fetch products — all if slug === 'all', else only this category
-    const products =
-      slug === 'all'
-        ? await client.fetch(productsQuery)
-        : await client.fetch(productsByCategoryQuery, {
-            categorySlug: slug,
-          })
+    // Fetch products
+    let products: SanityProduct[]
+    
+    if (!categorySlug || categorySlug === 'all') {
+      products = await sanityFetch<SanityProduct[]>({
+        query: productsQuery,
+        revalidate: 60,
+      })
+    } else {
+      products = await sanityFetch<SanityProduct[]>({
+        query: productsByCategoryQuery,
+        params: { categorySlug },
+        revalidate: 60,
+      })
+    }
 
     return NextResponse.json({
-      products: products ?? [],
-      categories: categories ?? [],
-      currentCategory: currentCategory ?? null,
+      products: products || [],
+      categories: categories || [],
     })
-  } catch (err) {
-    console.error('[/api/sanity/category] error:', err)
-    return NextResponse.json(
-      { products: [], categories: [], currentCategory: null },
-      { status: 500 }
-    )
+  } catch (error) {
+    console.error('Error fetching category data from Sanity:', error)
+    return NextResponse.json({ products: [], categories: [] })
   }
 }

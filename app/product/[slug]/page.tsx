@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import MainLayout from '@/components/layout/MainLayout'
-import ProductCard from '@/components/products/ProductCard'
-import ProductTabs from '@/components/products/Producttabs'
-import { useCart } from '@/context/cart-context'
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import MainLayout from "@/components/layout/MainLayout";
+import ProductCard from "@/components/products/ProductCard";
+import ProductTabs from "@/components/products/Producttabs";
+import { useCart } from "@/context/cart-context";
 import {
   type SanityProduct,
   type SanityProductCard,
   sanityProductToLegacy,
-} from '@/lib/sanity/types'
-import { getImageUrl } from '@/lib/sanity/image'
+} from "@/lib/sanity/types";
+import { getImageUrl } from "@/lib/sanity/image";
 import {
   Heart,
   Check,
@@ -31,75 +31,83 @@ import {
   Sparkles,
   Leaf,
   Loader2,
-} from 'lucide-react'
+} from "lucide-react";
 
 const DEFAULT_COLORS = [
-  { name: 'Sage Green', hex: '#7E8B5B' },
-  { name: 'Dusty Blue', hex: '#AFC8D6' },
-  { name: 'Warm Cream', hex: '#F8F2E8' },
-  { name: 'Soft Terracotta', hex: '#C9876B' },
-]
+  { name: "Sage Green", hex: "#7E8B5B" },
+  { name: "Dusty Blue", hex: "#AFC8D6" },
+  { name: "Warm Cream", hex: "#F8F2E8" },
+  { name: "Soft Terracotta", hex: "#C9876B" },
+];
 
-const DEFAULT_SIZES = ['0-12 months', '1-3 years', '3-5 years']
+const DEFAULT_SIZES = ["0-12 months", "1-3 years", "3-5 years"];
 
 export default function ProductPage() {
-  const params = useParams()
+  const params = useParams();
 
   // FIX: params.slug from Next.js dynamic route [slug] is always a string
   // useParams returns string | string[] — cast safely
-  const slug = Array.isArray(params.slug) ? params.slug[0] : (params.slug as string)
+  const slug = Array.isArray(params.slug)
+    ? params.slug[0]
+    : (params.slug as string);
 
-  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useCart()
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } =
+    useCart();
 
-  const [sanityProduct, setSanityProduct] = useState<SanityProduct | null>(null)
-  const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>([])
-  const [loading, setLoading] = useState(true)
+  const [sanityProduct, setSanityProduct] = useState<SanityProduct | null>(
+    null,
+  );
+  const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedColorIndex, setSelectedColorIndex] = useState(0)
-  const [selectedSize, setSelectedSize] = useState('')
-  const [quantity, setQuantity] = useState(1)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [addedToCart, setAddedToCart] = useState(false)
+  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
-    if (!slug) return
+    if (!slug) return;
 
     async function fetchProduct() {
-      setLoading(true)
+      setLoading(true);
       try {
         // FIX: use a relative URL — works in all environments (local, Vercel, etc.)
         // Never hardcode localhost:3000
-        const res = await fetch(`/api/sanity/product?slug=${encodeURIComponent(slug)}`, {
-          cache: 'no-store',
-        })
+        const res = await fetch(
+          `/api/sanity/product?slug=${encodeURIComponent(slug)}`,
+          {
+            cache: "no-store",
+          },
+        );
 
         if (!res.ok) {
-          throw new Error(`API responded with status ${res.status}`)
+          throw new Error(`API responded with status ${res.status}`);
         }
 
-        const contentType = res.headers.get('content-type') ?? ''
-        if (!contentType.includes('application/json')) {
-          throw new Error('Expected JSON response from API')
+        const contentType = res.headers.get("content-type") ?? "";
+        if (!contentType.includes("application/json")) {
+          throw new Error("Expected JSON response from API");
         }
 
-        const data = await res.json()
+        const data = await res.json();
 
         if (data?.product) {
-          setSanityProduct(data.product)
-          setRelatedProducts(data.relatedProducts ?? [])
-          setSelectedSize(data.product.sizes?.[0] ?? DEFAULT_SIZES[0])
+          setSanityProduct(data.product);
+          setRelatedProducts(data.relatedProducts ?? []);
+          setSelectedSize(data.product.sizes?.[0] ?? DEFAULT_SIZES[0]);
         } else {
-          console.warn('[ProductPage] Product not found for slug:', slug)
+          console.warn("[ProductPage] Product not found for slug:", slug);
         }
       } catch (err) {
-        console.error('[ProductPage] fetch error:', err)
+        console.error("[ProductPage] fetch error:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchProduct()
-  }, [slug])
+    fetchProduct();
+  }, [slug]);
 
   // ── Derived display product ───────────────────────────────
   const displayProduct = sanityProduct
@@ -108,23 +116,23 @@ export default function ProductPage() {
         // FIX: GROQ resolves "slug": slug.current, so it's already a plain string
         // Defensive fallback handles edge cases
         slug:
-          typeof sanityProduct.slug === 'string'
+          typeof sanityProduct.slug === "string"
             ? sanityProduct.slug
-            : (sanityProduct.slug as any)?.current ?? '',
+            : ((sanityProduct.slug as any)?.current ?? ""),
         name: sanityProduct.productName,
         price: sanityProduct.price,
         originalPrice: sanityProduct.originalPrice,
         rating: sanityProduct.rating ?? 4.9,
         image: getImageUrl(sanityProduct.mainImage),
-        category: sanityProduct.category?.title ?? 'Products',
+        category: sanityProduct.category?.title ?? "Products",
         // FIX: same slug resolution for category
         categorySlug:
-          typeof sanityProduct.category?.slug === 'string'
+          typeof sanityProduct.category?.slug === "string"
             ? sanityProduct.category.slug
-            : (sanityProduct.category?.slug as any)?.current ?? 'all',
-        subcategory: sanityProduct.productType ?? '',
-        isNew: sanityProduct.newArrival ?? sanityProduct.badge === 'new',
-        isBestseller: sanityProduct.badge === 'bestseller',
+            : ((sanityProduct.category?.slug as any)?.current ?? "all"),
+        subcategory: sanityProduct.productType ?? "",
+        isNew: sanityProduct.newArrival ?? sanityProduct.badge === "new",
+        isBestseller: sanityProduct.badge === "bestseller",
         shortDescription: sanityProduct.shortDescription,
         colors:
           sanityProduct.colors && sanityProduct.colors.length > 0
@@ -137,44 +145,45 @@ export default function ProductPage() {
         reviewsCount: sanityProduct.reviewsCount ?? 0,
         stock: sanityProduct.stock ?? 0,
       }
-    : null
+    : null;
 
   const images: string[] = sanityProduct
     ? [
         getImageUrl(sanityProduct.mainImage),
         ...(sanityProduct.galleryImages?.map((img) => getImageUrl(img)) ?? []),
       ].filter(Boolean)
-    : []
+    : [];
 
   const alsoLikeProducts = (sanityProduct?.alsoLike ?? []).map(
-    (p: SanityProductCard) => sanityProductToLegacy(p, getImageUrl(p.mainImage))
-  )
+    (p: SanityProductCard) =>
+      sanityProductToLegacy(p, getImageUrl(p.mainImage)),
+  );
 
   const displayRelatedProducts = relatedProducts.map((p) =>
-    sanityProductToLegacy(p, getImageUrl(p.mainImage))
-  )
+    sanityProductToLegacy(p, getImageUrl(p.mainImage)),
+  );
 
-  const isWishlisted = displayProduct ? isInWishlist(displayProduct.id) : false
+  const isWishlisted = displayProduct ? isInWishlist(displayProduct.id) : false;
 
   const discount = displayProduct?.originalPrice
     ? Math.round(
         ((displayProduct.originalPrice - displayProduct.price) /
           displayProduct.originalPrice) *
-          100
+          100,
       )
-    : 0
+    : 0;
 
   const nextImage = () =>
-    setCurrentImageIndex((prev) => (prev + 1) % images.length)
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
   const prevImage = () =>
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
 
   const handleAddToCart = () => {
-    if (!displayProduct) return
+    if (!displayProduct) return;
     const colorObj = displayProduct.colors[selectedColorIndex] as {
-      name: string
-      hex: string
-    }
+      name: string;
+      hex: string;
+    };
     addToCart(
       {
         id: displayProduct.id,
@@ -185,18 +194,18 @@ export default function ProductPage() {
         image: displayProduct.image,
         category: displayProduct.category,
         size: selectedSize,
-        color: colorObj?.name ?? 'Default',
+        color: colorObj?.name ?? "Default",
       },
-      quantity
-    )
-    setAddedToCart(true)
-    setTimeout(() => setAddedToCart(false), 2000)
-  }
+      quantity,
+    );
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
+  };
 
   const handleWishlistToggle = () => {
-    if (!displayProduct) return
+    if (!displayProduct) return;
     if (isWishlisted) {
-      removeFromWishlist(displayProduct.id)
+      removeFromWishlist(displayProduct.id);
     } else {
       addToWishlist({
         id: displayProduct.id,
@@ -209,9 +218,9 @@ export default function ProductPage() {
         rating: displayProduct.rating,
         isNew: displayProduct.isNew,
         isBestseller: displayProduct.isBestseller,
-      })
+      });
     }
-  }
+  };
 
   // ── Loading ───────────────────────────────────────────────
   if (loading) {
@@ -224,7 +233,7 @@ export default function ProductPage() {
           </div>
         </div>
       </MainLayout>
-    )
+    );
   }
 
   // ── Not found ─────────────────────────────────────────────
@@ -248,13 +257,13 @@ export default function ProductPage() {
           </div>
         </div>
       </MainLayout>
-    )
+    );
   }
 
   const currentColor = displayProduct.colors[selectedColorIndex] as {
-    name: string
-    hex: string
-  }
+    name: string;
+    hex: string;
+  };
 
   // ── Render ────────────────────────────────────────────────
   return (
@@ -265,7 +274,10 @@ export default function ProductPage() {
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2 relative z-10">
         <nav className="flex items-center gap-1.5 text-sm text-[#6B6B6B] overflow-hidden whitespace-nowrap text-ellipsis">
-          <Link href="/" className="hover:text-[#4FBDBA] transition-colors duration-200">
+          <Link
+            href="/"
+            className="hover:text-[#4FBDBA] transition-colors duration-200"
+          >
             Home
           </Link>
           <span className="text-[#E7EEEE]">/</span>
@@ -286,7 +298,6 @@ export default function ProductPage() {
       <section className="pb-16 md:pb-24 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
-
             {/* Image Gallery */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -294,21 +305,22 @@ export default function ProductPage() {
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
-              <div className="relative bg-[#DDF5F4]/40 rounded-[2rem] overflow-hidden aspect-square group shadow-[0_10px_40px_rgba(79,189,186,0.1)] border border-[#E7EEEE]">
-                {images.length > 0 && (
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={currentImageIndex}
-                      src={images[currentImageIndex]}
-                      alt={displayProduct.name}
-                      className="w-full h-full object-cover"
-                      initial={{ opacity: 0, scale: 1.03 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.97 }}
-                      transition={{ duration: 0.35 }}
-                    />
-                  </AnimatePresence>
-                )}
+              <div className="relative bg-white rounded-[2rem] overflow-hidden h-[560px] group shadow-[0_10px_40px_rgba(79,189,186,0.1)] border border-[#E7EEEE]">
+
+  {images.length > 0 && (
+    <AnimatePresence mode="wait">
+      <motion.img
+        key={currentImageIndex}
+        src={images[currentImageIndex]}
+        alt={displayProduct.name}
+        className="w-full h-full object-cover object-center"
+        initial={{ opacity: 0, scale: 1.02 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.35 }}
+      />
+    </AnimatePresence>
+  )}
                 {images.length > 1 && (
                   <>
                     <button
@@ -348,8 +360,8 @@ export default function ProductPage() {
                         onClick={() => setCurrentImageIndex(i)}
                         className={`rounded-full transition-all duration-200 ${
                           i === currentImageIndex
-                            ? 'w-5 h-2 bg-[#4FBDBA]'
-                            : 'w-2 h-2 bg-[#E7EEEE] hover:bg-[#4FBDBA]/40'
+                            ? "w-5 h-2 bg-[#4FBDBA]"
+                            : "w-2 h-2 bg-[#E7EEEE] hover:bg-[#4FBDBA]/40"
                         }`}
                       />
                     ))}
@@ -366,11 +378,15 @@ export default function ProductPage() {
                       onClick={() => setCurrentImageIndex(idx)}
                       className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${
                         idx === currentImageIndex
-                          ? 'border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.15)]'
-                          : 'border-[#E7EEEE] hover:border-[#4FBDBA]/50 opacity-70 hover:opacity-100'
+                          ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.15)]"
+                          : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 opacity-70 hover:opacity-100"
                       }`}
                     >
-                      <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img
+                        src={img}
+                        alt={`View ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
                     </button>
                   ))}
                 </div>
@@ -381,7 +397,11 @@ export default function ProductPage() {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.55,
+                delay: 0.1,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="space-y-6 lg:pt-2"
             >
               {/* Category pill + Share */}
@@ -389,13 +409,15 @@ export default function ProductPage() {
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#DDF5F4] text-[#2F7F7C] text-xs font-semibold rounded-full uppercase tracking-wider">
                   <Leaf className="w-3 h-3" />
                   {displayProduct.category}
-                  {displayProduct.subcategory ? ` · ${displayProduct.subcategory}` : ''}
+                  {displayProduct.subcategory
+                    ? ` · ${displayProduct.subcategory}`
+                    : ""}
                 </span>
                 <button
                   onClick={async () => {
                     try {
-                      await navigator.clipboard.writeText(window.location.href)
-                      alert('Product link copied!')
+                      await navigator.clipboard.writeText(window.location.href);
+                      alert("Product link copied!");
                     } catch {
                       // clipboard unavailable
                     }
@@ -421,18 +443,22 @@ export default function ProductPage() {
                         key={i}
                         className={`w-4 h-4 ${
                           i < Math.floor(displayProduct.rating)
-                            ? 'fill-[#F6C453] text-[#F6C453]'
-                            : 'text-[#E7EEEE] fill-[#E7EEEE]'
+                            ? "fill-[#F6C453] text-[#F6C453]"
+                            : "text-[#E7EEEE] fill-[#E7EEEE]"
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="font-bold text-sm text-[#2B2B2B]">{displayProduct.rating}</span>
+                  <span className="font-bold text-sm text-[#2B2B2B]">
+                    {displayProduct.rating}
+                  </span>
                 </div>
-                <span className="text-sm text-[#6B6B6B]">{displayProduct.reviewsCount} reviews</span>
+                <span className="text-sm text-[#6B6B6B]">
+                  {displayProduct.reviewsCount} reviews
+                </span>
                 <span className="inline-flex items-center gap-1 text-sm text-[#2F7F7C] font-semibold">
                   <span className="w-2 h-2 bg-[#4FBDBA] rounded-full inline-block" />
-                  {displayProduct.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                  {displayProduct.stock > 0 ? "In Stock" : "Out of Stock"}
                 </span>
               </div>
 
@@ -447,7 +473,10 @@ export default function ProductPage() {
                       Rs. {displayProduct.originalPrice.toLocaleString()}
                     </span>
                     <span className="px-3 py-1 bg-[#FFF4D6] text-[#2B2B2B] font-semibold rounded-2xl text-sm border border-[#F6C453]/30">
-                      Save Rs. {(displayProduct.originalPrice - displayProduct.price).toLocaleString()}
+                      Save Rs.{" "}
+                      {(
+                        displayProduct.originalPrice - displayProduct.price
+                      ).toLocaleString()}
                     </span>
                   </>
                 )}
@@ -463,22 +492,22 @@ export default function ProductPage() {
               {/* Color Selection */}
               <div>
                 <label className="block text-sm font-semibold text-[#2B2B2B] mb-3">
-                  Color:{' '}
+                  Color:{" "}
                   <span className="font-normal text-[#6B6B6B]">
-                    {currentColor?.name ?? 'Default'}
+                    {currentColor?.name ?? "Default"}
                   </span>
                 </label>
                 <div className="flex gap-3 flex-wrap">
                   {displayProduct.colors.map((color, idx) => {
-                    const c = color as { name: string; hex: string }
+                    const c = color as { name: string; hex: string };
                     return (
                       <button
                         key={c.name ?? idx}
                         onClick={() => setSelectedColorIndex(idx)}
                         className={`w-11 h-11 rounded-2xl border-2 transition-all duration-200 flex items-center justify-center ${
                           selectedColorIndex === idx
-                            ? 'border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110'
-                            : 'border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105'
+                            ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110"
+                            : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105"
                         }`}
                         style={{ backgroundColor: c.hex }}
                         title={c.name}
@@ -486,12 +515,14 @@ export default function ProductPage() {
                         {selectedColorIndex === idx && (
                           <Check
                             className={`w-4 h-4 ${
-                              c.hex === '#F8F2E8' ? 'text-[#2B2B2B]' : 'text-white'
+                              c.hex === "#F8F2E8"
+                                ? "text-[#2B2B2B]"
+                                : "text-white"
                             }`}
                           />
                         )}
                       </button>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -500,8 +531,10 @@ export default function ProductPage() {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-[#2B2B2B]">
-                    Size:{' '}
-                    <span className="font-normal text-[#6B6B6B]">{selectedSize}</span>
+                    Size:{" "}
+                    <span className="font-normal text-[#6B6B6B]">
+                      {selectedSize}
+                    </span>
                   </label>
                   <button className="text-sm text-[#4FBDBA] hover:text-[#2F7F7C] font-semibold flex items-center gap-1 transition-colors duration-200">
                     <Ruler className="w-3.5 h-3.5" />
@@ -515,8 +548,8 @@ export default function ProductPage() {
                       onClick={() => setSelectedSize(size)}
                       className={`px-5 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all duration-200 ${
                         selectedSize === size
-                          ? 'border-[#4FBDBA] bg-[#4FBDBA] text-white shadow-[0_6px_20px_rgba(79,189,186,0.28)]'
-                          : 'border-[#E7EEEE] bg-white text-[#2B2B2B] hover:border-[#4FBDBA]/60 hover:bg-[#DDF5F4]'
+                          ? "border-[#4FBDBA] bg-[#4FBDBA] text-white shadow-[0_6px_20px_rgba(79,189,186,0.28)]"
+                          : "border-[#E7EEEE] bg-white text-[#2B2B2B] hover:border-[#4FBDBA]/60 hover:bg-[#DDF5F4]"
                       }`}
                     >
                       {size}
@@ -550,8 +583,8 @@ export default function ProductPage() {
                   onClick={handleAddToCart}
                   className={`flex-1 py-3.5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-[15px] ${
                     addedToCart
-                      ? 'bg-[#2F7F7C] text-white shadow-[0_12px_30px_rgba(47,127,124,0.3)]'
-                      : 'bg-[#4FBDBA] text-white shadow-[0_12px_30px_rgba(79,189,186,0.28)] hover:bg-[#2F7F7C] hover:shadow-[0_16px_40px_rgba(79,189,186,0.38)] hover:-translate-y-0.5'
+                      ? "bg-[#2F7F7C] text-white shadow-[0_12px_30px_rgba(47,127,124,0.3)]"
+                      : "bg-[#4FBDBA] text-white shadow-[0_12px_30px_rgba(79,189,186,0.28)] hover:bg-[#2F7F7C] hover:shadow-[0_16px_40px_rgba(79,189,186,0.38)] hover:-translate-y-0.5"
                   }`}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -576,7 +609,8 @@ export default function ProductPage() {
                         exit={{ opacity: 0, y: -6 }}
                       >
                         <Package className="w-5 h-5" />
-                        Add to Cart · Rs. {(displayProduct.price * quantity).toLocaleString()}
+                        Add to Cart · Rs.{" "}
+                        {(displayProduct.price * quantity).toLocaleString()}
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -586,38 +620,62 @@ export default function ProductPage() {
                   onClick={handleWishlistToggle}
                   className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
                     isWishlisted
-                      ? 'bg-red-50 text-red-500 border-red-200 shadow-[0_4px_16px_rgba(239,68,68,0.15)]'
-                      : 'bg-white border-[#E7EEEE] text-[#6B6B6B] hover:border-[#4FBDBA]/50 hover:bg-[#DDF5F4] hover:text-[#4FBDBA] shadow-sm'
+                      ? "bg-red-50 text-red-500 border-red-200 shadow-[0_4px_16px_rgba(239,68,68,0.15)]"
+                      : "bg-white border-[#E7EEEE] text-[#6B6B6B] hover:border-[#4FBDBA]/50 hover:bg-[#DDF5F4] hover:text-[#4FBDBA] shadow-sm"
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.93 }}
                 >
-                  <Heart className="w-5 h-5" fill={isWishlisted ? 'currentColor' : 'none'} />
+                  <Heart
+                    className="w-5 h-5"
+                    fill={isWishlisted ? "currentColor" : "none"}
+                  />
                 </motion.button>
               </div>
 
               {/* Trust Badges */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-5 border-t border-[#E7EEEE]">
                 {[
-                  { icon: Truck,     title: 'Free Delivery',  desc: 'On orders above Rs. 499', color: 'bg-[#DDF5F4] text-[#4FBDBA]' },
-                  { icon: RefreshCw, title: 'Easy Returns',   desc: '30-day return policy',    color: 'bg-[#FFF4D6] text-[#F6C453]' },
-                  { icon: Shield,    title: 'Secure Payment', desc: '100% secure checkout',    color: 'bg-[#DDF5F4] text-[#2F7F7C]' },
+                  {
+                    icon: Truck,
+                    title: "Free Delivery",
+                    desc: "On orders above Rs. 499",
+                    color: "bg-[#DDF5F4] text-[#4FBDBA]",
+                  },
+                  {
+                    icon: RefreshCw,
+                    title: "Easy Returns",
+                    desc: "3-day return policy",
+                    color: "bg-[#FFF4D6] text-[#F6C453]",
+                  },
+                  {
+                    icon: Shield,
+                    title: "Secure Payment",
+                    desc: "100% secure checkout",
+                    color: "bg-[#DDF5F4] text-[#2F7F7C]",
+                  },
                 ].map((badge) => {
-                  const Icon = badge.icon
+                  const Icon = badge.icon;
                   return (
                     <div
                       key={badge.title}
                       className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[#E7EEEE] shadow-sm"
                     >
-                      <div className={`w-10 h-10 rounded-xl ${badge.color} flex items-center justify-center flex-shrink-0`}>
+                      <div
+                        className={`w-10 h-10 rounded-xl ${badge.color} flex items-center justify-center flex-shrink-0`}
+                      >
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-[#2B2B2B] leading-tight">{badge.title}</p>
-                        <p className="text-xs text-[#6B6B6B] mt-0.5">{badge.desc}</p>
+                        <p className="text-sm font-bold text-[#2B2B2B] leading-tight">
+                          {badge.title}
+                        </p>
+                        <p className="text-xs text-[#6B6B6B] mt-0.5">
+                          {badge.desc}
+                        </p>
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </motion.div>
@@ -703,5 +761,5 @@ export default function ProductPage() {
         </section>
       )}
     </MainLayout>
-  )
+  );
 }

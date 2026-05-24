@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "createdAt": "2026-05-23T08:12:07.862Z",
+  "createdAt": "2026-05-23T15:32:16.084Z",
   "workspaces": [
     {
       "name": "chikulittle-studio",
@@ -12,7 +12,7 @@
       "mediaLibrary": {
         "enabled": false
       },
-      "schema": "7a7145fb.create-schema.json",
+      "schema": "29a6978f.create-schema.json",
       "tools": "bc196c7c.create-tools.json"
     }
   ]

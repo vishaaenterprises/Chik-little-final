@@ -7,6 +7,7 @@ import MomSection from './MomSection'
 import TrustSection from './TrustSection'
 import InstagramSection from './InstagramSection'
 import TestimonialsSection from './TestimonialsSection'
+
 import type { LegacyProduct } from '@/lib/sanity/types'
 import type { SanityTestimonial, SanityBanner } from '@/lib/sanity'
 
@@ -29,22 +30,56 @@ interface HomeProps {
 }
 
 // Get products by category
-const getProductsByCategory = (products: LegacyProduct[], category: string) => {
+const getProductsByCategory = (
+  products: LegacyProduct[],
+  category: string
+) => {
   return products.filter(
-    (p) => p.category.toLowerCase() === category.toLowerCase()
+    (p) => p.category?.toLowerCase() === category.toLowerCase()
   )
 }
 
-export default function Home({ products, categories, testimonials, heroBanner }: HomeProps) {
-  const bathLinenProducts = getProductsByCategory(products, 'Bath Linen')
-  const beddingProducts = getProductsByCategory(products, 'Bedding')
-  const bagsProducts = getProductsByCategory(products, 'Bags')
-  const accessoriesProducts = getProductsByCategory(products, 'Kids Accessories')
-  const clothingProducts = getProductsByCategory(products, 'Clothing')
-  const momProducts = products.filter(
-    (p) => p.category.toLowerCase() === 'clothing' || p.category.toLowerCase() === "mom's corner"
+export default function Home({
+  products,
+  categories,
+  testimonials,
+  heroBanner,
+}: HomeProps) {
+  const bathLinenProducts = getProductsByCategory(
+    products,
+    'Bath Linen'
   )
-  const giftProducts = getProductsByCategory(products, 'Return Gifts')
+
+  const beddingProducts = getProductsByCategory(
+    products,
+    'Bedding'
+  )
+
+  const bagsProducts = getProductsByCategory(
+    products,
+    'Bags'
+  )
+
+  const accessoriesProducts = getProductsByCategory(
+    products,
+    'Kids Accessories'
+  )
+
+  const clothingProducts = getProductsByCategory(
+    products,
+    'Clothing'
+  )
+
+  // ONLY Mom's Corner products
+  const momProducts = getProductsByCategory(
+    products,
+    "Mom's Corner"
+  )
+
+  const giftProducts = getProductsByCategory(
+    products,
+    'Return Gifts'
+  )
 
   return (
     <main className="bg-[#F6FBFB] overflow-hidden">
@@ -110,13 +145,7 @@ export default function Home({ products, categories, testimonials, heroBanner }:
       />
 
       {/* Mom's Corner */}
-      <MomSection
-        products={
-          momProducts.length > 0
-            ? momProducts
-            : bathLinenProducts
-        }
-      />
+      <MomSection products={momProducts} />
 
       {/* Testimonials */}
       {testimonials.length > 0 && (

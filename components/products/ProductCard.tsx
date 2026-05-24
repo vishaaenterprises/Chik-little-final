@@ -108,15 +108,17 @@ export default function ProductCard({
         {/* Image Container */}
         <div className="relative overflow-hidden bg-[#F6FBFB] aspect-[4/5]">
           {/* FIX: use slugStr (plain string), not product.slug?.current */}
-          <Link href={`/product/${slugStr}`}>
-            <motion.img
-              src={image}
-              alt={name}
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-              animate={{ scale: isHovered ? 1.08 : 1 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-            />
-          </Link>
+          <div className="relative w-full h-[360px] bg-white overflow-hidden rounded-[28px] flex items-center justify-center">
+
+  <motion.img
+    src={image}
+    alt={name}
+    className="w-[95%] h-[95%] object-contain"
+    animate={{ scale: isHovered ? 1.03 : 1 }}
+    transition={{ duration: 0.4 }}
+  />
+
+</div>
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#2F7F7C]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
