@@ -1,7 +1,34 @@
 // lib/sanity/queries.ts
 import { groq } from 'next-sanity'
 
+// ── Shared fragment: variant fields ───────────────────────────
+// Used in both card and detail queries so variant images/prices
+// are always available for color-dot rendering and hover swaps.
+
+const VARIANT_FIELDS = groq`
+  variants[]{
+    _key,
+    colorName,
+    colorCode,
+    price,
+    originalPrice,
+    stock,
+    sku,
+    size,
+    shortDescription,
+    rating,
+    reviews,
+    images[]{
+      asset,
+      hotspot,
+      crop
+    }
+  }
+`
+
 // ── Shared fragment: lightweight card fields ──────────────────
+// Includes variant data so ProductCard can render color dots and
+// hover-image swaps without an extra network request.
 
 const PRODUCT_CARD_FIELDS = groq`
   _id,
@@ -25,7 +52,8 @@ const PRODUCT_CARD_FIELDS = groq`
     _id,
     title,
     "slug": slug.current
-  }
+  },
+  ${VARIANT_FIELDS}
 `
 
 // ── Shared fragment: full detail fields ───────────────────────
@@ -69,6 +97,7 @@ const PRODUCT_DETAIL_FIELDS = groq`
     title,
     "slug": slug.current
   },
+  ${VARIANT_FIELDS},
   alsoLike[]->{
     ${PRODUCT_CARD_FIELDS}
   }

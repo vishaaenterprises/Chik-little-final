@@ -1,3 +1,4 @@
+// sanity/schemas/product.ts
 import { defineField, defineType } from 'sanity'
 import { SubcategoryInput } from './SubcategoryInput'
 
@@ -69,18 +70,19 @@ export const product = defineType({
       options: { layout: 'tags' },
     }),
 
-    // ── Pricing ────────────────────────────────────────────────
+    // ── Pricing (product-level fallback) ───────────────────────
     defineField({
       name: 'price',
-      title: 'Price (Rs.)',
+      title: 'Price (Rs.) — Fallback',
+      description: 'Used when no variants are defined.',
       type: 'number',
       validation: (Rule) => Rule.required().positive(),
     }),
 
     defineField({
       name: 'originalPrice',
-      title: 'Original Price (Rs.)',
-      description: 'Leave empty if no discount.',
+      title: 'Original Price (Rs.) — Fallback',
+      description: 'Leave empty if no discount. Used when no variants are defined.',
       type: 'number',
     }),
 
@@ -120,16 +122,16 @@ export const product = defineType({
       initialValue: false,
     }),
 
-    // ── Out of Stock Toggle ────────────────────────────────────
+    // ── Out of Stock Toggle (product-level fallback) ───────────
     defineField({
       name: 'outOfStock',
       title: 'Out of Stock',
       type: 'boolean',
       initialValue: false,
-      description: 'Enable this to mark product as unavailable. Disables Add to Cart and purchase actions.',
+      description: 'Enable this to mark the entire product as unavailable. Per-variant stock is preferred.',
     }),
 
-    // ── Images ─────────────────────────────────────────────────
+    // ── Main Image (product-level fallback / card image) ───────
     defineField({
       name: 'mainImage',
       title: 'Main Image',
@@ -140,55 +142,197 @@ export const product = defineType({
 
     defineField({
       name: 'galleryImages',
-      title: 'Gallery Images',
+      title: 'Gallery Images (Fallback)',
+      description: 'Used when no variants are defined.',
       type: 'array',
       of: [{ type: 'image', options: { hotspot: true } }],
     }),
 
-    // ── Variants ───────────────────────────────────────────────
+    // ── VARIANTS ───────────────────────────────────────────────
+    // Each variant is a complete product configuration for one color.
+    // When variants exist, all product detail display is driven from
+    // the selected variant rather than the top-level fields.
     defineField({
-      name: 'colors',
-      title: 'Available Colors',
+      name: 'variants',
+      title: 'Color Variants',
+      description:
+        'Add one entry per color option. Each variant has its own images, price, stock, SKU, and description.',
       type: 'array',
       of: [
         {
           type: 'object',
+          name: 'productVariant',
+          title: 'Color Variant',
+
           fields: [
-            { name: 'name', title: 'Color Name', type: 'string' },
-            { name: 'hex',  title: 'Hex Code',   type: 'string' },
+            // ── Color Identity ─────────────────────────────────
+            defineField({
+              name: 'colorName',
+              title: 'Color Name',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+
+            defineField({
+              name: 'colorCode',
+              title: 'Color Hex Code',
+              description: 'e.g. #7E8B5B',
+              type: 'string',
+              validation: (Rule) =>
+                Rule.required().regex(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/, {
+                  name: 'hex color',
+                  invert: false,
+                }),
+            }),
+
+            // ── Pricing ────────────────────────────────────────
+            defineField({
+              name: 'price',
+              title: 'Price (Rs.)',
+              type: 'number',
+              validation: (Rule) => Rule.required().positive(),
+            }),
+
+            defineField({
+              name: 'originalPrice',
+              title: 'Original Price (Rs.)',
+              description: 'Leave empty if no discount for this variant.',
+              type: 'number',
+              validation: (Rule) => Rule.positive(),
+            }),
+
+            // ── Inventory ──────────────────────────────────────
+            defineField({
+              name: 'stock',
+              title: 'Stock Quantity',
+              type: 'number',
+              initialValue: 100,
+              validation: (Rule) => Rule.required().min(0).integer(),
+            }),
+
+            defineField({
+              name: 'sku',
+              title: 'SKU',
+              description: 'Unique identifier for this color variant.',
+              type: 'string',
+            }),
+
+            // ── Variant-Specific Details ───────────────────────
+            defineField({
+              name: 'size',
+              title: 'Size',
+              description: 'Default or available size for this color.',
+              type: 'string',
+            }),
+
+            defineField({
+              name: 'shortDescription',
+              title: 'Short Description',
+              description: 'Override the product description for this specific color.',
+              type: 'text',
+              rows: 2,
+            }),
+
+            // ── Ratings ────────────────────────────────────────
+            defineField({
+              name: 'rating',
+              title: 'Rating (0–5)',
+              type: 'number',
+              initialValue: 4.5,
+              validation: (Rule) => Rule.min(0).max(5),
+            }),
+
+            defineField({
+              name: 'reviews',
+              title: 'Reviews Count',
+              type: 'number',
+              initialValue: 0,
+              validation: (Rule) => Rule.min(0).integer(),
+            }),
+
+            // ── Images ─────────────────────────────────────────
+            // First image is shown as the main image; rest go in thumbnail gallery.
+            defineField({
+              name: 'images',
+              title: 'Variant Images',
+              description: 'First image = main display image. Add more for the thumbnail gallery.',
+              type: 'array',
+              of: [{ type: 'image', options: { hotspot: true } }],
+              validation: (Rule) =>
+                Rule.required().min(1).error('At least one image is required per variant.'),
+            }),
           ],
+
           preview: {
-            select: { title: 'name', subtitle: 'hex' },
+            select: {
+              colorName:  'colorName',
+              colorCode:  'colorCode',
+              price:      'price',
+              stock:      'stock',
+              media:      'images.0',
+            },
+            prepare({ colorName, colorCode, price, stock, media }) {
+              const oos = stock === 0 ? ' · ⛔ OOS' : ''
+              return {
+                title:    colorName ?? 'Unnamed Variant',
+                subtitle: `${colorCode ?? ''} · Rs.${price ?? 0}${oos}`,
+                media,
+              }
+            },
           },
         },
       ],
     }),
 
+    // ── Legacy Color / Size (kept for backward compat) ─────────
+    // These drive the ProductCard color dots when no variants exist.
+    // defineField({
+    //   name: 'colors',
+    //   title: 'Available Colors (Legacy)',
+    //   description: 'Used for products without full variant support.',
+    //   type: 'array',
+    //   of: [
+    //     {
+    //       type: 'object',
+    //       fields: [
+    //         { name: 'name', title: 'Color Name', type: 'string' },
+    //         { name: 'hex',  title: 'Hex Code',   type: 'string' },
+    //       ],
+    //       preview: {
+    //         select: { title: 'name', subtitle: 'hex' },
+    //       },
+    //     },
+    //   ],
+    // }),
+
     defineField({
       name: 'sizes',
-      title: 'Available Sizes',
+      title: 'Available Sizes (Legacy)',
+      description: 'Used for products without full variant support.',
       type: 'array',
       of: [{ type: 'string' }],
     }),
 
-    // ── Inventory ──────────────────────────────────────────────
+    // ── Inventory (product-level fallback) ─────────────────────
     defineField({
       name: 'stock',
-      title: 'Stock Quantity',
+      title: 'Stock Quantity — Fallback',
+      description: 'Used when no variants are defined.',
       type: 'number',
       initialValue: 100,
     }),
 
     defineField({
       name: 'sku',
-      title: 'SKU',
+      title: 'SKU — Fallback',
+      description: 'Used when no variants are defined.',
       type: 'string',
     }),
 
-    // ── Reviews ────────────────────────────────────────────────
+    // ── Reviews (product-level fallback) ──────────────────────
     defineField({
       name: 'rating',
-      title: 'Rating (0–5)',
+      title: 'Rating (0–5) — Fallback',
       type: 'number',
       validation: (Rule) => Rule.min(0).max(5),
       initialValue: 4.5,
@@ -196,7 +340,7 @@ export const product = defineType({
 
     defineField({
       name: 'reviewsCount',
-      title: 'Reviews Count',
+      title: 'Reviews Count — Fallback',
       type: 'number',
       initialValue: 0,
     }),
@@ -316,13 +460,17 @@ export const product = defineType({
       category:    'category.title',
       subcategory: 'subcategory',
       outOfStock:  'outOfStock',
+      variants:    'variants',
     },
-    prepare({ title, media, price, category, subcategory, outOfStock }) {
+    prepare({ title, media, price, category, subcategory, outOfStock, variants }) {
       const sub = subcategory ? ` › ${subcategory}` : ''
       const oos = outOfStock ? ' · ⛔ Out of Stock' : ''
+      const variantCount = Array.isArray(variants) && variants.length > 0
+        ? ` · ${variants.length} variant${variants.length > 1 ? 's' : ''}`
+        : ''
       return {
         title,
-        subtitle: `${category ? category + sub + ' · ' : ''}₹${price}${oos}`,
+        subtitle: `${category ? category + sub + ' · ' : ''}₹${price}${variantCount}${oos}`,
         media,
       }
     },

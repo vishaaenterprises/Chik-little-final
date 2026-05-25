@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import MainLayout from "@/components/layout/MainLayout";
@@ -11,7 +11,9 @@ import { useCart } from "@/context/cart-context";
 import {
   type SanityProduct,
   type SanityProductCard,
+  type ProductVariant,
   sanityProductToLegacy,
+  computeDiscount,
 } from "@/lib/sanity/types";
 import { getImageUrl } from "@/lib/sanity/image";
 import {
@@ -34,6 +36,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+// ── Fallback data when Sanity has no variants ─────────────────
+
 const DEFAULT_COLORS = [
   { name: "Sage Green", hex: "#7E8B5B" },
   { name: "Dusty Blue", hex: "#AFC8D6" },
@@ -42,6 +46,14 @@ const DEFAULT_COLORS = [
 ];
 
 const DEFAULT_SIZES = ["0-12 months", "1-3 years", "3-5 years"];
+
+// ── Helper: resolve image URLs from a variant's images array ──
+
+function variantImageUrls(variant: ProductVariant): string[] {
+  return (variant.images ?? [])
+    .map((img) => getImageUrl(img))
+    .filter(Boolean);
+}
 
 export default function ProductPage() {
   const params = useParams();
@@ -56,12 +68,21 @@ export default function ProductPage() {
   const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  // ── Variant state ─────────────────────────────────────────────
+  // selectedVariant drives ALL display values on the detail page.
+  // When the product has no variants, we fall back to product-level fields.
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+
+  // selectedImage is the index within selectedVariant.images (or the
+  // flat fallback images array for products without variants).
+  const [selectedImage, setSelectedImage] = useState(0);
+
+  // Non-variant state
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
+  // ── Fetch ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!slug) return;
     async function fetchProduct() {
@@ -77,9 +98,21 @@ export default function ProductPage() {
           throw new Error("Expected JSON response from API");
         const data = await res.json();
         if (data?.product) {
-          setSanityProduct(data.product);
+          const product: SanityProduct = data.product;
+          setSanityProduct(product);
           setRelatedProducts(data.relatedProducts ?? []);
-          setSelectedSize(data.product.sizes?.[0] ?? DEFAULT_SIZES[0]);
+
+          // Initialise variant state from the first variant (if any)
+          const firstVariant = product.variants?.[0] ?? null;
+          setSelectedVariant(firstVariant);
+          setSelectedImage(0);
+
+          // Initialise size from variant or product level
+          setSelectedSize(
+            firstVariant?.size ??
+            product.sizes?.[0] ??
+            DEFAULT_SIZES[0]
+          );
         } else {
           console.warn("[ProductPage] Product not found for slug:", slug);
         }
@@ -92,124 +125,182 @@ export default function ProductPage() {
     fetchProduct();
   }, [slug]);
 
-  // ── Derived display product ──────────────────────────────────
-  const displayProduct = sanityProduct
-    ? {
-        id: sanityProduct._id,
-        slug:
-          typeof sanityProduct.slug === "string"
-            ? sanityProduct.slug
-            : ((sanityProduct.slug as any)?.current ?? ""),
-        name: sanityProduct.productName,
-        price: sanityProduct.price,
-        originalPrice: sanityProduct.originalPrice,
-        rating: sanityProduct.rating ?? 4.9,
-        image: getImageUrl(sanityProduct.mainImage),
-        category: sanityProduct.category?.title ?? "Products",
-        categorySlug:
-          typeof sanityProduct.category?.slug === "string"
-            ? sanityProduct.category.slug
-            : ((sanityProduct.category?.slug as any)?.current ?? "all"),
-        subcategory: sanityProduct.productType ?? "",
-        isNew: sanityProduct.newArrival ?? sanityProduct.badge === "new",
-        isBestseller: sanityProduct.badge === "bestseller",
-        outOfStock: sanityProduct.outOfStock ?? false,
-        shortDescription: sanityProduct.shortDescription,
-        colors:
-          sanityProduct.colors && sanityProduct.colors.length > 0
-            ? sanityProduct.colors
-            : DEFAULT_COLORS,
-        sizes:
-          sanityProduct.sizes && sanityProduct.sizes.length > 0
-            ? sanityProduct.sizes
-            : DEFAULT_SIZES,
-        reviewsCount: sanityProduct.reviewsCount ?? 0,
-        stock: sanityProduct.stock ?? 0,
-      }
-    : null;
+  // ── Handle variant change ─────────────────────────────────────
+  // Reset image index to 0 whenever the user picks a different color.
+  const handleVariantChange = useCallback((variant: ProductVariant) => {
+    setSelectedVariant(variant);
+    setSelectedImage(0);
+    // Keep size in sync with the new variant's size if available
+    if (variant.size) setSelectedSize(variant.size);
+  }, []);
 
-  const images: string[] = sanityProduct
-    ? [
-        getImageUrl(sanityProduct.mainImage),
-        ...(sanityProduct.galleryImages?.map((img) => getImageUrl(img)) ?? []),
-      ].filter(Boolean)
-    : [];
+  // ── Derived: resolved display images ──────────────────────────
+  // If we have a selected variant use its images; otherwise fall back
+  // to mainImage + galleryImages at the product level.
+  const images = useMemo<string[]>(() => {
+    if (!sanityProduct) return [];
+    if (selectedVariant) {
+      return variantImageUrls(selectedVariant);
+    }
+    return [
+      getImageUrl(sanityProduct.mainImage),
+      ...(sanityProduct.galleryImages?.map((img) => getImageUrl(img)) ?? []),
+    ].filter(Boolean);
+  }, [sanityProduct, selectedVariant]);
 
-  const alsoLikeProducts = (sanityProduct?.alsoLike ?? []).map(
-    (p: SanityProductCard) =>
-      sanityProductToLegacy(p, getImageUrl(p.mainImage))
+  // ── Derived: display values (variant-first, product fallback) ──
+  const displayPrice         = selectedVariant?.price         ?? sanityProduct?.price         ?? 0;
+  const displayOriginalPrice = selectedVariant?.originalPrice ?? sanityProduct?.originalPrice;
+  const displayStock         = selectedVariant?.stock         ?? sanityProduct?.stock         ?? 0;
+  const displayRating        = selectedVariant?.rating        ?? sanityProduct?.rating        ?? 4.9;
+  const displayReviews       = selectedVariant?.reviews       ?? sanityProduct?.reviewsCount  ?? 0;
+  const displayDescription   = selectedVariant?.shortDescription ?? sanityProduct?.shortDescription;
+  const displayColorName     = selectedVariant?.colorName;
+
+  // Discount % — computed dynamically from whichever prices are active
+  const discount = useMemo(
+    () => computeDiscount(displayPrice, displayOriginalPrice),
+    [displayPrice, displayOriginalPrice]
   );
 
-  const displayRelatedProducts = relatedProducts.map((p) =>
-    sanityProductToLegacy(p, getImageUrl(p.mainImage))
+  // Out-of-stock: variant-level stock === 0, or product-level toggle
+  const isOOS = useMemo(
+    () => sanityProduct?.outOfStock === true || displayStock === 0,
+    [sanityProduct?.outOfStock, displayStock]
   );
 
-  const isWishlisted = displayProduct ? isInWishlist(displayProduct.id) : false;
+  // ── Derived: legacy displayProduct (still needed for cart/wishlist) ──
+  const displayProduct = useMemo(() => {
+    if (!sanityProduct) return null;
+    return {
+      id: sanityProduct._id,
+      slug:
+        typeof sanityProduct.slug === "string"
+          ? sanityProduct.slug
+          : ((sanityProduct.slug as any)?.current ?? ""),
+      name: sanityProduct.productName,
+      price:         displayPrice,
+      originalPrice: displayOriginalPrice,
+      rating:        displayRating,
+      image: getImageUrl(sanityProduct.mainImage),
+      category:    sanityProduct.category?.title ?? "Products",
+      categorySlug:
+        typeof sanityProduct.category?.slug === "string"
+          ? sanityProduct.category.slug
+          : ((sanityProduct.category?.slug as any)?.current ?? "all"),
+      subcategory: sanityProduct.productType ?? "",
+      isNew:       sanityProduct.newArrival ?? sanityProduct.badge === "new",
+      isBestseller: sanityProduct.badge === "bestseller",
+      outOfStock:  isOOS,
+      shortDescription: displayDescription,
+      // Color dots — from variants if available, else legacy colors
+      colors:
+        sanityProduct.variants && sanityProduct.variants.length > 0
+          ? sanityProduct.variants.map((v) => ({ name: v.colorName, hex: v.colorCode }))
+          : sanityProduct.colors && sanityProduct.colors.length > 0
+          ? sanityProduct.colors
+          : DEFAULT_COLORS,
+      sizes:
+        sanityProduct.sizes && sanityProduct.sizes.length > 0
+          ? sanityProduct.sizes
+          : DEFAULT_SIZES,
+      reviewsCount: displayReviews,
+      stock:        displayStock,
+    };
+  }, [
+    sanityProduct,
+    displayPrice,
+    displayOriginalPrice,
+    displayRating,
+    displayReviews,
+    displayDescription,
+    displayStock,
+    isOOS,
+  ]);
 
-  const discount = displayProduct?.originalPrice
-    ? Math.round(
-        ((displayProduct.originalPrice - displayProduct.price) /
-          displayProduct.originalPrice) *
-          100
-      )
-    : 0;
-
-  // ── Gallery navigation ───────────────────────────────────────
+  // ── Gallery navigation ────────────────────────────────────────
   const nextImage = useCallback(() => {
     if (images.length <= 1) return;
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    setSelectedImage((prev) => (prev + 1) % images.length);
   }, [images.length]);
 
   const prevImage = useCallback(() => {
     if (images.length <= 1) return;
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setSelectedImage((prev) => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
-  const handleAddToCart = () => {
-    if (!displayProduct || displayProduct.outOfStock) return;
-    const colorObj = displayProduct.colors[selectedColorIndex] as {
-      name: string;
-      hex: string;
-    };
+  // ── Add to Cart ───────────────────────────────────────────────
+  const handleAddToCart = useCallback(() => {
+    if (!displayProduct || isOOS) return;
     addToCart(
       {
-        id: displayProduct.id,
-        slug: displayProduct.slug,
-        name: displayProduct.name,
-        price: displayProduct.price,
-        originalPrice: displayProduct.originalPrice,
-        image: displayProduct.image,
-        category: displayProduct.category,
-        size: selectedSize,
-        color: colorObj?.name ?? "Default",
+        id:            displayProduct.id,
+        slug:          displayProduct.slug,
+        name:          displayProduct.name,
+        price:         displayPrice,
+        originalPrice: displayOriginalPrice,
+        image:         images[0] ?? displayProduct.image,
+        category:      displayProduct.category,
+        size:          selectedSize,
+        color:         displayColorName ?? selectedVariant?.colorName ?? "Default",
+        // Pass SKU if available (useful for order management)
+        ...(selectedVariant?.sku ? { sku: selectedVariant.sku } : {}),
       },
       quantity
     );
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
-  };
+  }, [
+    displayProduct,
+    isOOS,
+    displayPrice,
+    displayOriginalPrice,
+    images,
+    selectedSize,
+    displayColorName,
+    selectedVariant,
+    quantity,
+    addToCart,
+  ]);
 
-  const handleWishlistToggle = () => {
+  // ── Wishlist toggle ───────────────────────────────────────────
+  const isWishlisted = displayProduct ? isInWishlist(displayProduct.id) : false;
+
+  const handleWishlistToggle = useCallback(() => {
     if (!displayProduct) return;
     if (isWishlisted) {
       removeFromWishlist(displayProduct.id);
     } else {
       addToWishlist({
-        id: displayProduct.id,
-        slug: displayProduct.slug,
-        name: displayProduct.name,
-        price: displayProduct.price,
-        originalPrice: displayProduct.originalPrice,
-        image: displayProduct.image,
-        category: displayProduct.category,
-        rating: displayProduct.rating,
-        isNew: displayProduct.isNew,
+        id:           displayProduct.id,
+        slug:         displayProduct.slug,
+        name:         displayProduct.name,
+        price:        displayProduct.price,
+        originalPrice:displayProduct.originalPrice,
+        image:        displayProduct.image,
+        category:     displayProduct.category,
+        rating:       displayProduct.rating,
+        isNew:        displayProduct.isNew,
         isBestseller: displayProduct.isBestseller,
       });
     }
-  };
+  }, [displayProduct, isWishlisted, addToWishlist, removeFromWishlist]);
 
-  // ── Loading ──────────────────────────────────────────────────
+  // ── Also-like / related ───────────────────────────────────────
+  const alsoLikeProducts = useMemo(
+    () =>
+      (sanityProduct?.alsoLike ?? []).map((p: SanityProductCard) =>
+        sanityProductToLegacy(p, getImageUrl(p.mainImage))
+      ),
+    [sanityProduct?.alsoLike]
+  );
+
+  const displayRelatedProducts = useMemo(
+    () => relatedProducts.map((p) => sanityProductToLegacy(p, getImageUrl(p.mainImage))),
+    [relatedProducts]
+  );
+
+  // ── Loading ───────────────────────────────────────────────────
   if (loading) {
     return (
       <MainLayout>
@@ -223,7 +314,7 @@ export default function ProductPage() {
     );
   }
 
-  // ── Not found ────────────────────────────────────────────────
+  // ── Not found ─────────────────────────────────────────────────
   if (!displayProduct || !sanityProduct) {
     return (
       <MainLayout>
@@ -247,14 +338,7 @@ export default function ProductPage() {
     );
   }
 
-  const currentColor = displayProduct.colors[selectedColorIndex] as {
-    name: string;
-    hex: string;
-  };
-
-  const isOOS = displayProduct.outOfStock;
-
-  // ── Render ───────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────
   return (
     <MainLayout>
       <div className="absolute top-0 right-0 w-[600px] h-[400px] bg-[#4FBDBA]/5 rounded-full blur-3xl pointer-events-none -z-0" />
@@ -263,7 +347,6 @@ export default function ProductPage() {
       {/* Breadcrumb + Back Arrow */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2 relative z-10">
         <div className="flex items-center gap-3">
-          {/* Back button */}
           <Link
             href={`/category/${displayProduct.categorySlug}`}
             className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-[#E7EEEE] shadow-sm hover:bg-[#DDF5F4] hover:border-[#4FBDBA]/40 hover:text-[#4FBDBA] text-[#6B6B6B] transition-all duration-200"
@@ -295,28 +378,24 @@ export default function ProductPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
 
-            {/* ── Image Gallery ──────────────────────────────── */}
+            {/* ── Image Gallery ────────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
-              {/*
-                Main image container — explicit height on every breakpoint.
-                h-[380px] on mobile → h-[480px] sm → h-[560px] lg.
-                position:relative so the absolute arrows + badges stay inside.
-                overflow:hidden + rounded corners stay clean.
-              */}
+              {/* Main image container */}
               <div className="relative w-full h-[380px] sm:h-[480px] lg:h-[560px] bg-white rounded-[2rem] overflow-hidden border border-[#E7EEEE] shadow-[0_10px_40px_rgba(79,189,186,0.1)]">
 
-                {/* Main image — crossfade on index change */}
+                {/* Main image — crossfades when selectedVariant or selectedImage changes */}
                 {images.length > 0 && (
                   <AnimatePresence mode="wait">
                     <motion.img
-                      key={currentImageIndex}
-                      src={images[currentImageIndex]}
-                      alt={displayProduct.name}
+                      // Key includes variant _key so changing color also triggers crossfade
+                      key={`${selectedVariant?._key ?? 'base'}-${selectedImage}`}
+                      src={images[selectedImage]}
+                      alt={`${displayProduct.name}${displayColorName ? ` – ${displayColorName}` : ''}`}
                       className="absolute inset-0 w-full h-full object-contain p-4"
                       initial={{ opacity: 0, scale: 1.02 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -326,7 +405,7 @@ export default function ProductPage() {
                   </AnimatePresence>
                 )}
 
-                {/* ── Left Arrow — always visible on mobile & desktop ── */}
+                {/* Left / Right arrows */}
                 {images.length > 1 && (
                   <>
                     <button
@@ -336,8 +415,6 @@ export default function ProductPage() {
                     >
                       <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-
-                    {/* ── Right Arrow ── */}
                     <button
                       onClick={nextImage}
                       aria-label="Next image"
@@ -348,7 +425,7 @@ export default function ProductPage() {
                   </>
                 )}
 
-                {/* ── OOS / Discount badge (top-left) ── */}
+                {/* OOS / Discount badge */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                   {isOOS ? (
                     <span className="px-4 py-1.5 bg-red-500 text-white text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(239,68,68,0.35)]">
@@ -363,7 +440,7 @@ export default function ProductPage() {
                   )}
                 </div>
 
-                {/* Bestseller badge (top-right) */}
+                {/* Bestseller badge */}
                 {displayProduct.isBestseller && (
                   <div className="absolute top-4 right-4 z-10">
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-[#4FBDBA] text-xs font-bold rounded-2xl shadow-sm border border-[#E7EEEE]">
@@ -373,32 +450,32 @@ export default function ProductPage() {
                   </div>
                 )}
 
-                {/* Image counter (bottom-center) */}
+                {/* Image counter */}
                 {images.length > 1 && (
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
                     <span className="px-3 py-1 bg-black/25 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
-                      {currentImageIndex + 1} / {images.length}
+                      {selectedImage + 1} / {images.length}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* Thumbnail strip */}
+              {/* Thumbnail strip — rerenders when variant changes */}
               {images.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
                   {images.map((img, idx) => (
                     <button
-                      key={idx}
-                      onClick={() => setCurrentImageIndex(idx)}
+                      key={`${selectedVariant?._key ?? 'base'}-thumb-${idx}`}
+                      onClick={() => setSelectedImage(idx)}
                       className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 bg-white ${
-                        idx === currentImageIndex
+                        idx === selectedImage
                           ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.15)]"
                           : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 opacity-70 hover:opacity-100"
                       }`}
                     >
                       <img
                         src={img}
-                        alt={`View ${idx + 1}`}
+                        alt={`${displayColorName ?? ''} view ${idx + 1}`}
                         className="w-full h-full object-contain p-1"
                       />
                     </button>
@@ -407,7 +484,7 @@ export default function ProductPage() {
               )}
             </motion.div>
 
-            {/* ── Product Info ────────────────────────────────── */}
+            {/* ── Product Info ─────────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -442,20 +519,20 @@ export default function ProductPage() {
                 {displayProduct.name}
               </h1>
 
-              {/* Out of stock alert banner */}
+              {/* OOS alert */}
               {isOOS && (
                 <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-bold text-red-600">Currently Unavailable</p>
                     <p className="text-xs text-red-400 mt-0.5">
-                      This product is out of stock. You can still add it to your wishlist.
+                      This color is out of stock. Try another color or add to your wishlist.
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Rating */}
+              {/* Rating — updates from selected variant */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5 bg-[#FFF4D6] px-3 py-1.5 rounded-2xl">
                   <div className="flex gap-0.5">
@@ -463,7 +540,7 @@ export default function ProductPage() {
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(displayProduct.rating)
+                          i < Math.floor(displayRating)
                             ? "fill-[#F6C453] text-[#F6C453]"
                             : "text-[#E7EEEE] fill-[#E7EEEE]"
                         }`}
@@ -471,83 +548,161 @@ export default function ProductPage() {
                     ))}
                   </div>
                   <span className="font-bold text-sm text-[#2B2B2B]">
-                    {displayProduct.rating}
+                    {displayRating}
                   </span>
                 </div>
                 <span className="text-sm text-[#6B6B6B]">
-                  {displayProduct.reviewsCount} reviews
+                  {displayReviews} reviews
                 </span>
-                <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: isOOS ? '#EF4444' : '#2F7F7C' }}>
-                  <span className="w-2 h-2 rounded-full inline-block" style={{ background: isOOS ? '#EF4444' : '#4FBDBA' }} />
-                  {isOOS ? "Out of Stock" : "In Stock"}
+                <span
+                  className="inline-flex items-center gap-1 text-sm font-semibold"
+                  style={{ color: isOOS ? "#EF4444" : "#2F7F7C" }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full inline-block"
+                    style={{ background: isOOS ? "#EF4444" : "#4FBDBA" }}
+                  />
+                  {isOOS ? "Out of Stock" : `In Stock · ${displayStock} left`}
                 </span>
               </div>
 
-              {/* Price */}
+              {/* Price — updates from selected variant */}
               <div className="flex items-baseline gap-4 py-5 border-y border-[#E7EEEE] flex-wrap">
-                <span className="text-4xl font-heading font-bold text-[#2B2B2B]">
-                  Rs. {displayProduct.price.toLocaleString()}
-                </span>
-                {displayProduct.originalPrice && (
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={`price-${displayPrice}`}
+                    className="text-4xl font-heading font-bold text-[#2B2B2B]"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    Rs. {displayPrice.toLocaleString()}
+                  </motion.span>
+                </AnimatePresence>
+                {displayOriginalPrice && (
                   <>
-                    <span className="text-xl text-[#6B6B6B] line-through">
-                      Rs. {displayProduct.originalPrice.toLocaleString()}
-                    </span>
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={`op-${displayOriginalPrice}`}
+                        className="text-xl text-[#6B6B6B] line-through"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Rs. {displayOriginalPrice.toLocaleString()}
+                      </motion.span>
+                    </AnimatePresence>
                     <span className="px-3 py-1 bg-[#FFF4D6] text-[#2B2B2B] font-semibold rounded-2xl text-sm border border-[#F6C453]/30">
                       Save Rs.{" "}
-                      {(displayProduct.originalPrice - displayProduct.price).toLocaleString()}
+                      {(displayOriginalPrice - displayPrice).toLocaleString()}
                     </span>
                   </>
                 )}
               </div>
 
-              {/* Short description */}
-              {displayProduct.shortDescription && (
-                <p className="text-[#6B6B6B] leading-relaxed text-[15px]">
-                  {displayProduct.shortDescription}
-                </p>
-              )}
+              {/* Short description — updates from selected variant */}
+              <AnimatePresence mode="wait">
+                {displayDescription && (
+                  <motion.p
+                    key={`desc-${selectedVariant?._key ?? 'base'}`}
+                    className="text-[#6B6B6B] leading-relaxed text-[15px]"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {displayDescription}
+                  </motion.p>
+                )}
+              </AnimatePresence>
 
-              {/* Color Selection */}
+              {/* ── Color Selector ─────────────────────────────── */}
+              {/* When variants exist, clicking a color calls handleVariantChange
+                  which updates selectedVariant → all display values cascade. */}
               <div>
                 <label className="block text-sm font-semibold text-[#2B2B2B] mb-3">
                   Color:{" "}
                   <span className="font-normal text-[#6B6B6B]">
-                    {currentColor?.name ?? "Default"}
+                    {displayColorName ?? "Default"}
                   </span>
                 </label>
                 <div className="flex gap-3 flex-wrap">
-                  {displayProduct.colors.map((color, idx) => {
-                    const c = color as { name: string; hex: string };
-                    return (
-                      <button
-                        key={c.name ?? idx}
-                        onClick={() => !isOOS && setSelectedColorIndex(idx)}
-                        className={`w-11 h-11 rounded-2xl border-2 transition-all duration-200 flex items-center justify-center ${
-                          isOOS
-                            ? "opacity-40 cursor-not-allowed"
-                            : selectedColorIndex === idx
-                            ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110"
-                            : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105"
-                        }`}
-                        style={{ backgroundColor: c.hex }}
-                        title={c.name}
-                        disabled={isOOS}
-                      >
-                        {selectedColorIndex === idx && !isOOS && (
-                          <Check
-                            className={`w-4 h-4 ${
-                              c.hex === "#F8F2E8" ? "text-[#2B2B2B]" : "text-white"
-                            }`}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
+                  {sanityProduct.variants && sanityProduct.variants.length > 0 ? (
+                    // Variant-based color buttons
+                    sanityProduct.variants.map((variant) => {
+                      const isSelected = selectedVariant?._key === variant._key;
+                      const variantOOS = variant.stock === 0;
+                      return (
+                        <button
+                          key={variant._key}
+                          onClick={() => !variantOOS && handleVariantChange(variant)}
+                          disabled={variantOOS}
+                          className={`relative w-11 h-11 rounded-2xl border-2 transition-all duration-200 flex items-center justify-center ${
+                            variantOOS
+                              ? "opacity-40 cursor-not-allowed"
+                              : isSelected
+                              ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110"
+                              : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: variant.colorCode }}
+                          title={`${variant.colorName}${variantOOS ? " (Out of Stock)" : ""}`}
+                        >
+                          {isSelected && !variantOOS && (
+                            <Check
+                              className={`w-4 h-4 ${
+                                variant.colorCode === "#F8F2E8" ||
+                                variant.colorCode === "#FFFFFF"
+                                  ? "text-[#2B2B2B]"
+                                  : "text-white"
+                              }`}
+                            />
+                          )}
+                          {/* OOS strikethrough indicator */}
+                          {variantOOS && (
+                            <span className="absolute inset-0 flex items-center justify-center">
+                              <span className="w-full h-0.5 bg-white/70 rotate-45 block absolute" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    // Legacy color buttons (no variant data)
+                    displayProduct.colors.map((color, idx) => {
+                      const c = color as { name: string; hex: string };
+                      const isSelected = selectedVariant === null;
+                      return (
+                        <button
+                          key={c.name ?? idx}
+                          onClick={() => !isOOS && void 0}
+                          className={`w-11 h-11 rounded-2xl border-2 transition-all duration-200 flex items-center justify-center ${
+                            isOOS
+                              ? "opacity-40 cursor-not-allowed"
+                              : idx === 0
+                              ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110"
+                              : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: c.hex }}
+                          title={c.name}
+                          disabled={isOOS}
+                        >
+                          {idx === 0 && !isOOS && (
+                            <Check
+                              className={`w-4 h-4 ${
+                                c.hex === "#F8F2E8" ? "text-[#2B2B2B]" : "text-white"
+                              }`}
+                            />
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
-              {/* Size Selection */}
+              {/* Size Selector */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-[#2B2B2B]">
@@ -581,7 +736,7 @@ export default function ProductPage() {
 
               {/* Quantity + Actions */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {/* Quantity stepper — disabled when OOS */}
+                {/* Quantity stepper */}
                 <div
                   className={`flex items-center gap-1 bg-[#F6FBFB] border border-[#E7EEEE] rounded-2xl p-1.5 shadow-sm ${
                     isOOS ? "opacity-40 pointer-events-none" : ""
@@ -598,15 +753,19 @@ export default function ProductPage() {
                     {quantity}
                   </span>
                   <button
-                    onClick={() => !isOOS && setQuantity(quantity + 1)}
-                    disabled={isOOS}
+                    // Cap quantity at available stock
+                    onClick={() =>
+                      !isOOS &&
+                      setQuantity((q) => Math.min(q + 1, displayStock || Infinity))
+                    }
+                    disabled={isOOS || quantity >= displayStock}
                     className="w-10 h-10 rounded-xl hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B] disabled:opacity-30"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Add to Cart button */}
+                {/* Add to Cart */}
                 {isOOS ? (
                   <div className="flex-1 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-[15px] bg-[#F6FBFB] border-2 border-[#E7EEEE] text-[#9B9B9B] cursor-not-allowed select-none">
                     <AlertCircle className="w-5 h-5" />
@@ -644,14 +803,14 @@ export default function ProductPage() {
                         >
                           <Package className="w-5 h-5" />
                           Add to Cart · Rs.{" "}
-                          {(displayProduct.price * quantity).toLocaleString()}
+                          {(displayPrice * quantity).toLocaleString()}
                         </motion.span>
                       )}
                     </AnimatePresence>
                   </motion.button>
                 )}
 
-                {/* Wishlist — always active */}
+                {/* Wishlist */}
                 <motion.button
                   onClick={handleWishlistToggle}
                   className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
@@ -714,7 +873,7 @@ export default function ProductPage() {
         </div>
       </section>
 
-      {/* Product Tabs */}
+      {/* Product Tabs (passes full sanityProduct — tabs use their own fields) */}
       <ProductTabs product={sanityProduct} />
 
       {/* You May Also Like */}

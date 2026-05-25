@@ -104,7 +104,7 @@ export default function Navbar() {
                   alt="Little Chiku"
                   fill
                   priority
-                  className="object-contain object-left scale-[1.35] lg:scale-[1.45] origin-left"
+                  className="object-contain object-left scale-[1.25] lg:scale-[1.35] origin-left"
                 />
               </div>
             </Link>
