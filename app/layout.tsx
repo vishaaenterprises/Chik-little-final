@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Baloo_2, DM_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 
 import Navbar from '@/components/navbar/Navbar'
 import Footer from '@/components/footer'
@@ -146,8 +147,6 @@ export const metadata: Metadata = {
 
     images: ['/og-image.png'],
   },
-
-  
 }
 
 /* ---------------- Viewport ---------------- */
@@ -197,6 +196,30 @@ export default function RootLayout({
       className={`${baloo.variable} ${dmSans.variable}`}
     >
       <head>
+        {/* Meta Pixel Code */}
+        <Script
+          id="facebook-pixel"
+          strategy="afterInteractive"
+        >
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(
+              window,
+              document,
+              'script',
+              'https://connect.facebook.net/en_US/fbevents.js'
+            );
+
+            fbq('init', '1837748180844681');
+            fbq('track', 'PageView');
+          `}
+        </Script>
+
         {/* Preconnect Fonts */}
         <link
           rel="preconnect"
@@ -232,6 +255,17 @@ export default function RootLayout({
       </head>
 
       <body className="bg-[#fffdf8] font-sans text-neutral-800 antialiased">
+        {/* Meta Pixel NoScript */}
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src="https://www.facebook.com/tr?id=1837748180844681&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
+
         <CartProvider>
           <Navbar />
 

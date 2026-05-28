@@ -1,8 +1,5 @@
 'use client'
 
-import Navbar from '@/components/navbar/Navbar'
-import Footer from '@/components/footer'
-
 interface MainLayoutProps {
   children: React.ReactNode
 }
