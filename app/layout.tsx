@@ -32,29 +32,30 @@ export const metadata: Metadata = {
 
   title: {
     default:
-      'Little Chiku | Premium Baby & Kids Essentials India',
+      'Little Chiku | Organic Handmade Baby Products India',
 
     template: '%s | Little Chiku',
   },
 
   description:
-    'Shop premium baby essentials, handcrafted kids products, bath linen, organic cotton towels, and lifestyle accessories for babies and kids at Little Chiku.',
+    'Discover handcrafted organic cotton baby products including baby towels, baby bedding, gift hampers, blankets, bibs, and premium baby essentials made with love in India by Little Chiku.',
 
   keywords: [
     'Little Chiku',
-    'baby products',
-    'kids products',
-    'baby essentials india',
-    'kids lifestyle',
+    'organic baby products',
+    'handmade baby products',
     'organic cotton baby products',
-    'baby towels',
-    'kids towels',
-    'bath linen',
-    'newborn products',
-    'premium baby brand',
-    'baby accessories',
-    'baby shopping india',
-    'handcrafted baby products',
+    'baby towels India',
+    'baby gift hampers',
+    'baby bedding India',
+    'newborn essentials',
+    'premium baby essentials',
+    'baby accessories India',
+    'baby blankets',
+    'hooded baby towels',
+    'kids bath linen',
+    'Jaipur baby brand',
+    'baby products online India',
   ],
 
   authors: [{ name: 'Little Chiku' }],
@@ -94,6 +95,8 @@ export const metadata: Metadata = {
       },
     ],
 
+    shortcut: ['/icon.png'],
+
     apple: [
       {
         url: '/apple-touch-icon.png',
@@ -115,17 +118,17 @@ export const metadata: Metadata = {
     siteName: 'Little Chiku',
 
     title:
-      'Little Chiku | Premium Baby & Kids Essentials',
+      'Little Chiku | Organic Handmade Baby Products India',
 
     description:
-      'Premium handcrafted baby essentials, bath linen, kids towels, and cute lifestyle products crafted with love.',
+      'Premium handcrafted organic baby essentials including towels, blankets, bedding, and baby gift hampers crafted with love.',
 
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Little Chiku',
+        alt: 'Little Chiku Organic Baby Products',
       },
     ],
   },
@@ -136,19 +139,15 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
 
     title:
-      'Little Chiku | Premium Baby & Kids Essentials',
+      'Little Chiku | Organic Handmade Baby Products',
 
     description:
-      'Premium handcrafted baby essentials crafted with love.',
+      'Premium handcrafted organic cotton baby essentials crafted with love in India.',
 
     images: ['/og-image.png'],
   },
 
-  /* ---------------- Verification ---------------- */
-
-  verification: {
-    google: 'YOUR_GOOGLE_SEARCH_CONSOLE_CODE',
-  },
+  
 }
 
 /* ---------------- Viewport ---------------- */
@@ -157,7 +156,31 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#4FBDBA',
+  themeColor: '#7CC9C5',
+}
+
+/* ---------------- JSON-LD Schema ---------------- */
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Little Chiku',
+  url: 'https://littlechiku.com',
+  logo: 'https://littlechiku.com/icon.png',
+  description:
+    'Little Chiku is an Indian baby brand offering handcrafted organic cotton baby essentials and premium kids products.',
+
+  sameAs: [
+    'https://instagram.com/',
+    'https://facebook.com/',
+  ],
+
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    areaServed: 'IN',
+    availableLanguage: ['English', 'Hindi'],
+  },
 }
 
 /* ---------------- Root Layout ---------------- */
@@ -193,62 +216,33 @@ export default function RootLayout({
           sizes="32x32"
         />
 
-        {/* Apple Icon */}
-        <link
-          rel="apple-touch-icon"
-          href="/apple-touch-icon.png"
-        />
-
-        {/* Theme Color */}
+        {/* Theme */}
         <meta
           name="theme-color"
-          content="#4FBDBA"
+          content="#7CC9C5"
+        />
+
+        {/* JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
         />
       </head>
 
-      <body
-        className={[
-          'bg-[#F6FBFB]',
-          'text-[#2B2B2B]',
-          'font-sans',
-          'antialiased',
-          'scroll-smooth',
-          'overflow-x-hidden',
-          'min-h-screen',
-          'flex',
-          'flex-col',
-        ].join(' ')}
-      >
-        {/* Top Gradient Line */}
-        <div
-          aria-hidden="true"
-          className="fixed top-0 left-0 right-0 h-[2px] z-[9999] pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(90deg, #4FBDBA 0%, #F6C453 50%, #4FBDBA 100%)',
-
-            opacity: 0.7,
-          }}
-        />
-
-        {/* Store Provider */}
+      <body className="bg-[#fffdf8] font-sans text-neutral-800 antialiased">
         <CartProvider>
-          {/* Navbar */}
           <Navbar />
 
-          {/* Main Content */}
-          <main className="flex-1">
+          <main className="min-h-screen overflow-hidden">
             {children}
           </main>
 
-          {/* Footer */}
           <Footer />
         </CartProvider>
 
-        {/* Analytics */}
-        {process.env.NODE_ENV === 'production' && (
-          <Analytics />
-        )}
+        <Analytics />
       </body>
     </html>
   )
