@@ -1,20 +1,17 @@
-import { defineConfig } from 'sanity'
-import { structureTool } from 'sanity/structure'
-import { visionTool } from '@sanity/vision'
-import { schemaTypes } from './schemaTypes'
+import {defineConfig} from 'sanity'
+import {structureTool} from 'sanity/structure'
+import {visionTool} from '@sanity/vision'
+import {schemaTypes} from './schemaTypes'
 
 export default defineConfig({
-  name: 'chikulittle-studio',
+  name: 'default',
   title: 'Little Chiku Studio',
-  
-  projectId: 'rapjrk3z',
+
+  projectId: 'at4opa5a',
   dataset: 'production',
-  
-  plugins: [
-    structureTool(),
-    visionTool(),
-  ],
-  
+
+  plugins: [structureTool(), visionTool()],
+
   schema: {
     types: schemaTypes,
   },
