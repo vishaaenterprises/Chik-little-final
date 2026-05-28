@@ -29,13 +29,13 @@ const footerLinks = {
     { label: 'Track Order', href: '/' },
   ],
   company: [
-    { label: 'Our Story', href: '/app/about/about.tsx' },
-    { label: 'Sustainability', href: '/' },
-    { label: 'Artisan Partners', href: '/' },
-    { label: 'Blog', href: '/' },
-    { label: 'Privacy Policy', href: '/privacy-policy' },
-    { label: 'Terms & Conditions', href: '/term-condition' },
-  ],
+  { label: 'Our Story', href: '/about' },
+  { label: 'Sustainability', href: '/' },
+  { label: 'Artisan Partners', href: '/' },
+  { label: 'Blog', href: '/' },
+  { label: 'Privacy Policy', href: '/privacy-policy' },
+  { label: 'Terms & Conditions', href: '/term-condition' },
+],
 }
 
 export default function Footer() {
