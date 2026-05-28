@@ -1,31 +1,22 @@
 import { MetadataRoute } from 'next'
+import { client } from '@/lib/sanity/client'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const baseUrl = 'https://littlechiku.com'
 
-  // Example products
-  const products = [
-    {
-      slug: 'baby-bath-towel',
-      updatedAt: new Date(),
-    },
-
-    {
-      slug: 'kids-apron',
-      updatedAt: new Date(),
-    },
-
-    {
-      slug: 'baby-blanket',
-      updatedAt: new Date(),
-    },
-  ]
+  // Fetch products from Sanity
+  const products = await client.fetch(`
+    *[_type == "product"]{
+      "slug": slug.current,
+      _updatedAt
+    }
+  `)
 
   // Product URLs
-  const productUrls = products.map((product) => ({
+  const productUrls = products.map((product: any) => ({
     url: `${baseUrl}/product/${product.slug}`,
-    lastModified: product.updatedAt,
+    lastModified: new Date(product._updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }))
@@ -40,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
 
-    // Static pages
+    // Static Pages
     {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
@@ -55,22 +46,71 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
 
+    {
+      url: `${baseUrl}/wishlist`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    },
+
+    {
+      url: `${baseUrl}/cart`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    },
+
+    {
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.4,
+    },
+
+    {
+      url: `${baseUrl}/term-condition`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.4,
+    },
+
     // Categories
     {
-      url: `${baseUrl}/bath-linen`,
+      url: `${baseUrl}/category/bath-linen`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
 
     {
-      url: `${baseUrl}/kids-accessories`,
+      url: `${baseUrl}/category/bags`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
 
-    // Products
+    {
+      url: `${baseUrl}/category/bedding`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+
+    {
+      url: `${baseUrl}/category/clothing`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+
+    {
+      url: `${baseUrl}/category/kids-accessories`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+
+    // Dynamic Product URLs
     ...productUrls,
   ]
 }
