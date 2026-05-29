@@ -108,8 +108,8 @@ export default function Footer() {
             {/* Social */}
             <div className="flex gap-3 mt-5">
               {[
-                { icon: Instagram, href: '#' },
-                { icon: Facebook, href: '#' },
+                { icon: Instagram, href: 'https://www.instagram.com/littlechikukids?igsh=MXBlYXA4MHJuam0xeg%3D%3D' },
+                { icon: Facebook, href: 'https://www.instagram.com/littlechikukids?igsh=MXBlYXA4MHJuam0xeg%3D%3D' },
               ].map((social, idx) => {
                 const Icon = social.icon
                 return (
