@@ -81,7 +81,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-white/65 leading-relaxed mb-5 max-w-md text-[15px]">
-              Handcrafted with love in Jaipur, India. We create premium organic
+              Handcrafted with love. We create premium organic
               cotton essentials that nurture your little ones while supporting
               traditional artisans.
             </p>
