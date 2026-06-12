@@ -7,6 +7,7 @@ import Link from "next/link";
 import MainLayout from "@/components/layout/MainLayout";
 import ProductCard from "@/components/products/ProductCard";
 import ProductTabs from "@/components/products/Producttabs";
+import ProductJsonLd from "@/components/seo/ProductJsonLd"; // ← NEW
 import { useCart } from "@/context/cart-context";
 import {
   type SanityProduct,
@@ -69,12 +70,7 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
 
   // ── Variant state ─────────────────────────────────────────────
-  // selectedVariant drives ALL display values on the detail page.
-  // When the product has no variants, we fall back to product-level fields.
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-
-  // selectedImage is the index within selectedVariant.images (or the
-  // flat fallback images array for products without variants).
   const [selectedImage, setSelectedImage] = useState(0);
 
   // Non-variant state
@@ -102,12 +98,10 @@ export default function ProductPage() {
           setSanityProduct(product);
           setRelatedProducts(data.relatedProducts ?? []);
 
-          // Initialise variant state from the first variant (if any)
           const firstVariant = product.variants?.[0] ?? null;
           setSelectedVariant(firstVariant);
           setSelectedImage(0);
 
-          // Initialise size from variant or product level
           setSelectedSize(
             firstVariant?.size ??
             product.sizes?.[0] ??
@@ -126,17 +120,13 @@ export default function ProductPage() {
   }, [slug]);
 
   // ── Handle variant change ─────────────────────────────────────
-  // Reset image index to 0 whenever the user picks a different color.
   const handleVariantChange = useCallback((variant: ProductVariant) => {
     setSelectedVariant(variant);
     setSelectedImage(0);
-    // Keep size in sync with the new variant's size if available
     if (variant.size) setSelectedSize(variant.size);
   }, []);
 
   // ── Derived: resolved display images ──────────────────────────
-  // If we have a selected variant use its images; otherwise fall back
-  // to mainImage + galleryImages at the product level.
   const images = useMemo<string[]>(() => {
     if (!sanityProduct) return [];
     if (selectedVariant) {
@@ -157,19 +147,17 @@ export default function ProductPage() {
   const displayDescription   = selectedVariant?.shortDescription ?? sanityProduct?.shortDescription;
   const displayColorName     = selectedVariant?.colorName;
 
-  // Discount % — computed dynamically from whichever prices are active
   const discount = useMemo(
     () => computeDiscount(displayPrice, displayOriginalPrice),
     [displayPrice, displayOriginalPrice]
   );
 
-  // Out-of-stock: variant-level stock === 0, or product-level toggle
   const isOOS = useMemo(
     () => sanityProduct?.outOfStock === true || displayStock === 0,
     [sanityProduct?.outOfStock, displayStock]
   );
 
-  // ── Derived: legacy displayProduct (still needed for cart/wishlist) ──
+  // ── Derived: legacy displayProduct ────────────────────────────
   const displayProduct = useMemo(() => {
     if (!sanityProduct) return null;
     return {
@@ -193,7 +181,6 @@ export default function ProductPage() {
       isBestseller: sanityProduct.badge === "bestseller",
       outOfStock:  isOOS,
       shortDescription: displayDescription,
-      // Color dots — from variants if available, else legacy colors
       colors:
         sanityProduct.variants && sanityProduct.variants.length > 0
           ? sanityProduct.variants.map((v) => ({ name: v.colorName, hex: v.colorCode }))
@@ -243,7 +230,6 @@ export default function ProductPage() {
         category:      displayProduct.category,
         size:          selectedSize,
         color:         displayColorName ?? selectedVariant?.colorName ?? "Default",
-        // Pass SKU if available (useful for order management)
         ...(selectedVariant?.sku ? { sku: selectedVariant.sku } : {}),
       },
       quantity
@@ -341,6 +327,22 @@ export default function ProductPage() {
   // ── Render ────────────────────────────────────────────────────
   return (
     <MainLayout>
+      {/* Google Product Rich Results JSON-LD */}
+      {displayProduct && (
+        <ProductJsonLd
+          name={displayProduct.name}
+          description={displayDescription}
+          images={images}
+          sku={selectedVariant?.sku}
+          price={displayPrice}
+          originalPrice={displayOriginalPrice}
+          availability={isOOS ? "OutOfStock" : "InStock"}
+          rating={displayRating}
+          reviewCount={displayReviews}
+          slug={displayProduct.slug}
+        />
+      )}
+
       <div className="absolute top-0 right-0 w-[600px] h-[400px] bg-[#4FBDBA]/5 rounded-full blur-3xl pointer-events-none -z-0" />
       <div className="absolute top-40 left-0 w-80 h-80 bg-[#F6C453]/6 rounded-full blur-3xl pointer-events-none -z-0" />
 
@@ -385,14 +387,10 @@ export default function ProductPage() {
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
-              {/* Main image container */}
               <div className="relative w-full h-[380px] sm:h-[480px] lg:h-[560px] bg-white rounded-[2rem] overflow-hidden border border-[#E7EEEE] shadow-[0_10px_40px_rgba(79,189,186,0.1)]">
-
-                {/* Main image — crossfades when selectedVariant or selectedImage changes */}
                 {images.length > 0 && (
                   <AnimatePresence mode="wait">
                     <motion.img
-                      // Key includes variant _key so changing color also triggers crossfade
                       key={`${selectedVariant?._key ?? 'base'}-${selectedImage}`}
                       src={images[selectedImage]}
                       alt={`${displayProduct.name}${displayColorName ? ` – ${displayColorName}` : ''}`}
@@ -405,7 +403,6 @@ export default function ProductPage() {
                   </AnimatePresence>
                 )}
 
-                {/* Left / Right arrows */}
                 {images.length > 1 && (
                   <>
                     <button
@@ -425,7 +422,6 @@ export default function ProductPage() {
                   </>
                 )}
 
-                {/* OOS / Discount badge */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                   {isOOS ? (
                     <span className="px-4 py-1.5 bg-red-500 text-white text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(239,68,68,0.35)]">
@@ -440,7 +436,6 @@ export default function ProductPage() {
                   )}
                 </div>
 
-                {/* Bestseller badge */}
                 {displayProduct.isBestseller && (
                   <div className="absolute top-4 right-4 z-10">
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-[#4FBDBA] text-xs font-bold rounded-2xl shadow-sm border border-[#E7EEEE]">
@@ -450,7 +445,6 @@ export default function ProductPage() {
                   </div>
                 )}
 
-                {/* Image counter */}
                 {images.length > 1 && (
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
                     <span className="px-3 py-1 bg-black/25 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
@@ -460,7 +454,6 @@ export default function ProductPage() {
                 )}
               </div>
 
-              {/* Thumbnail strip — rerenders when variant changes */}
               {images.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
                   {images.map((img, idx) => (
@@ -491,7 +484,6 @@ export default function ProductPage() {
               transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6 lg:pt-2"
             >
-              {/* Category pill + Share */}
               <div className="flex items-center justify-between gap-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#DDF5F4] text-[#2F7F7C] text-xs font-semibold rounded-full uppercase tracking-wider">
                   <Leaf className="w-3 h-3" />
@@ -514,12 +506,10 @@ export default function ProductPage() {
                 </button>
               </div>
 
-              {/* Title */}
               <h1 className="font-heading text-3xl md:text-4xl font-bold text-[#2B2B2B] leading-tight tracking-tight">
                 {displayProduct.name}
               </h1>
 
-              {/* OOS alert */}
               {isOOS && (
                 <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -532,7 +522,6 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {/* Rating — updates from selected variant */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5 bg-[#FFF4D6] px-3 py-1.5 rounded-2xl">
                   <div className="flex gap-0.5">
@@ -566,7 +555,6 @@ export default function ProductPage() {
                 </span>
               </div>
 
-              {/* Price — updates from selected variant */}
               <div className="flex items-baseline gap-4 py-5 border-y border-[#E7EEEE] flex-wrap">
                 <AnimatePresence mode="wait">
                   <motion.span
@@ -602,7 +590,6 @@ export default function ProductPage() {
                 )}
               </div>
 
-              {/* Short description — updates from selected variant */}
               <AnimatePresence mode="wait">
                 {displayDescription && (
                   <motion.p
@@ -619,8 +606,6 @@ export default function ProductPage() {
               </AnimatePresence>
 
               {/* ── Color Selector ─────────────────────────────── */}
-              {/* When variants exist, clicking a color calls handleVariantChange
-                  which updates selectedVariant → all display values cascade. */}
               <div>
                 <label className="block text-sm font-semibold text-[#2B2B2B] mb-3">
                   Color:{" "}
@@ -630,7 +615,6 @@ export default function ProductPage() {
                 </label>
                 <div className="flex gap-3 flex-wrap">
                   {sanityProduct.variants && sanityProduct.variants.length > 0 ? (
-                    // Variant-based color buttons
                     sanityProduct.variants.map((variant) => {
                       const isSelected = selectedVariant?._key === variant._key;
                       const variantOOS = variant.stock === 0;
@@ -659,7 +643,6 @@ export default function ProductPage() {
                               }`}
                             />
                           )}
-                          {/* OOS strikethrough indicator */}
                           {variantOOS && (
                             <span className="absolute inset-0 flex items-center justify-center">
                               <span className="w-full h-0.5 bg-white/70 rotate-45 block absolute" />
@@ -669,10 +652,8 @@ export default function ProductPage() {
                       );
                     })
                   ) : (
-                    // Legacy color buttons (no variant data)
                     displayProduct.colors.map((color, idx) => {
                       const c = color as { name: string; hex: string };
-                      const isSelected = selectedVariant === null;
                       return (
                         <button
                           key={c.name ?? idx}
@@ -736,7 +717,6 @@ export default function ProductPage() {
 
               {/* Quantity + Actions */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {/* Quantity stepper */}
                 <div
                   className={`flex items-center gap-1 bg-[#F6FBFB] border border-[#E7EEEE] rounded-2xl p-1.5 shadow-sm ${
                     isOOS ? "opacity-40 pointer-events-none" : ""
@@ -753,7 +733,6 @@ export default function ProductPage() {
                     {quantity}
                   </span>
                   <button
-                    // Cap quantity at available stock
                     onClick={() =>
                       !isOOS &&
                       setQuantity((q) => Math.min(q + 1, displayStock || Infinity))
@@ -765,7 +744,6 @@ export default function ProductPage() {
                   </button>
                 </div>
 
-                {/* Add to Cart */}
                 {isOOS ? (
                   <div className="flex-1 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-[15px] bg-[#F6FBFB] border-2 border-[#E7EEEE] text-[#9B9B9B] cursor-not-allowed select-none">
                     <AlertCircle className="w-5 h-5" />
@@ -810,7 +788,6 @@ export default function ProductPage() {
                   </motion.button>
                 )}
 
-                {/* Wishlist */}
                 <motion.button
                   onClick={handleWishlistToggle}
                   className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
@@ -873,7 +850,7 @@ export default function ProductPage() {
         </div>
       </section>
 
-      {/* Product Tabs (passes full sanityProduct — tabs use their own fields) */}
+      {/* Product Tabs */}
       <ProductTabs product={sanityProduct} />
 
       {/* You May Also Like */}
