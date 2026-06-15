@@ -20,7 +20,7 @@ const faqs = [
   {
     question: 'What is your return policy?',
     answer:
-      'We offer a 30-day hassle-free return policy. If you are not completely satisfied with your purchase, you can return it within 30 days for a full refund or exchange. Items must be unused and in their original packaging.',
+      'We offer a 3-day hassle-free return policy. If you are not completely satisfied with your purchase, you can return it within 3 days for a full refund or exchange. Items must be unused and in their original packaging.',
   },
   {
     question: 'How long does shipping take?',
