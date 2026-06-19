@@ -111,6 +111,8 @@ export default function CartPage() {
     cartItems.forEach((item, index) => {
       const productTotal = item.price * item.quantity;
       lines.push(`🛍️ *${index + 1}. ${item.name}*`);
+      if (item.size) lines.push(`📏 Size: ${item.size}`);
+      if (item.color) lines.push(`🎨 Color: ${item.color}`);
       lines.push(`Qty: ${item.quantity}`);
       lines.push(`Price: Rs. ${item.price.toLocaleString()}`);
       lines.push(`Total: Rs. ${productTotal.toLocaleString()}`);
@@ -377,10 +379,6 @@ export default function CartPage() {
             <p className="mb-8" style={{ color: "#6B6B6B" }}>
               Discover our handcrafted collection and find something you&apos;ll love.
             </p>
-            {/*
-              FIX: href was "/shop" on client vs "/category/all" on server → hydration mismatch.
-              Using a single consistent href="/category/all" here resolves it.
-            */}
             <Link
               href="/category/all"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-semibold transition-all"
