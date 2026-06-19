@@ -23,6 +23,7 @@ export interface CartItem {
   quantity: number
   size?: string
   color?: string
+  sku?: string
 }
 
 export interface WishlistItem {
