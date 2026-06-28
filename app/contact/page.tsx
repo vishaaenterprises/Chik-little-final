@@ -61,16 +61,7 @@ const contactCards = [
     bg: '#EDFFF5',
     shadow: 'rgba(37,211,102,0.15)',
   },
-  {
-    icon: Mail,
-    title: 'Email Us',
-    description: 'We reply within 24 hours',
-    value: 'vishaaenterprises@gmsil.com',
-    link: 'mailto:vishaaenterprises@gmsil.com',
-    accent: '#4FBDBA',
-    bg: '#DDF5F4',
-    shadow: 'rgba(79,189,186,0.15)',
-  },
+
   {
     icon: Phone,
     title: 'Call Us',
