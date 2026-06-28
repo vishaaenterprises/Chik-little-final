@@ -72,7 +72,16 @@ const contactCards = [
     bg: '#FFF4D6',
     shadow: 'rgba(246,196,83,0.2)',
   },
-  
+  {
+    icon: Mail,
+    title: 'Email Us',
+    description: 'We reply within 24 hours',
+    value: 'vishaaenterprises@gmail.com',
+    link: 'mailto:vishaaenterprises@gmail.com',
+    accent: '#4FBDBA',
+    bg: '#DDF5F4',
+    shadow: 'rgba(79,189,186,0.15)',
+  },
 ]
 
 export default function ContactPage() {
