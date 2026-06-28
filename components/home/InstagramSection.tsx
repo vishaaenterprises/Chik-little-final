@@ -36,7 +36,7 @@ export default function InstagramSection() {
           </div>
 
           <h2 className="font-heading text-3xl md:text-5xl font-bold text-[#2B2B2B] mb-4">
-            @littlechiku.store
+            @littlechikukids
           </h2>
 
           <p className="max-w-2xl mx-auto text-[#6B6B6B] text-base md:text-lg leading-relaxed">
