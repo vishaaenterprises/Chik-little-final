@@ -94,7 +94,7 @@ export default function InstagramSection() {
           transition={{ delay: 0.2 }}
         >
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/littlechikukids/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 px-7 py-3 rounded-full bg-[#4FBDBA] hover:bg-[#2F7F7C] text-white font-semibold tracking-wide transition-all duration-300 shadow-[0_12px_30px_rgba(79,189,186,0.22)] hover:shadow-[0_16px_40px_rgba(79,189,186,0.3)]"
