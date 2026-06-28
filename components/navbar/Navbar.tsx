@@ -97,7 +97,7 @@ export default function Navbar() {
           <div className="h-[82px] flex items-center justify-between">
 
             {/* LOGO */}
-            <Link href="/" className="flex items-center shrink-0">
+            <Link href="/components/home/HeroSection.tsx" className="flex items-center shrink-0">
               <div className="relative w-[170px] sm:w-[210px] lg:w-[250px] h-[70px]">
                 <Image
                   src="/logo2.png"
