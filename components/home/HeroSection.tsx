@@ -55,7 +55,7 @@ export default function HeroSection({ banner }: HeroSectionProps) {
               </h1>
 
                <p className="mt-5 text-[15px] sm:text-[17px] leading-8 text-[#5C5C5C] max-w-full sm:max-w-xl mx-auto lg:mx-0 px-2 sm:px-0 break-words">
-              Thoughtfully handmade for Moms, Kids & Babies at
+              Thoughtfully made for Kids, Babies & Moms at
               <span className="text-[#D79B2D] font-bold italic">
                 {" "}
                 made with care & value{" "}

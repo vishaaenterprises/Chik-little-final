@@ -23,10 +23,10 @@ const footerLinks = {
   ],
   support: [
     { label: 'Contact Us', href: '/contact' },
-    { label: 'Shipping Info', href: '/' },
-    { label: 'Returns & Exchanges', href: '/' },
+    { label: 'Shipping Info', href: '/contact#faq' },
+    { label: 'Returns & Exchanges', href: '/contact#faq' },
     { label: 'FAQ', href: '/contact#faq' },
-    { label: 'Track Order', href: '/' },
+    { label: 'Track Order', href: '/contact#faq' },
   ],
   company: [
   { label: 'Our Story', href: '/about' },
@@ -108,8 +108,8 @@ export default function Footer() {
             {/* Social */}
             <div className="flex gap-3 mt-5">
               {[
-                { icon: Instagram, href: 'https://www.instagram.com/littlechikukids?igsh=MXBlYXA4MHJuam0xeg%3D%3D' },
-                { icon: Facebook, href: 'https://www.instagram.com/littlechikukids?igsh=MXBlYXA4MHJuam0xeg%3D%3D' },
+                { icon: Instagram, href: 'https://www.instagram.com/littlechikukids/' },
+                { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61581014138999' },
               ].map((social, idx) => {
                 const Icon = social.icon
                 return (
@@ -173,7 +173,7 @@ export default function Footer() {
             </Link>
 
             <Link
-              href="/"
+              href="/contact#faq"
               className="hover:text-[#F6C453] transition-colors"
             >
               Returns
