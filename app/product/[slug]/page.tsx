@@ -347,27 +347,27 @@ export default function ProductPage() {
       <div className="absolute top-40 left-0 w-80 h-80 bg-[#F6C453]/6 rounded-full blur-3xl pointer-events-none -z-0" />
 
       {/* Breadcrumb + Back Arrow */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 relative z-10">
         <div className="flex items-center gap-3">
           <Link
             href={`/category/${displayProduct.categorySlug}`}
-            className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-[#E7EEEE] shadow-sm hover:bg-[#DDF5F4] hover:border-[#4FBDBA]/40 hover:text-[#4FBDBA] text-[#6B6B6B] transition-all duration-200"
+            className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-white border border-[#ECEFEF] shadow-sm hover:bg-[#DDF5F4] hover:border-[#4FBDBA]/40 hover:text-[#4FBDBA] text-[#6B6B6B] transition-all duration-200"
             aria-label="Go back"
           >
             <ChevronLeft className="w-4 h-4" />
           </Link>
-          <nav className="flex items-center gap-1.5 text-sm text-[#6B6B6B] overflow-hidden whitespace-nowrap min-w-0">
+          <nav className="flex items-center gap-1.5 text-[13px] text-[#8A8A8A] overflow-hidden whitespace-nowrap min-w-0 tracking-wide">
             <Link href="/" className="hover:text-[#4FBDBA] transition-colors duration-200 flex-shrink-0">
               Home
             </Link>
-            <span className="text-[#E7EEEE] flex-shrink-0">/</span>
+            <span className="text-[#E2E8E8] flex-shrink-0">/</span>
             <Link
               href={`/category/${displayProduct.categorySlug}`}
               className="hover:text-[#4FBDBA] transition-colors duration-200 flex-shrink-0"
             >
               {displayProduct.category}
             </Link>
-            <span className="text-[#E7EEEE] flex-shrink-0">/</span>
+            <span className="text-[#E2E8E8] flex-shrink-0">/</span>
             <span className="text-[#2B2B2B] font-medium truncate">
               {displayProduct.name}
             </span>
@@ -385,20 +385,20 @@ export default function ProductPage() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-4"
+              className="space-y-5"
             >
-              <div className="relative w-full h-[380px] sm:h-[480px] lg:h-[560px] bg-white rounded-[2rem] overflow-hidden border border-[#E7EEEE] shadow-[0_10px_40px_rgba(79,189,186,0.1)]">
+              <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] bg-gradient-to-b from-[#FBFDFD] to-[#F3F8F8] rounded-[2rem] overflow-hidden border border-[#ECEFEF] shadow-[0_20px_60px_-15px_rgba(79,189,186,0.18)]">
                 {images.length > 0 && (
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={`${selectedVariant?._key ?? 'base'}-${selectedImage}`}
                       src={images[selectedImage]}
                       alt={`${displayProduct.name}${displayColorName ? ` – ${displayColorName}` : ''}`}
-                      className="absolute inset-0 w-full h-full object-contain p-4"
+                      className="absolute inset-0 w-full h-full object-contain p-10 sm:p-14"
                       initial={{ opacity: 0, scale: 1.02 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.35 }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     />
                   </AnimatePresence>
                 )}
@@ -408,46 +408,47 @@ export default function ProductPage() {
                     <button
                       onClick={prevImage}
                       aria-label="Previous image"
-                      className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/90 backdrop-blur-sm border border-[#E7EEEE] shadow-[0_4px_16px_rgba(0,0,0,0.10)] text-[#2B2B2B] transition-all duration-200 hover:bg-white hover:border-[#4FBDBA]/50 hover:shadow-[0_6px_24px_rgba(79,189,186,0.20)] hover:scale-105 active:scale-95"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 backdrop-blur-md border border-white shadow-[0_8px_24px_rgba(20,40,40,0.14)] text-[#2B2B2B] transition-all duration-200 hover:bg-white hover:shadow-[0_10px_30px_rgba(79,189,186,0.30)] hover:scale-110 active:scale-95"
                     >
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <ChevronLeft className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                     </button>
                     <button
                       onClick={nextImage}
                       aria-label="Next image"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/90 backdrop-blur-sm border border-[#E7EEEE] shadow-[0_4px_16px_rgba(0,0,0,0.10)] text-[#2B2B2B] transition-all duration-200 hover:bg-white hover:border-[#4FBDBA]/50 hover:shadow-[0_6px_24px_rgba(79,189,186,0.20)] hover:scale-105 active:scale-95"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 backdrop-blur-md border border-white shadow-[0_8px_24px_rgba(20,40,40,0.14)] text-[#2B2B2B] transition-all duration-200 hover:bg-white hover:shadow-[0_10px_30px_rgba(79,189,186,0.30)] hover:scale-110 active:scale-95"
                     >
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <ChevronRight className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                     </button>
                   </>
                 )}
 
-                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                {/* Badges */}
+                <div className="absolute top-5 left-5 z-10 flex flex-col gap-2 items-start">
                   {isOOS ? (
-                    <span className="px-4 py-1.5 bg-red-500 text-white text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(239,68,68,0.35)]">
+                    <span className="px-4 py-1.5 bg-[#3A3A3A] text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-[0_6px_16px_rgba(0,0,0,0.18)]">
                       Out of Stock
                     </span>
                   ) : (
                     discount > 0 && (
-                      <span className="px-4 py-1.5 bg-[#F6C453] text-[#2B2B2B] text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(246,196,83,0.35)]">
-                        {discount}% OFF
+                      <span className="px-4 py-1.5 bg-gradient-to-r from-[#E2434E] to-[#C92E3C] text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-[0_8px_18px_rgba(201,46,60,0.35)]">
+                        Flat {discount}% Off
                       </span>
                     )
                   )}
                 </div>
 
                 {displayProduct.isBestseller && (
-                  <div className="absolute top-4 right-4 z-10">
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-[#4FBDBA] text-xs font-bold rounded-2xl shadow-sm border border-[#E7EEEE]">
-                      <Sparkles className="w-3 h-3" />
+                  <div className="absolute top-5 right-5 z-10">
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white text-[#B9882E] text-[11px] font-bold uppercase tracking-wider rounded-full shadow-[0_6px_16px_rgba(0,0,0,0.08)] border border-[#F3E4C1]">
+                      <Sparkles className="w-3 h-3 fill-[#F6C453] text-[#F6C453]" />
                       Bestseller
                     </span>
                   </div>
                 )}
 
                 {images.length > 1 && (
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
-                    <span className="px-3 py-1 bg-black/25 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+                    <span className="px-3 py-1 bg-black/30 backdrop-blur-md text-white text-[11px] font-semibold rounded-full tracking-wide">
                       {selectedImage + 1} / {images.length}
                     </span>
                   </div>
@@ -460,16 +461,16 @@ export default function ProductPage() {
                     <button
                       key={`${selectedVariant?._key ?? 'base'}-thumb-${idx}`}
                       onClick={() => setSelectedImage(idx)}
-                      className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 bg-white ${
+                      className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-[88px] md:h-[88px] rounded-2xl overflow-hidden border-2 transition-all duration-200 bg-[#FBFDFD] ${
                         idx === selectedImage
                           ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.15)]"
-                          : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 opacity-70 hover:opacity-100"
+                          : "border-[#ECEFEF] hover:border-[#4FBDBA]/50 opacity-70 hover:opacity-100"
                       }`}
                     >
                       <img
                         src={img}
                         alt={`${displayColorName ?? ''} view ${idx + 1}`}
-                        className="w-full h-full object-contain p-1"
+                        className="w-full h-full object-contain p-2"
                       />
                     </button>
                   ))}
@@ -482,10 +483,11 @@ export default function ProductPage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-6 lg:pt-2"
+              className="lg:pt-2"
             >
+              {/* Category row */}
               <div className="flex items-center justify-between gap-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#DDF5F4] text-[#2F7F7C] text-xs font-semibold rounded-full uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#DDF5F4] text-[#2F7F7C] text-[11px] font-semibold rounded-full uppercase tracking-wider">
                   <Leaf className="w-3 h-3" />
                   {displayProduct.category}
                   {displayProduct.subcategory ? ` · ${displayProduct.subcategory}` : ""}
@@ -499,19 +501,53 @@ export default function ProductPage() {
                       // clipboard unavailable
                     }
                   }}
-                  className="p-2.5 border border-[#E7EEEE] bg-white rounded-2xl hover:bg-[#DDF5F4] hover:border-[#4FBDBA]/40 transition-all duration-200 flex-shrink-0 shadow-sm"
+                  className="p-2.5 border border-[#ECEFEF] bg-white rounded-full hover:bg-[#DDF5F4] hover:border-[#4FBDBA]/40 transition-all duration-200 flex-shrink-0 shadow-sm"
                   aria-label="Copy product link"
                 >
                   <Share2 className="w-4 h-4 text-[#6B6B6B]" />
                 </button>
               </div>
 
-              <h1 className="font-heading text-3xl md:text-4xl font-bold text-[#2B2B2B] leading-tight tracking-tight">
+              {/* Title */}
+              <h1 className="font-heading text-[28px] sm:text-[34px] md:text-[38px] font-bold text-[#1F2424] leading-[1.15] tracking-tight mt-4 max-w-[26ch]">
                 {displayProduct.name}
               </h1>
 
+              {/* Rating row */}
+              <div className="flex items-center gap-3 flex-wrap mt-4">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-[15px] h-[15px] ${
+                        i < Math.floor(displayRating)
+                          ? "fill-[#F6C453] text-[#F6C453]"
+                          : "text-[#E7EEEE] fill-[#E7EEEE]"
+                      }`}
+                    />
+                  ))}
+                  <span className="font-bold text-sm text-[#2B2B2B] ml-1">
+                    {displayRating}
+                  </span>
+                </div>
+                <span className="text-sm text-[#8A8A8A]">
+                  ({displayReviews} {displayReviews === 1 ? "Review" : "Reviews"})
+                </span>
+                <span className="w-1 h-1 rounded-full bg-[#DADFDF]" />
+                <span
+                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold"
+                  style={{ color: isOOS ? "#EF4444" : "#2F7F7C" }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full inline-block"
+                    style={{ background: isOOS ? "#EF4444" : "#4FBDBA" }}
+                  />
+                  {isOOS ? "Out of Stock" : "In Stock"}
+                </span>
+              </div>
+
               {isOOS && (
-                <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl">
+                <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl mt-5">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-bold text-red-600">Currently Unavailable</p>
@@ -522,79 +558,54 @@ export default function ProductPage() {
                 </div>
               )}
 
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-1.5 bg-[#FFF4D6] px-3 py-1.5 rounded-2xl">
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 ${
-                          i < Math.floor(displayRating)
-                            ? "fill-[#F6C453] text-[#F6C453]"
-                            : "text-[#E7EEEE] fill-[#E7EEEE]"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-bold text-sm text-[#2B2B2B]">
-                    {displayRating}
-                  </span>
-                </div>
-                <span className="text-sm text-[#6B6B6B]">
-                  {displayReviews} reviews
-                </span>
-                <span
-                  className="inline-flex items-center gap-1 text-sm font-semibold"
-                  style={{ color: isOOS ? "#EF4444" : "#2F7F7C" }}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full inline-block"
-                    style={{ background: isOOS ? "#EF4444" : "#4FBDBA" }}
-                  />
-                  {isOOS ? "Out of Stock" : `In Stock · ${displayStock} left`}
-                </span>
-              </div>
-
-              <div className="flex items-baseline gap-4 py-5 border-y border-[#E7EEEE] flex-wrap">
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={`price-${displayPrice}`}
-                    className="text-4xl font-heading font-bold text-[#2B2B2B]"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    Rs. {displayPrice.toLocaleString()}
-                  </motion.span>
-                </AnimatePresence>
-                {displayOriginalPrice && (
-                  <>
+              {/* Price block */}
+              <div className="mt-6 py-6 border-y border-[#EDF1F1]">
+                <div className="flex items-end gap-3 flex-wrap">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={`price-${displayPrice}`}
+                      className="text-[36px] sm:text-[42px] font-heading font-bold text-[#1F2424] leading-none"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      ₹{displayPrice.toLocaleString()}
+                    </motion.span>
+                  </AnimatePresence>
+                  {displayOriginalPrice && (
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={`op-${displayOriginalPrice}`}
-                        className="text-xl text-[#6B6B6B] line-through"
+                        className="text-base sm:text-lg text-[#B5B5B5] line-through font-medium mb-1"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        Rs. {displayOriginalPrice.toLocaleString()}
+                        ₹{displayOriginalPrice.toLocaleString()}
                       </motion.span>
                     </AnimatePresence>
-                    <span className="px-3 py-1 bg-[#FFF4D6] text-[#2B2B2B] font-semibold rounded-2xl text-sm border border-[#F6C453]/30">
-                      Save Rs.{" "}
-                      {(displayOriginalPrice - displayPrice).toLocaleString()}
+                  )}
+                </div>
+                {displayOriginalPrice && (
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className="px-3 py-1 bg-gradient-to-r from-[#E2434E] to-[#C92E3C] text-white font-bold rounded-full text-[11px] uppercase tracking-wider shadow-[0_4px_12px_rgba(201,46,60,0.25)]">
+                      Flat {discount}% Off
                     </span>
-                  </>
+                    <span className="text-[13px] font-semibold text-[#2F7F7C]">
+                      You save ₹{(displayOriginalPrice - displayPrice).toLocaleString()}
+                    </span>
+                  </div>
                 )}
               </div>
 
+              {/* Description */}
               <AnimatePresence mode="wait">
                 {displayDescription && (
                   <motion.p
                     key={`desc-${selectedVariant?._key ?? 'base'}`}
-                    className="text-[#6B6B6B] leading-relaxed text-[15px]"
+                    className="text-[#6B6B6B] leading-[1.8] text-[15px] mt-6 max-w-[58ch]"
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
@@ -606,10 +617,10 @@ export default function ProductPage() {
               </AnimatePresence>
 
               {/* ── Color Selector ─────────────────────────────── */}
-              <div>
+              <div className="mt-7">
                 <label className="block text-sm font-semibold text-[#2B2B2B] mb-3">
                   Color:{" "}
-                  <span className="font-normal text-[#6B6B6B]">
+                  <span className="font-normal text-[#8A8A8A]">
                     {displayColorName ?? "Default"}
                   </span>
                 </label>
@@ -623,12 +634,12 @@ export default function ProductPage() {
                           key={variant._key}
                           onClick={() => !variantOOS && handleVariantChange(variant)}
                           disabled={variantOOS}
-                          className={`relative w-11 h-11 rounded-2xl border-2 transition-all duration-200 flex items-center justify-center ${
+                          className={`relative w-11 h-11 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
                             variantOOS
                               ? "opacity-40 cursor-not-allowed"
                               : isSelected
                               ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110"
-                              : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105"
+                              : "border-[#ECEFEF] hover:border-[#4FBDBA]/50 hover:scale-105"
                           }`}
                           style={{ backgroundColor: variant.colorCode }}
                           title={`${variant.colorName}${variantOOS ? " (Out of Stock)" : ""}`}
@@ -658,12 +669,12 @@ export default function ProductPage() {
                         <button
                           key={c.name ?? idx}
                           onClick={() => !isOOS && void 0}
-                          className={`w-11 h-11 rounded-2xl border-2 transition-all duration-200 flex items-center justify-center ${
+                          className={`w-11 h-11 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
                             isOOS
                               ? "opacity-40 cursor-not-allowed"
                               : idx === 0
                               ? "border-[#4FBDBA] shadow-[0_0_0_3px_rgba(79,189,186,0.2)] scale-110"
-                              : "border-[#E7EEEE] hover:border-[#4FBDBA]/50 hover:scale-105"
+                              : "border-[#ECEFEF] hover:border-[#4FBDBA]/50 hover:scale-105"
                           }`}
                           style={{ backgroundColor: c.hex }}
                           title={c.name}
@@ -684,13 +695,13 @@ export default function ProductPage() {
               </div>
 
               {/* Size Selector */}
-              <div>
+              <div className="mt-7">
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-[#2B2B2B]">
                     Size:{" "}
-                    <span className="font-normal text-[#6B6B6B]">{selectedSize}</span>
+                    <span className="font-normal text-[#8A8A8A]">{selectedSize}</span>
                   </label>
-                  <button className="text-sm text-[#4FBDBA] hover:text-[#2F7F7C] font-semibold flex items-center gap-1 transition-colors duration-200">
+                  <button className="text-[13px] text-[#4FBDBA] hover:text-[#2F7F7C] font-semibold flex items-center gap-1 transition-colors duration-200">
                     <Ruler className="w-3.5 h-3.5" />
                     Size Guide
                   </button>
@@ -701,12 +712,12 @@ export default function ProductPage() {
                       key={size}
                       onClick={() => !isOOS && setSelectedSize(size)}
                       disabled={isOOS}
-                      className={`px-5 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all duration-200 ${
+                      className={`px-5 py-2.5 rounded-full border-2 text-sm font-semibold transition-all duration-200 ${
                         isOOS
-                          ? "border-[#E7EEEE] bg-white text-[#C0C0C0] cursor-not-allowed opacity-50"
+                          ? "border-[#ECEFEF] bg-white text-[#C0C0C0] cursor-not-allowed opacity-50"
                           : selectedSize === size
-                          ? "border-[#4FBDBA] bg-[#4FBDBA] text-white shadow-[0_6px_20px_rgba(79,189,186,0.28)]"
-                          : "border-[#E7EEEE] bg-white text-[#2B2B2B] hover:border-[#4FBDBA]/60 hover:bg-[#DDF5F4]"
+                          ? "border-[#4FBDBA] bg-[#4FBDBA] text-white shadow-[0_8px_20px_rgba(79,189,186,0.28)]"
+                          : "border-[#ECEFEF] bg-white text-[#2B2B2B] hover:border-[#4FBDBA]/60 hover:bg-[#DDF5F4]"
                       }`}
                     >
                       {size}
@@ -716,16 +727,16 @@ export default function ProductPage() {
               </div>
 
               {/* Quantity + Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 mt-7">
                 <div
-                  className={`flex items-center gap-1 bg-[#F6FBFB] border border-[#E7EEEE] rounded-2xl p-1.5 shadow-sm ${
+                  className={`flex items-center gap-1 bg-[#F6FBFB] border border-[#ECEFEF] rounded-full p-1.5 shadow-sm ${
                     isOOS ? "opacity-40 pointer-events-none" : ""
                   }`}
                 >
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1 || isOOS}
-                    className="w-10 h-10 rounded-xl hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B] disabled:opacity-30"
+                    className="w-10 h-10 rounded-full hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B] disabled:opacity-30"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
@@ -738,24 +749,24 @@ export default function ProductPage() {
                       setQuantity((q) => Math.min(q + 1, displayStock || Infinity))
                     }
                     disabled={isOOS || quantity >= displayStock}
-                    className="w-10 h-10 rounded-xl hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B] disabled:opacity-30"
+                    className="w-10 h-10 rounded-full hover:bg-white flex items-center justify-center transition-colors duration-200 text-[#2B2B2B] disabled:opacity-30"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
 
                 {isOOS ? (
-                  <div className="flex-1 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-[15px] bg-[#F6FBFB] border-2 border-[#E7EEEE] text-[#9B9B9B] cursor-not-allowed select-none">
+                  <div className="flex-1 py-3.5 rounded-full font-bold flex items-center justify-center gap-2 text-[15px] bg-[#F6FBFB] border-2 border-[#ECEFEF] text-[#9B9B9B] cursor-not-allowed select-none">
                     <AlertCircle className="w-5 h-5" />
                     Currently Unavailable
                   </div>
                 ) : (
                   <motion.button
                     onClick={handleAddToCart}
-                    className={`flex-1 py-3.5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-[15px] ${
+                    className={`flex-1 py-3.5 rounded-full font-bold transition-all duration-300 flex items-center justify-center gap-2 text-[15px] ${
                       addedToCart
-                        ? "bg-[#2F7F7C] text-white shadow-[0_12px_30px_rgba(47,127,124,0.3)]"
-                        : "bg-[#4FBDBA] text-white shadow-[0_12px_30px_rgba(79,189,186,0.28)] hover:bg-[#2F7F7C] hover:shadow-[0_16px_40px_rgba(79,189,186,0.38)] hover:-translate-y-0.5"
+                        ? "bg-[#2F7F7C] text-white shadow-[0_14px_32px_rgba(47,127,124,0.32)]"
+                        : "bg-[#4FBDBA] text-white shadow-[0_14px_32px_rgba(79,189,186,0.30)] hover:bg-[#2F7F7C] hover:shadow-[0_18px_42px_rgba(79,189,186,0.40)] hover:-translate-y-0.5"
                     }`}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -780,8 +791,7 @@ export default function ProductPage() {
                           exit={{ opacity: 0, y: -6 }}
                         >
                           <Package className="w-5 h-5" />
-                          Add to Cart · Rs.{" "}
-                          {(displayPrice * quantity).toLocaleString()}
+                          Add to Cart · ₹{(displayPrice * quantity).toLocaleString()}
                         </motion.span>
                       )}
                     </AnimatePresence>
@@ -790,10 +800,10 @@ export default function ProductPage() {
 
                 <motion.button
                   onClick={handleWishlistToggle}
-                  className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
+                  className={`w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
                     isWishlisted
                       ? "bg-red-50 text-red-500 border-red-200 shadow-[0_4px_16px_rgba(239,68,68,0.15)]"
-                      : "bg-white border-[#E7EEEE] text-[#6B6B6B] hover:border-[#4FBDBA]/50 hover:bg-[#DDF5F4] hover:text-[#4FBDBA] shadow-sm"
+                      : "bg-white border-[#ECEFEF] text-[#6B6B6B] hover:border-[#4FBDBA]/50 hover:bg-[#DDF5F4] hover:text-[#4FBDBA] shadow-sm"
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.93 }}
@@ -803,7 +813,7 @@ export default function ProductPage() {
               </div>
 
               {/* Trust Badges */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-5 border-t border-[#E7EEEE]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-7 pt-6 border-t border-[#EDF1F1]">
                 {[
                   {
                     icon: Truck,
@@ -828,18 +838,18 @@ export default function ProductPage() {
                   return (
                     <div
                       key={badge.title}
-                      className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[#E7EEEE] shadow-sm"
+                      className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-[#ECEFEF] shadow-sm"
                     >
                       <div
-                        className={`w-10 h-10 rounded-xl ${badge.color} flex items-center justify-center flex-shrink-0`}
+                        className={`w-10 h-10 rounded-full ${badge.color} flex items-center justify-center flex-shrink-0`}
                       >
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-[#2B2B2B] leading-tight">
+                        <p className="text-[13px] font-bold text-[#2B2B2B] leading-tight">
                           {badge.title}
                         </p>
-                        <p className="text-xs text-[#6B6B6B] mt-0.5">{badge.desc}</p>
+                        <p className="text-[11px] text-[#8A8A8A] mt-0.5">{badge.desc}</p>
                       </div>
                     </div>
                   );
@@ -855,7 +865,7 @@ export default function ProductPage() {
 
       {/* You May Also Like */}
       {alsoLikeProducts.length > 0 && (
-        <section className="py-16 bg-[#F6FBFB] border-t border-[#E7EEEE]">
+        <section className="py-16 bg-[#F6FBFB] border-t border-[#ECEFEF]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between mb-8">
               <div>

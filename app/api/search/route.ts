@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
-
 import { client } from '@/lib/sanity/client'
 
-// ─────────────────────────────────────────────
-// Search Query
-// ─────────────────────────────────────────────
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const SEARCH_QUERY = `*[
   _type == "product" &&
@@ -23,10 +21,6 @@ const SEARCH_QUERY = `*[
   shortDescription
 }`
 
-// ─────────────────────────────────────────────
-// All Products
-// ─────────────────────────────────────────────
-
 const ALL_PRODUCTS_QUERY = `*[
   _type == "product"
 ] | order(_createdAt desc)[0...8]{
@@ -39,67 +33,36 @@ const ALL_PRODUCTS_QUERY = `*[
   shortDescription
 }`
 
-// ─────────────────────────────────────────────
-// GET
-// ─────────────────────────────────────────────
-
-export async function GET(
-  request: Request
-) {
-
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.get('q')
 
-    const { searchParams } =
-      new URL(request.url)
-
-    const query =
-      searchParams.get('q')
-
-    // ALL PRODUCTS
-
-    if (
-      !query ||
-      query === 'all'
-    ) {
-
-      const allProducts =
-        await client.fetch(
-          ALL_PRODUCTS_QUERY
-        )
-
-      return NextResponse.json(
-        allProducts || []
+    if (!query || query === 'all') {
+      const allProducts = await client.fetch(
+        ALL_PRODUCTS_QUERY,
+        {},
+        { cache: 'no-store' }
       )
+      return NextResponse.json(allProducts ?? [], {
+        headers: { 'Cache-Control': 'no-store' },
+      })
     }
 
-    // SEARCH PRODUCTS
-
-    const products =
-      await client.fetch(
-        SEARCH_QUERY,
-        {
-          q: `${query}*`,
-        }
-      )
-
-    return NextResponse.json(
-      products || []
+    const products = await client.fetch(
+      SEARCH_QUERY,
+      { q: `${query}*` },
+      { cache: 'no-store' }
     )
 
+    return NextResponse.json(products ?? [], {
+      headers: { 'Cache-Control': 'no-store' },
+    })
   } catch (error) {
-
-    console.error(
-      'SEARCH API ERROR:',
-      error
-    )
-
+    console.error('SEARCH API ERROR:', error)
     return NextResponse.json(
-      {
-        error: 'Search failed',
-      },
-      {
-        status: 500,
-      }
+      { error: 'Search failed', message: (error as Error)?.message ?? 'Unknown error' },
+      { status: 500 }
     )
   }
 }

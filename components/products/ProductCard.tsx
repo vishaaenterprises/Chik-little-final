@@ -56,9 +56,12 @@ export default function ProductCard({
   const wishlisted = isInWishlist(id)
   const inCart = isInCart(id)
 
-  const discount = originalPrice
-    ? Math.round(((originalPrice - price) / originalPrice) * 100)
-    : null
+  // Discount is only shown when there's a genuine compare-at price above
+  // the selling price. Computed dynamically, never hardcoded.
+  const discount =
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
+      : 0
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -186,17 +189,31 @@ export default function ProductCard({
           )}
 
           {/* ── Badges (top-left) ─────────────────────────────── */}
+          {/*
+            Priority stack (top → bottom):
+              1. OUT OF STOCK  — always wins, nothing else renders alongside it
+              2. FLAT XX% OFF  — premium red gradient pill, only when a real discount exists
+              3. NEW
+              4. BEST
+            All badges share the same pill sizing/spacing so they stack cleanly.
+          */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-            {/* Out of stock badge takes priority */}
             {outOfStock ? (
-              <span className="px-2.5 py-1 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full shadow-sm">
+              <span
+                role="status"
+                className="px-2.5 py-1 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full shadow-sm"
+              >
                 OUT OF STOCK
               </span>
             ) : (
               <>
-                {discount && (
-                  <span className="px-2.5 md:px-3 py-1 bg-[#F6C453] text-[#2B2B2B] text-[10px] md:text-xs font-bold rounded-full shadow-sm">
-                    {discount}% OFF
+                {discount > 0 && (
+                  <span
+                    role="status"
+                    aria-label={`Flat ${discount} percent off`}
+                    className="px-3 md:px-3.5 py-1 md:py-1.5 bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] md:text-xs font-bold rounded-full shadow-lg shadow-red-500/30 tracking-wide transition-transform duration-200 ease-out hover:scale-105"
+                  >
+                    FLAT {discount}% OFF
                   </span>
                 )}
                 {isNew && (
