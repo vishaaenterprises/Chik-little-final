@@ -196,7 +196,15 @@ export default function RootLayout({
       className={`${baloo.variable} ${dmSans.variable}`}
     >
       <head>
-        {/* Meta Pixel Code */}
+        {/*
+          Meta Pixel Code
+          Pixel ID 1837748180844681 = "Kids essential" dataset in Events Manager.
+          The queue mechanism below (n.queue.push) means any fbq() call made by
+          other components BEFORE this script line has finished parsing is safely
+          buffered and fired the moment the real pixel script loads — so there's
+          no race condition with ViewContent/AddToCart/InitiateCheckout/Purchase
+          calls elsewhere in the app, even though this uses "afterInteractive".
+        */}
         <Script
           id="facebook-pixel"
           strategy="afterInteractive"

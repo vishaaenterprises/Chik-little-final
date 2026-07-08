@@ -83,6 +83,16 @@ interface CartContextType {
 }
 
 /* =========================
+   META PIXEL TYPE
+========================= */
+
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void
+  }
+}
+
+/* =========================
    CONTEXT
 ========================= */
 
@@ -212,6 +222,27 @@ export function CartProvider({
         },
       ]
     })
+
+    // ── Meta Pixel: AddToCart ─────────────────────────────────
+    // Fired centrally here so every "Add to Cart" entry point across
+    // the site (product page, quick-add on ProductCard, etc.) reports
+    // consistently without duplicating pixel code in each component.
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'AddToCart', {
+        content_name: item.name,
+        content_ids: [item.id],
+        content_type: 'product',
+        value: item.price,
+        currency: 'INR',
+        contents: [
+          {
+            id: item.id,
+            quantity,
+            item_price: item.price,
+          },
+        ],
+      })
+    }
   }
 
   /* =========================

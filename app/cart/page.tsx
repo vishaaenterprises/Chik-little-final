@@ -22,6 +22,13 @@ import {
 const WHATSAPP_NUMBER = "917728009522";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
+// ── Meta Pixel type ────────────────────────────────────────────────────────
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
+
 export default function CartPage() {
   const { cartItems, cartTotal } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
@@ -93,8 +100,54 @@ export default function CartPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ── Open checkout modal ──────────────────────────────────────────────────
+  const handleProceedToCheckout = () => {
+    setShowCheckout(true);
+
+    // Meta Pixel: InitiateCheckout — user has expressed clear buying intent
+    // by opening the checkout form.
+    if (typeof window !== "undefined" && window.fbq) {
+      window.fbq("track", "InitiateCheckout", {
+        content_ids: cartItems.map((item) => item.id),
+        contents: cartItems.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+          item_price: item.price,
+        })),
+        content_type: "product",
+        value: total,
+        currency: "INR",
+        num_items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+      });
+    }
+  };
+
   const handleCheckout = () => {
     if (!validateForm()) return;
+
+    // Meta Pixel: Purchase — fired right after the order is validated,
+    // before the WhatsApp redirect, so it isn't lost to page navigation.
+    const orderId = `order_${Date.now()}`;
+    if (typeof window !== "undefined" && window.fbq) {
+      window.fbq(
+        "track",
+        "Purchase",
+        {
+          content_ids: cartItems.map((item) => item.id),
+          contents: cartItems.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            item_price: item.price,
+          })),
+          content_type: "product",
+          value: total,
+          currency: "INR",
+          num_items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+        },
+        { eventID: orderId }
+      );
+    }
+
     const lines: string[] = [];
     lines.push("🛍️ *NEW ORDER - LITTLE CHIKU*");
     lines.push("");
@@ -467,7 +520,7 @@ export default function CartPage() {
             >
               <CartSummary />
               <motion.button
-                onClick={() => setShowCheckout(true)}
+                onClick={handleProceedToCheckout}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full py-4 mt-4 text-white font-bold rounded-2xl transition-all duration-300 flex items-center justify-center gap-2"

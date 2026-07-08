@@ -56,6 +56,14 @@ function variantImageUrls(variant: ProductVariant): string[] {
     .filter(Boolean);
 }
 
+// ── Helper: typed fbq accessor (avoids `any` sprinkled everywhere) ──
+
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
+
 export default function ProductPage() {
   const params = useParams();
   const slug = Array.isArray(params.slug)
@@ -205,6 +213,24 @@ export default function ProductPage() {
     isOOS,
   ]);
 
+  // ── Meta Pixel: ViewContent ─────────────────────────────────
+  // Fires once per product load (and whenever the product identity changes).
+  // Uses displayProduct.id as the dependency so it doesn't refire on every
+  // unrelated re-render (e.g. quantity or size changes).
+  useEffect(() => {
+    if (!displayProduct || typeof window === "undefined") return;
+    if (!window.fbq) return;
+
+    window.fbq("track", "ViewContent", {
+      content_name: displayProduct.name,
+      content_ids: [displayProduct.id],
+      content_type: "product",
+      value: displayPrice,
+      currency: "INR",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayProduct?.id]);
+
   // ── Gallery navigation ────────────────────────────────────────
   const nextImage = useCallback(() => {
     if (images.length <= 1) return;
@@ -217,6 +243,9 @@ export default function ProductPage() {
   }, [images.length]);
 
   // ── Add to Cart ───────────────────────────────────────────────
+  // Note: the AddToCart Meta Pixel event itself is fired centrally inside
+  // context/cart-context.tsx's addToCart() function, so it fires consistently
+  // no matter where "Add to Cart" is triggered from (this page, ProductCard, etc).
   const handleAddToCart = useCallback(() => {
     if (!displayProduct || isOOS) return;
     addToCart(
