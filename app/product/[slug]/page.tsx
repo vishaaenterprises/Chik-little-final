@@ -845,12 +845,6 @@ export default function ProductPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-7 pt-6 border-t border-[#EDF1F1]">
                 {[
                   {
-                    icon: Truck,
-                    title: "Free Delivery",
-                    desc: "On orders above Rs. 499",
-                    color: "bg-[#DDF5F4] text-[#4FBDBA]",
-                  },
-                  {
                     icon: RefreshCw,
                     title: "Easy Returns",
                     desc: "3-day return policy",
