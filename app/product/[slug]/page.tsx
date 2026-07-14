@@ -725,7 +725,7 @@ export default function ProductPage() {
 
               {/* Size Selector */}
               <div className="mt-7">
-                <div className="flex items-center justify-between mb-3">
+                {/* <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-[#2B2B2B]">
                     Size:{" "}
                     <span className="font-normal text-[#8A8A8A]">{selectedSize}</span>
@@ -734,7 +734,7 @@ export default function ProductPage() {
                     <Ruler className="w-3.5 h-3.5" />
                     Size Guide
                   </button>
-                </div>
+                </div> */}
                 <div className="flex flex-wrap gap-2">
                   {displayProduct.sizes.map((size) => (
                     <button
