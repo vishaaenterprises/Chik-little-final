@@ -7,6 +7,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
 import { useCart } from "@/context/cart-context";
+import { sendCapiEventFromClient } from "@/lib/meta-capi-client";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -106,20 +107,37 @@ export default function CartPage() {
 
     // Meta Pixel: InitiateCheckout — user has expressed clear buying intent
     // by opening the checkout form.
+    const initiateCheckoutId = `initiate_checkout_${Date.now()}`;
+    const initiateCheckoutData = {
+      content_ids: cartItems.map((item) => item.id),
+      contents: cartItems.map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        item_price: item.price,
+      })),
+      content_type: "product" as const,
+      value: total,
+      currency: "INR",
+      num_items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+    };
+
     if (typeof window !== "undefined" && window.fbq) {
-      window.fbq("track", "InitiateCheckout", {
-        content_ids: cartItems.map((item) => item.id),
-        contents: cartItems.map((item) => ({
-          id: item.id,
-          quantity: item.quantity,
-          item_price: item.price,
-        })),
-        content_type: "product",
-        value: total,
-        currency: "INR",
-        num_items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+      window.fbq("track", "InitiateCheckout", initiateCheckoutData, {
+        eventID: initiateCheckoutId,
       });
     }
+
+    // Server-side CAPI copy — no phone/name yet, form isn't filled at this point.
+    sendCapiEventFromClient({
+      eventName: "InitiateCheckout",
+      eventId: initiateCheckoutId,
+      contentIds: initiateCheckoutData.content_ids,
+      contentType: "product",
+      contents: initiateCheckoutData.contents,
+      value: initiateCheckoutData.value,
+      currency: initiateCheckoutData.currency,
+      numItems: initiateCheckoutData.num_items,
+    });
   };
 
   const handleCheckout = () => {
@@ -128,25 +146,39 @@ export default function CartPage() {
     // Meta Pixel: Purchase — fired right after the order is validated,
     // before the WhatsApp redirect, so it isn't lost to page navigation.
     const orderId = `order_${Date.now()}`;
+    const purchaseData = {
+      content_ids: cartItems.map((item) => item.id),
+      contents: cartItems.map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        item_price: item.price,
+      })),
+      content_type: "product" as const,
+      value: total,
+      currency: "INR",
+      num_items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+    };
+
     if (typeof window !== "undefined" && window.fbq) {
-      window.fbq(
-        "track",
-        "Purchase",
-        {
-          content_ids: cartItems.map((item) => item.id),
-          contents: cartItems.map((item) => ({
-            id: item.id,
-            quantity: item.quantity,
-            item_price: item.price,
-          })),
-          content_type: "product",
-          value: total,
-          currency: "INR",
-          num_items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
-        },
-        { eventID: orderId }
-      );
+      window.fbq("track", "Purchase", purchaseData, { eventID: orderId });
     }
+
+    // Server-side CAPI copy, with hashed phone/name for advanced matching —
+    // this is what was missing and dragging EMQ down to 6.1/10.
+    sendCapiEventFromClient({
+      eventName: "Purchase",
+      eventId: orderId,
+      contentIds: purchaseData.content_ids,
+      contentType: "product",
+      contents: purchaseData.contents,
+      value: purchaseData.value,
+      currency: purchaseData.currency,
+      numItems: purchaseData.num_items,
+      phone: formData.phone,
+      name: formData.name,
+      city: formData.city,
+      zip: formData.pincode,
+    });
 
     const lines: string[] = [];
     lines.push("🛍️ *NEW ORDER - LITTLE CHIKU*");
