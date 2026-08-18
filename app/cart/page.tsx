@@ -13,7 +13,8 @@ import {
   ArrowLeft,
   X,
   Truck,
-  CreditCard,
+  Smartphone,
+  Landmark,
   MessageCircle,
   Sparkles,
   Shield,
@@ -22,6 +23,14 @@ import {
 
 const WHATSAPP_NUMBER = "917728009522";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+
+type PaymentMethod = "cod" | "upi" | "bank";
+
+const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cod: "Cash on Delivery",
+  upi: "UPI",
+  bank: "Bank Transfer",
+};
 
 // ── Meta Pixel type ────────────────────────────────────────────────────────
 declare global {
@@ -52,7 +61,7 @@ export default function CartPage() {
     name: "",
     phone: "",
     address: "",
-    paymentMethod: "cod" as "cod" | "prepaid",
+    paymentMethod: "cod" as PaymentMethod,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -179,7 +188,7 @@ export default function CartPage() {
     lines.push(`Name: ${formData.name}`);
     lines.push(`Phone: ${formData.phone}`);
     lines.push(`Address: ${formData.address}`);
-    lines.push(`Payment Method: ${formData.paymentMethod === "cod" ? "Cash on Delivery" : "Prepaid (Online)"}`);
+    lines.push(`Payment Method: ${PAYMENT_METHOD_LABELS[formData.paymentMethod]}`);
     lines.push("");
     lines.push("🛒 *Cart Details*");
     lines.push("");
@@ -305,17 +314,18 @@ export default function CartPage() {
         <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "10px", color: "#2B2B2B", textTransform: "uppercase" }}>
           Payment Method *
         </label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
           {[
-            { value: "cod", icon: Truck, label: "Cash on Delivery" },
-            { value: "prepaid", icon: CreditCard, label: "Prepaid (Online)" },
+            { value: "cod" as const, icon: Truck, label: "Cash on Delivery" },
+            { value: "upi" as const, icon: Smartphone, label: "UPI" },
+            { value: "bank" as const, icon: Landmark, label: "Bank Transfer" },
           ].map(({ value, icon: Icon, label }) => {
             const isActive = formData.paymentMethod === value;
             return (
               <button
                 key={value}
                 type="button"
-                onClick={() => setFormData({ ...formData, paymentMethod: value as "cod" | "prepaid" })}
+                onClick={() => setFormData({ ...formData, paymentMethod: value })}
                 style={{
                   padding: "14px 8px",
                   borderRadius: "14px",
@@ -345,6 +355,90 @@ export default function CartPage() {
             );
           })}
         </div>
+
+        {/* UPI app badges — shown only when UPI is selected */}
+        <AnimatePresence>
+          {formData.paymentMethod === "upi" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: "auto", marginTop: 10 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ overflow: "hidden" }}
+            >
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 12px",
+                borderRadius: "12px",
+                background: "#F6FBFB",
+                border: "1px solid #E7EEEE",
+                flexWrap: "wrap",
+              }}>
+                <span style={{ fontSize: "11px", color: "#6B6B6B", fontWeight: 600, marginRight: "2px" }}>
+                  Pay via:
+                </span>
+                {[
+                  { name: "PhonePe", bg: "#5F259F", fg: "#FFFFFF" },
+                  { name: "Google Pay", bg: "#FFFFFF", fg: "#3C4043", border: "#E0E0E0" },
+                  { name: "Paytm", bg: "#00BAF2", fg: "#FFFFFF" },
+                ].map((app) => (
+                  <span
+                    key={app.name}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      padding: "5px 10px",
+                      borderRadius: "20px",
+                      background: app.bg,
+                      color: app.fg,
+                      border: app.border ? `1px solid ${app.border}` : "none",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <Smartphone style={{ width: "11px", height: "11px" }} />
+                    {app.name}
+                  </span>
+                ))}
+              </div>
+              <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "6px", paddingLeft: "2px" }}>
+                We'll share the UPI ID / QR code on WhatsApp to complete payment.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Bank transfer note — shown only when Bank Transfer is selected */}
+        <AnimatePresence>
+          {formData.paymentMethod === "bank" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: "auto", marginTop: 10 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ overflow: "hidden" }}
+            >
+              <div style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "8px",
+                padding: "10px 12px",
+                borderRadius: "12px",
+                background: "#F6FBFB",
+                border: "1px solid #E7EEEE",
+              }}>
+                <Landmark style={{ width: "14px", height: "14px", color: "#4FBDBA", flexShrink: 0, marginTop: "1px" }} />
+                <p style={{ fontSize: "11px", color: "#6B6B6B", lineHeight: 1.4, margin: 0 }}>
+                  We'll share our bank account details on WhatsApp to complete the transfer.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Order Summary */}
