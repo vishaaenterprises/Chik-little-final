@@ -7,6 +7,7 @@ import {
   Facebook,
   Mail,
   Phone,
+  BadgeCheck,
 } from 'lucide-react'
 import { useState } from 'react'
 import Image from 'next/image'
@@ -104,9 +105,12 @@ export default function Footer() {
                 <span className="text-sm">+91 77280 09522</span>
               </a>
 
-              <p className="text-sm text-white/50 pl-7">
-                GSTIN: 08EKHPS6143H1ZR
-              </p>
+              <div className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded-lg bg-[#4FBDBA]/15 border border-[#4FBDBA]/30">
+                <BadgeCheck className="w-4 h-4 text-[#4FBDBA] flex-shrink-0" />
+                <span className="text-sm font-semibold tracking-wide text-white">
+                  GSTIN: 08EKHPS6143H1ZR
+                </span>
+              </div>
             </div>
 
             {/* Social */}
