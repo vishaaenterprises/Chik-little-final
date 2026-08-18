@@ -627,6 +627,22 @@ export default function ProductPage() {
                     </span>
                   </div>
                 )}
+
+                {/* Trust badges — shipping, security, returns */}
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4">
+                  <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-[#4B5563]">
+                    <Truck className="w-4 h-4 text-[#4FBDBA]" />
+                    Free shipping above ₹1,499
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-[#4B5563]">
+                    <Shield className="w-4 h-4 text-[#4FBDBA]" />
+                    Secure checkout
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-[#4B5563]">
+                    <RefreshCw className="w-4 h-4 text-[#4FBDBA]" />
+                    Easy returns
+                  </div>
+                </div>
               </div>
 
               {/* Description */}

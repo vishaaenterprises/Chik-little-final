@@ -473,32 +473,46 @@ export default function CartPage() {
 
   // ── WhatsApp CTA button ───────────────────────────────────────────────────
   const WhatsAppBtn = (
-    <motion.button
-      onClick={handleCheckout}
-      whileHover={{ scale: 1.015, y: -1 }}
-      whileTap={{ scale: 0.97 }}
-      style={{
-        width: "100%",
-        padding: "15px 24px",
-        background: "linear-gradient(135deg, #25D366 0%, #1DA851 100%)",
-        color: "white",
-        fontWeight: 800,
-        borderRadius: "14px",
+    <div>
+      <motion.button
+        onClick={handleCheckout}
+        whileHover={{ scale: 1.015, y: -1 }}
+        whileTap={{ scale: 0.97 }}
+        style={{
+          width: "100%",
+          padding: "15px 24px",
+          background: "linear-gradient(135deg, #25D366 0%, #1DA851 100%)",
+          color: "white",
+          fontWeight: 800,
+          borderRadius: "14px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "10px",
+          fontSize: "15px",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: "0 8px 24px rgba(37,211,102,0.38), 0 2px 8px rgba(37,211,102,0.2)",
+          letterSpacing: "0.01em",
+          fontFamily: "inherit",
+        }}
+      >
+        <MessageCircle style={{ width: "20px", height: "20px" }} />
+        Place Order via WhatsApp
+      </motion.button>
+      <div style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: "10px",
-        fontSize: "15px",
-        border: "none",
-        cursor: "pointer",
-        boxShadow: "0 8px 24px rgba(37,211,102,0.38), 0 2px 8px rgba(37,211,102,0.2)",
-        letterSpacing: "0.01em",
-        fontFamily: "inherit",
-      }}
-    >
-      <MessageCircle style={{ width: "20px", height: "20px" }} />
-      Place Order via WhatsApp
-    </motion.button>
+        gap: "6px",
+        marginTop: "10px",
+      }}>
+        <Shield style={{ width: "13px", height: "13px", color: "#9CA3AF" }} />
+        <span style={{ fontSize: "11px", color: "#9CA3AF", fontWeight: 500 }}>
+          Secure checkout · Your details stay private
+        </span>
+      </div>
+    </div>
   );
 
   // ── Empty cart ────────────────────────────────────────────────────────────
