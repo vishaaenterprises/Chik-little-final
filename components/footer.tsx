@@ -103,6 +103,10 @@ export default function Footer() {
                 <Phone className="w-4 h-4" />
                 <span className="text-sm">+91 77280 09522</span>
               </a>
+
+              <p className="text-sm text-white/50 pl-7">
+                GSTIN: 08EKHPS6143H1ZR
+              </p>
             </div>
 
             {/* Social */}
