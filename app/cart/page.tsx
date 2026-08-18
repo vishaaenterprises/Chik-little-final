@@ -52,8 +52,6 @@ export default function CartPage() {
     name: "",
     phone: "",
     address: "",
-    city: "",
-    pincode: "",
     paymentMethod: "cod" as "cod" | "prepaid",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -93,10 +91,6 @@ export default function CartPage() {
     else if (!/^[6-9]\d{9}$/.test(formData.phone))
       newErrors.phone = "Enter valid 10-digit phone";
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    if (!formData.city.trim()) newErrors.city = "City is required";
-    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode))
-      newErrors.pincode = "Enter valid 6-digit pincode";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -176,8 +170,6 @@ export default function CartPage() {
       numItems: purchaseData.num_items,
       phone: formData.phone,
       name: formData.name,
-      city: formData.city,
-      zip: formData.pincode,
     });
 
     const lines: string[] = [];
@@ -187,8 +179,6 @@ export default function CartPage() {
     lines.push(`Name: ${formData.name}`);
     lines.push(`Phone: ${formData.phone}`);
     lines.push(`Address: ${formData.address}`);
-    lines.push(`City: ${formData.city}`);
-    lines.push(`Pincode: ${formData.pincode}`);
     lines.push(`Payment Method: ${formData.paymentMethod === "cod" ? "Cash on Delivery" : "Prepaid (Online)"}`);
     lines.push("");
     lines.push("🛒 *Cart Details*");
@@ -280,17 +270,17 @@ export default function CartPage() {
         {errors.phone && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors.phone}</p>}
       </div>
 
-      {/* Address */}
+      {/* Full Address */}
       <div>
         <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "6px", color: "#2B2B2B", textTransform: "uppercase" }}>
-          Delivery Address *
+          Full Address *
         </label>
         <textarea
           value={formData.address}
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           style={{
             width: "100%",
-            height: "80px",
+            height: "90px",
             padding: "12px 14px",
             borderRadius: "12px",
             outline: "none",
@@ -303,37 +293,11 @@ export default function CartPage() {
             boxSizing: "border-box",
             fontFamily: "inherit",
           }}
-          placeholder="House/Flat No., Street, Area"
+          placeholder="House/Flat No., Street, Area, City, Pincode"
           onFocus={handleFocus}
           onBlur={(e) => handleBlur(e, !!errors.address)}
         />
         {errors.address && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors.address}</p>}
-      </div>
-
-      {/* City & Pincode */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        {(["city", "pincode"] as const).map((field) => (
-          <div key={field}>
-            <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "6px", color: "#2B2B2B", textTransform: "uppercase" }}>
-              {field === "city" ? "City" : "Pincode"} *
-            </label>
-            <input
-              type="text"
-              value={formData[field]}
-              onChange={(e) => {
-                const val = field === "pincode"
-                  ? e.target.value.replace(/\D/g, "").slice(0, 6)
-                  : e.target.value;
-                setFormData({ ...formData, [field]: val });
-              }}
-              style={{ ...inputBase, borderColor: errors[field] ? "#e53e3e" : "#E7EEEE" }}
-              placeholder={field === "city" ? "Your city" : "6-digit"}
-              onFocus={handleFocus}
-              onBlur={(e) => handleBlur(e, !!errors[field])}
-            />
-            {errors[field] && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors[field]}</p>}
-          </div>
-        ))}
       </div>
 
       {/* Payment Method */}
