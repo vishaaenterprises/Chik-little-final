@@ -26,14 +26,6 @@ export const testimonial = defineType({
       initialValue: 5,
     }),
     defineField({
-      name: 'customerImage',
-      title: 'Customer Image',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
-    }),
-    defineField({
       name: 'location',
       title: 'Location',
       type: 'string',
@@ -43,6 +35,8 @@ export const testimonial = defineType({
       title: 'Product Purchased',
       type: 'reference',
       to: [{ type: 'product' }],
+      description:
+        'Optional. Leave empty to show this review on the home page and on every product page as a general review.',
     }),
     defineField({
       name: 'isActive',
@@ -61,13 +55,11 @@ export const testimonial = defineType({
     select: {
       title: 'customerName',
       subtitle: 'review',
-      media: 'customerImage',
     },
-    prepare({ title, subtitle, media }) {
+    prepare({ title, subtitle }) {
       return {
         title,
         subtitle: subtitle ? subtitle.substring(0, 50) + '...' : '',
-        media,
       }
     },
   },

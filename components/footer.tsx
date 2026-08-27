@@ -39,6 +39,52 @@ const footerLinks = {
 ],
 }
 
+// ── "We Accept" payment badges ──────────────────────────────────────────────
+// Same /public/logo/ files used on the cart checkout page. These are
+// trademarked logos (Visa/Mastercard/RuPay/BHIM) we don't generate
+// ourselves — if a file is missing, this quietly falls back to a plain
+// text chip instead of a broken image icon.
+const PAYMENT_BADGES: Array<{ key: string; file: string; label: string }> = [
+  { key: 'visa', file: '/logo/VISA-logo.png', label: 'VISA' },
+  { key: 'mastercard', file: '/logo/Mastercard-Logo.png', label: 'Mastercard' },
+  { key: 'rupay', file: '/logo/Rupay-Logo.png', label: 'RuPay' },
+  { key: 'upi', file: '/logo/upi.png', label: 'UPI' },
+  { key: 'netbanking', file: '/logo/Net-Banking.png', label: 'Net Banking' },
+  { key: 'bhim', file: '/logo/bhim.png', label: 'BHIM' },
+]
+
+function PaymentBadge({ file, label }: { file: string; label: string }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  if (imgFailed) {
+    return (
+      <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-white/10 border border-white/15 text-[10px] font-semibold text-white/70 whitespace-nowrap">
+        {label}
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-white/95 border border-white/15">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={file}
+        alt={label}
+        className="h-3.5 w-auto object-contain"
+        onError={() => setImgFailed(true)}
+      />
+    </span>
+  )
+}
+
+function PaymentBadgesRow() {
+  return (
+    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+      {PAYMENT_BADGES.map((badge) => (
+        <PaymentBadge key={badge.key} file={badge.file} label={badge.label} />
+      ))}
+    </div>
+  )
+}
+
 export default function Footer() {
   const [email, setEmail] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
@@ -111,6 +157,14 @@ export default function Footer() {
                   GSTIN: 08EKHPS6143H1ZR
                 </span>
               </div>
+            </div>
+
+            {/* We Accept — payment badges */}
+            <div className="mt-6">
+              <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2.5">
+                We Accept
+              </p>
+              <PaymentBadgesRow />
             </div>
 
             {/* Social */}

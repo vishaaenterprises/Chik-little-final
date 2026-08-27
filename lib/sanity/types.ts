@@ -294,12 +294,21 @@ export interface SanityTestimonial {
   customerName: string
   review: string
   rating?: number
-  customerImage?: SanityImageAsset
   location?: string
   productPurchased?: {
     productName: string
     slug: string
   }
+}
+
+export interface ReviewStats {
+  total: number
+  average: number | null
+  five: number
+  four: number
+  three: number
+  two: number
+  one: number
 }
 
 // ── Brand ─────────────────────────────────────────────────────

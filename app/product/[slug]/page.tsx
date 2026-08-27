@@ -8,10 +8,12 @@ import MainLayout from "@/components/layout/MainLayout";
 import ProductCard from "@/components/products/ProductCard";
 import ProductTabs from "@/components/products/Producttabs";
 import ProductJsonLd from "@/components/seo/ProductJsonLd"; // ← NEW
+import ReviewsCarousel from "@/components/reviews/ReviewsCarousel";
 import { useCart } from "@/context/cart-context";
 import {
   type SanityProduct,
   type SanityProductCard,
+  type SanityTestimonial,
   type ProductVariant,
   sanityProductToLegacy,
   computeDiscount,
@@ -77,6 +79,11 @@ export default function ProductPage() {
   const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ── Reviews state ────────────────────────────────────────────
+  // Reviews shown on this product page — every active review site-wide,
+  // regardless of which product (if any) it was originally written for.
+  const [reviews, setReviews] = useState<SanityTestimonial[]>([]);
+
   // ── Variant state ─────────────────────────────────────────────
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -105,6 +112,7 @@ export default function ProductPage() {
           const product: SanityProduct = data.product;
           setSanityProduct(product);
           setRelatedProducts(data.relatedProducts ?? []);
+          setReviews(data.reviews ?? []);
 
           const firstVariant = product.variants?.[0] ?? null;
           setSelectedVariant(firstVariant);
@@ -901,6 +909,19 @@ export default function ProductPage() {
 
       {/* Product Tabs */}
       <ProductTabs product={sanityProduct} />
+
+      {/* Customer Reviews */}
+      {reviews.length > 0 && (
+        <ReviewsCarousel
+          reviews={reviews}
+          eyebrow="Customer Reviews"
+          title="What Our Customers Say"
+          description="Real feedback from real parents across Little Chiku"
+          viewMoreHref="/reviews"
+          viewMoreLabel="View More Reviews"
+          showProductLink={true}
+        />
+      )}
 
       {/* You May Also Like */}
       {alsoLikeProducts.length > 0 && (

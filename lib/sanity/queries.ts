@@ -235,7 +235,7 @@ export const brandsQuery = groq`
   }
 `
 
-// ===== TESTIMONIAL QUERIES ====================================
+// ===== TESTIMONIAL / REVIEW QUERIES ============================
 
 export const testimonialsQuery = groq`
   *[_type == "testimonial" && isActive == true] | order(order asc) {
@@ -243,7 +243,6 @@ export const testimonialsQuery = groq`
     customerName,
     review,
     rating,
-    customerImage,
     location,
     productPurchased->{
       productName,
@@ -251,6 +250,87 @@ export const testimonialsQuery = groq`
     }
   }
 `
+
+// Reviews tied to one specific product — used on the product detail page.
+export const productReviewsQuery = groq`
+  *[
+    _type == "testimonial"
+    && isActive == true
+    && productPurchased._ref == $productId
+  ] | order(order asc, _createdAt desc) {
+    _id,
+    customerName,
+    review,
+    rating,
+    location,
+    productPurchased->{
+      productName,
+      "slug": slug.current
+    }
+  }
+`
+
+// Paginated review list — powers the "/reviews" (View More) page and
+// the fallback pull used on the home/product review sliders.
+// $productSlug can be "" to mean "all products".
+export const reviewsListQuery = groq`
+  *[
+    _type == "testimonial"
+    && isActive == true
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ] | order(order asc, _createdAt desc) [$start...$end] {
+    _id,
+    customerName,
+    review,
+    rating,
+    location,
+    productPurchased->{
+      productName,
+      "slug": slug.current
+    }
+  }
+`
+
+export const reviewsCountQuery = groq`
+  count(*[
+    _type == "testimonial"
+    && isActive == true
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ])
+`
+
+// Aggregate stats (average rating + star breakdown) shown as a trust
+// summary at the top of the "/reviews" page.
+export const reviewsStatsQuery = groq`{
+  "total": count(*[
+    _type == "testimonial" && isActive == true
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ]),
+  "average": math::avg(*[
+    _type == "testimonial" && isActive == true
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ].rating),
+  "five": count(*[
+    _type == "testimonial" && isActive == true && rating == 5
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ]),
+  "four": count(*[
+    _type == "testimonial" && isActive == true && rating == 4
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ]),
+  "three": count(*[
+    _type == "testimonial" && isActive == true && rating == 3
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ]),
+  "two": count(*[
+    _type == "testimonial" && isActive == true && rating == 2
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ]),
+  "one": count(*[
+    _type == "testimonial" && isActive == true && rating == 1
+    && ($productSlug == "" || productPurchased->slug.current == $productSlug)
+  ])
+}`
 
 // ===== HOMEPAGE COMBINED QUERY ================================
 
@@ -281,13 +361,16 @@ export const homepageDataQuery = groq`{
   "newArrivals": *[_type == "product" && newArrival == true] | order(_createdAt desc)[0...8] {
     ${PRODUCT_CARD_FIELDS}
   },
-  "testimonials": *[_type == "testimonial" && isActive == true] | order(order asc)[0...6] {
+  "testimonials": *[_type == "testimonial" && isActive == true] | order(order asc)[0...12] {
     _id,
     customerName,
     review,
     rating,
-    customerImage,
-    location
+    location,
+    productPurchased->{
+      productName,
+      "slug": slug.current
+    }
   },
   "brands": *[_type == "brand"] | order(order asc) {
     _id,

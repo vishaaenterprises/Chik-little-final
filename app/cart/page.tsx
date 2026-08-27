@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MainLayout from "@/components/layout/MainLayout";
@@ -15,37 +16,139 @@ import {
   Truck,
   Smartphone,
   Landmark,
+  CreditCard,
   MessageCircle,
   Sparkles,
   Shield,
   RotateCcw,
+  Lock,
+  Loader2,
 } from "lucide-react";
 
 const WHATSAPP_NUMBER = "917728009522";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+const PHONEPE_CHECKOUT_SCRIPT_SRC = "https://mercury.phonepe.com/web/bundle/checkout.js";
 
-type PaymentMethod = "cod" | "upi" | "bank";
+type PaymentMethod = "cod" | "upi" | "card" | "netbanking";
+// PhonePe's paymentModeConfig vocabulary — what we send to /api/payment/initiate
+// so their embedded PayPage shows ONLY the instrument matching the tab the
+// user picked, instead of PhonePe's own full method-selection menu.
+type PreferredMode = "UPI" | "CARD" | "NET_BANKING";
 
 const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   cod: "Cash on Delivery",
   upi: "UPI",
-  bank: "Bank Transfer",
+  card: "Credit/Debit Card",
+  netbanking: "Net Banking",
 };
 
-// ── Meta Pixel type ────────────────────────────────────────────────────────
+const PAYMENT_METHOD_TABS: Array<{ value: PaymentMethod; icon: typeof Truck; label: string }> = [
+  { value: "cod", icon: Truck, label: "Cash on Delivery" },
+  { value: "upi", icon: Smartphone, label: "UPI" },
+  { value: "card", icon: CreditCard, label: "Credit/Debit Card" },
+  { value: "netbanking", icon: Landmark, label: "Net Banking" },
+];
+
+// ── Meta Pixel + PhonePe Checkout script types ──────────────────────────────
 declare global {
   interface Window {
     fbq?: (...args: any[]) => void;
+    PhonePeCheckout?: {
+      transact: (opts: {
+        tokenUrl: string;
+        type?: "IFRAME";
+        callback?: (response: "USER_CANCEL" | "CONCLUDED") => void;
+      }) => void;
+      closePage?: () => void;
+    };
   }
+}
+
+// ── Trust badges (Visa/Mastercard/RuPay/UPI/BHIM) ──────────────────────────
+// These are trademarked logos we can't generate ourselves — the real files
+// (downloaded from each brand's official merchant asset page) live in
+// /public/logo/ using the exact filenames below (case-sensitive — Vercel's
+// Linux servers care about case even though Windows doesn't). If a file is
+// missing, this silently falls back to a plain text label instead of a
+// broken image icon.
+const BADGES: Array<{ key: string; file: string; label: string }> = [
+  { key: "visa", file: "/logo/VISA-logo.png", label: "VISA" },
+  { key: "mastercard", file: "/logo/Mastercard-Logo.png", label: "Mastercard" },
+  { key: "rupay", file: "/logo/Rupay-Logo.png", label: "RuPay" },
+  { key: "upi", file: "/logo/upi.png", label: "UPI" },
+  { key: "netbanking", file: "/logo/Net-Banking.png", label: "Net Banking" },
+  { key: "bhim", file: "/logo/bhim.png", label: "BHIM" },
+];
+
+function TrustBadge({ file, label }: { file: string; label: string }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const chipStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "22px",
+    padding: imgFailed ? "0 8px" : "0 6px",
+    border: "1px solid #E7EEEE",
+    borderRadius: "6px",
+    background: "white",
+  };
+  if (imgFailed) {
+    return (
+      <span style={{ ...chipStyle, fontSize: "10px", fontWeight: 600, color: "#6B6B6B", fontFamily: "inherit" }}>
+        {label}
+      </span>
+    );
+  }
+  return (
+    <span style={chipStyle}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={file}
+        alt={label}
+        style={{ height: "14px", width: "auto", display: "block" }}
+        onError={() => setImgFailed(true)}
+      />
+    </span>
+  );
+}
+
+function TrustBadgesStrip() {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "6px",
+      flexWrap: "wrap",
+      padding: "10px 4px 2px",
+    }}>
+      <span style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+        fontSize: "10px",
+        fontWeight: 600,
+        color: "#6B6B6B",
+        padding: "4px 8px",
+        border: "1px solid #E7EEEE",
+        borderRadius: "6px",
+      }}>
+        <Lock style={{ width: "10px", height: "10px" }} />
+        256-bit SSL
+      </span>
+      {BADGES.map((badge) => (
+        <TrustBadge key={badge.key} file={badge.file} label={badge.label} />
+      ))}
+    </div>
+  );
 }
 
 export default function CartPage() {
   const { cartItems, cartTotal } = useCart();
+  const router = useRouter();
   const [showCheckout, setShowCheckout] = useState(false);
 
   // ── SSR-safe isMobile ──────────────────────────────────────────────────────
-  // We start with `false` on both server and client to avoid hydration mismatch.
-  // After mount we sync with the real window width.
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -64,6 +167,9 @@ export default function CartPage() {
     paymentMethod: "cod" as PaymentMethod,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const phonePeScriptPromise = useRef<Promise<void> | null>(null);
 
   const shipping = cartTotal > 1499 ? 0 : 99;
   const total = cartTotal + shipping;
@@ -108,8 +214,6 @@ export default function CartPage() {
   const handleProceedToCheckout = () => {
     setShowCheckout(true);
 
-    // Meta Pixel: InitiateCheckout — user has expressed clear buying intent
-    // by opening the checkout form.
     const initiateCheckoutId = `initiate_checkout_${Date.now()}`;
     const initiateCheckoutData = {
       content_ids: cartItems.map((item) => item.id),
@@ -130,7 +234,6 @@ export default function CartPage() {
       });
     }
 
-    // Server-side CAPI copy — no phone/name yet, form isn't filled at this point.
     sendCapiEventFromClient({
       eventName: "InitiateCheckout",
       eventId: initiateCheckoutId,
@@ -143,11 +246,126 @@ export default function CartPage() {
     });
   };
 
+  // ── Load PhonePe's Checkout script (once) ──────────────────────────────────
+  // Cached as a promise on a ref so repeated "Pay Now" clicks don't inject
+  // the script twice or race each other.
+  const loadPhonePeScript = (): Promise<void> => {
+    if (typeof window !== "undefined" && window.PhonePeCheckout) {
+      return Promise.resolve();
+    }
+    if (phonePeScriptPromise.current) return phonePeScriptPromise.current;
+
+    phonePeScriptPromise.current = new Promise((resolve, reject) => {
+      const existing = document.querySelector(
+        `script[src="${PHONEPE_CHECKOUT_SCRIPT_SRC}"]`
+      );
+      if (existing) {
+        existing.addEventListener("load", () => resolve());
+        existing.addEventListener("error", () => reject(new Error("script_failed")));
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = PHONEPE_CHECKOUT_SCRIPT_SRC;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("script_failed"));
+      document.body.appendChild(script);
+    });
+
+    return phonePeScriptPromise.current;
+  };
+
+  // ── Online payment via PhonePe (UPI / Card / Net Banking) ──────────────────
+  // Creates a PhonePe order on our server (which re-verifies price/stock from
+  // Sanity — we never trust a client-supplied total), restricted via
+  // paymentModeConfig to only the instrument the user picked. Then opens
+  // PhonePe's PayPage in an embedded iframe on THIS page — no full-page
+  // redirect, no raw card fields ever touch our own form (that's PhonePe's
+  // PCI-DSS-certified surface). Falls back to a full redirect if the embed
+  // script can't load (ad blockers, network issues).
+  const handlePayOnline = async (mode: PreferredMode) => {
+    setPaymentError("");
+    setIsProcessingPayment(true);
+    try {
+      const res = await fetch("/api/payment/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: {
+            name: formData.name,
+            phone: formData.phone,
+            address: formData.address,
+          },
+          items: cartItems.map((item) => ({
+            id: item.id,
+            slug: item.slug,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            size: item.size,
+            color: item.color,
+          })),
+          shipping,
+          preferredMode: mode,
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok || !data.redirectUrl) {
+        throw new Error(data.error || "Could not start payment");
+      }
+
+      const { merchantOrderId, redirectUrl } = data;
+
+      try {
+        await loadPhonePeScript();
+        if (!window.PhonePeCheckout) throw new Error("script_unavailable");
+
+        window.PhonePeCheckout.transact({
+          tokenUrl: redirectUrl,
+          type: "IFRAME",
+          callback: (response) => {
+            if (response === "CONCLUDED") {
+              // Webhook + our own status API are the source of truth —
+              // this page just hands off to /payment/status, which polls
+              // PhonePe directly, confirms the payment, and sends the
+              // WhatsApp order summary.
+              router.push(`/payment/status?orderId=${merchantOrderId}`);
+            } else {
+              // USER_CANCEL — let them try again from the same modal.
+              setIsProcessingPayment(false);
+            }
+          },
+        });
+      } catch {
+        // Embed script blocked/failed — fall back to a full-page redirect
+        // to PhonePe's hosted checkout instead of leaving the user stuck.
+        window.location.href = redirectUrl;
+      }
+    } catch (err) {
+      setIsProcessingPayment(false);
+      setPaymentError(
+        err instanceof Error ? err.message : "Payment could not be started. Try again."
+      );
+    }
+  };
+
   const handleCheckout = () => {
     if (!validateForm()) return;
 
-    // Meta Pixel: Purchase — fired right after the order is validated,
-    // before the WhatsApp redirect, so it isn't lost to page navigation.
+    if (formData.paymentMethod === "upi") {
+      handlePayOnline("UPI");
+      return;
+    }
+    if (formData.paymentMethod === "card") {
+      handlePayOnline("CARD");
+      return;
+    }
+    if (formData.paymentMethod === "netbanking") {
+      handlePayOnline("NET_BANKING");
+      return;
+    }
+
+    // ── Cash on Delivery — unchanged WhatsApp order flow ──────────────────
     const orderId = `order_${Date.now()}`;
     const purchaseData = {
       content_ids: cartItems.map((item) => item.id),
@@ -166,8 +384,6 @@ export default function CartPage() {
       window.fbq("track", "Purchase", purchaseData, { eventID: orderId });
     }
 
-    // Server-side CAPI copy, with hashed phone/name for advanced matching —
-    // this is what was missing and dragging EMQ down to 6.1/10.
     sendCapiEventFromClient({
       eventName: "Purchase",
       eventId: orderId,
@@ -241,6 +457,28 @@ export default function CartPage() {
     e.target.style.boxShadow = "none";
   };
 
+  const isOnlinePayment = formData.paymentMethod !== "cod";
+
+  // ── Payment method panel copy (right side of the sidebar) ──────────────────
+  const PANEL_COPY: Record<PaymentMethod, { title: string; body: string }> = {
+    cod: {
+      title: "Cash on Delivery",
+      body: "Pay in cash when your order arrives at your doorstep. No online payment needed.",
+    },
+    upi: {
+      title: "Pay using UPI",
+      body: "Scan a QR code or pay with any UPI app — PhonePe, Google Pay, Paytm, Amazon Pay and more.",
+    },
+    card: {
+      title: "Credit / Debit Card",
+      body: "Enter your card details on the next secure step. Make sure your card is enabled for online transactions.",
+    },
+    netbanking: {
+      title: "Net Banking",
+      body: "Pick your bank on the next secure step to complete the payment.",
+    },
+  };
+
   // ── Form fields ───────────────────────────────────────────────────────────
   const FormFields = (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px", paddingBottom: "8px" }}>
@@ -309,136 +547,107 @@ export default function CartPage() {
         {errors.address && <p style={{ color: "#e53e3e", fontSize: "11px", marginTop: "4px" }}>{errors.address}</p>}
       </div>
 
-      {/* Payment Method */}
+      {/* ══════════════ Payment Method — Myntra/IRCTC-style sidebar + panel ══════════════ */}
       <div>
         <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "10px", color: "#2B2B2B", textTransform: "uppercase" }}>
-          Payment Method *
+          Choose Payment Method *
         </label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-          {[
-            { value: "cod" as const, icon: Truck, label: "Cash on Delivery" },
-            { value: "upi" as const, icon: Smartphone, label: "UPI" },
-            { value: "bank" as const, icon: Landmark, label: "Bank Transfer" },
-          ].map(({ value, icon: Icon, label }) => {
-            const isActive = formData.paymentMethod === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFormData({ ...formData, paymentMethod: value })}
-                style={{
-                  padding: "14px 8px",
-                  borderRadius: "14px",
-                  border: `2px solid ${isActive ? "#4FBDBA" : "#E7EEEE"}`,
-                  background: isActive ? "#DDF5F4" : "white",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "8px",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  width: "100%",
-                }}
-              >
-                <Icon style={{ width: "20px", height: "20px", color: isActive ? "#4FBDBA" : "#9CA3AF" }} />
-                <span style={{
-                  fontWeight: 700,
-                  fontSize: "12px",
-                  textAlign: "center",
-                  lineHeight: "1.3",
-                  color: isActive ? "#2F7F7C" : "#4B5563",
-                  fontFamily: "inherit",
-                }}>
-                  {label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
 
-        {/* UPI app badges — shown only when UPI is selected */}
-        <AnimatePresence>
-          {formData.paymentMethod === "upi" && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: "auto", marginTop: 10 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{ overflow: "hidden" }}
-            >
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 12px",
-                borderRadius: "12px",
-                background: "#F6FBFB",
-                border: "1px solid #E7EEEE",
-                flexWrap: "wrap",
-              }}>
-                <span style={{ fontSize: "11px", color: "#6B6B6B", fontWeight: 600, marginRight: "2px" }}>
-                  Pay via:
-                </span>
-                {[
-                  { name: "PhonePe", bg: "#5F259F", fg: "#FFFFFF" },
-                  { name: "Google Pay", bg: "#FFFFFF", fg: "#3C4043", border: "#E0E0E0" },
-                  { name: "Paytm", bg: "#00BAF2", fg: "#FFFFFF" },
-                ].map((app) => (
-                  <span
-                    key={app.name}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "5px",
-                      padding: "5px 10px",
-                      borderRadius: "20px",
-                      background: app.bg,
-                      color: app.fg,
-                      border: app.border ? `1px solid ${app.border}` : "none",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <Smartphone style={{ width: "11px", height: "11px" }} />
-                    {app.name}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            border: "1.5px solid #E7EEEE",
+            borderRadius: "14px",
+            overflow: "hidden",
+          }}
+        >
+          {/* ── Sidebar tabs ── */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: isMobile ? "row" : "column",
+              width: isMobile ? "100%" : "128px",
+              flexShrink: 0,
+              background: "#F6FBFB",
+              borderRight: isMobile ? "none" : "1px solid #E7EEEE",
+              borderBottom: isMobile ? "1px solid #E7EEEE" : "none",
+              overflowX: isMobile ? "auto" : "visible",
+            }}
+          >
+            {PAYMENT_METHOD_TABS.map(({ value, icon: Icon, label }) => {
+              const isActive = formData.paymentMethod === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => { setFormData({ ...formData, paymentMethod: value }); setPaymentError(""); }}
+                  style={{
+                    display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: "center",
+                    gap: isMobile ? "4px" : "8px",
+                    padding: isMobile ? "10px 14px" : "12px 10px",
+                    minWidth: isMobile ? "84px" : "auto",
+                    border: "none",
+                    borderLeft: !isMobile && isActive ? "3px solid #4FBDBA" : !isMobile ? "3px solid transparent" : "none",
+                    borderBottom: isMobile && isActive ? "3px solid #4FBDBA" : isMobile ? "3px solid transparent" : "none",
+                    background: isActive ? "#DDF5F4" : "transparent",
+                    cursor: "pointer",
+                    textAlign: isMobile ? "center" : "left",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon style={{ width: "16px", height: "16px", color: isActive ? "#2F7F7C" : "#9CA3AF", flexShrink: 0 }} />
+                  <span style={{
+                    fontSize: "11px",
+                    fontWeight: isActive ? 700 : 500,
+                    lineHeight: "1.3",
+                    color: isActive ? "#2F7F7C" : "#6B6B6B",
+                    fontFamily: "inherit",
+                  }}>
+                    {label}
                   </span>
-                ))}
-              </div>
-              <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "6px", paddingLeft: "2px" }}>
-                We'll share the UPI ID / QR code on WhatsApp to complete payment.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Bank transfer note — shown only when Bank Transfer is selected */}
-        <AnimatePresence>
-          {formData.paymentMethod === "bank" && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: "auto", marginTop: 10 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{ overflow: "hidden" }}
-            >
-              <div style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "8px",
-                padding: "10px 12px",
-                borderRadius: "12px",
-                background: "#F6FBFB",
-                border: "1px solid #E7EEEE",
-              }}>
-                <Landmark style={{ width: "14px", height: "14px", color: "#4FBDBA", flexShrink: 0, marginTop: "1px" }} />
-                <p style={{ fontSize: "11px", color: "#6B6B6B", lineHeight: 1.4, margin: 0 }}>
-                  We'll share our bank account details on WhatsApp to complete the transfer.
+          {/* ── Right panel ── */}
+          <div style={{ flex: 1, padding: "16px", minWidth: 0 }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={formData.paymentMethod}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#2B2B2B", margin: "0 0 6px" }}>
+                  {PANEL_COPY[formData.paymentMethod].title}
                 </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <p style={{ fontSize: "12px", color: "#6B6B6B", lineHeight: 1.5, margin: 0 }}>
+                  {PANEL_COPY[formData.paymentMethod].body}
+                </p>
+
+                {isOnlinePayment && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "10px" }}>
+                    <Lock style={{ width: "11px", height: "11px", color: "#9CA3AF" }} />
+                    <span style={{ fontSize: "10px", color: "#9CA3AF" }}>
+                      Card/UPI/bank details are entered on PhonePe's secure form — never stored by us
+                    </span>
+                  </div>
+                )}
+
+                {paymentError && (
+                  <p style={{ fontSize: "11px", color: "#e53e3e", marginTop: "10px" }}>
+                    {paymentError}
+                  </p>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
       {/* Order Summary */}
@@ -468,20 +677,33 @@ export default function CartPage() {
           </p>
         )}
       </div>
+
+      {/* Trust badges strip */}
+      <TrustBadgesStrip />
     </div>
   );
 
-  // ── WhatsApp CTA button ───────────────────────────────────────────────────
-  const WhatsAppBtn = (
+  // ── Checkout CTA button ────────────────────────────────────────────────────
+  const CHECKOUT_BTN_LABEL: Record<PaymentMethod, string> = {
+    cod: "Place Order via WhatsApp",
+    upi: "Pay with UPI",
+    card: "Pay with Card",
+    netbanking: "Pay with Net Banking",
+  };
+
+  const CheckoutBtn = (
     <div>
       <motion.button
         onClick={handleCheckout}
-        whileHover={{ scale: 1.015, y: -1 }}
-        whileTap={{ scale: 0.97 }}
+        disabled={isProcessingPayment}
+        whileHover={isProcessingPayment ? {} : { scale: 1.015, y: -1 }}
+        whileTap={isProcessingPayment ? {} : { scale: 0.97 }}
         style={{
           width: "100%",
           padding: "15px 24px",
-          background: "linear-gradient(135deg, #25D366 0%, #1DA851 100%)",
+          background: isOnlinePayment
+            ? "linear-gradient(135deg, #5F259F 0%, #3E1868 100%)"
+            : "linear-gradient(135deg, #25D366 0%, #1DA851 100%)",
           color: "white",
           fontWeight: 800,
           borderRadius: "14px",
@@ -491,14 +713,31 @@ export default function CartPage() {
           gap: "10px",
           fontSize: "15px",
           border: "none",
-          cursor: "pointer",
-          boxShadow: "0 8px 24px rgba(37,211,102,0.38), 0 2px 8px rgba(37,211,102,0.2)",
+          cursor: isProcessingPayment ? "not-allowed" : "pointer",
+          opacity: isProcessingPayment ? 0.75 : 1,
+          boxShadow: isOnlinePayment
+            ? "0 8px 24px rgba(95,37,159,0.38), 0 2px 8px rgba(95,37,159,0.2)"
+            : "0 8px 24px rgba(37,211,102,0.38), 0 2px 8px rgba(37,211,102,0.2)",
           letterSpacing: "0.01em",
           fontFamily: "inherit",
         }}
       >
-        <MessageCircle style={{ width: "20px", height: "20px" }} />
-        Place Order via WhatsApp
+        {isProcessingPayment ? (
+          <>
+            <Loader2 className="animate-spin" style={{ width: "18px", height: "18px" }} />
+            Please wait...
+          </>
+        ) : isOnlinePayment ? (
+          <>
+            <Lock style={{ width: "18px", height: "18px" }} />
+            {CHECKOUT_BTN_LABEL[formData.paymentMethod]}
+          </>
+        ) : (
+          <>
+            <MessageCircle style={{ width: "20px", height: "20px" }} />
+            {CHECKOUT_BTN_LABEL[formData.paymentMethod]}
+          </>
+        )}
       </motion.button>
       <div style={{
         display: "flex",
@@ -634,7 +873,7 @@ export default function CartPage() {
                 Proceed to Checkout
               </motion.button>
               <p className="text-xs text-center mt-3" style={{ color: "#6B6B6B" }}>
-                🔒 Secure order via WhatsApp
+                🔒 Secure order · Multiple payment options
               </p>
             </div>
           </div>
@@ -692,7 +931,7 @@ export default function CartPage() {
                     style={{
                       background: "white",
                       width: "100%",
-                      maxWidth: "480px",
+                      maxWidth: "540px",
                       borderRadius: "24px",
                       boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.08)",
                       display: "flex",
@@ -766,10 +1005,7 @@ export default function CartPage() {
                         flexShrink: 0,
                       }}
                     >
-                      {WhatsAppBtn}
-                      <p style={{ fontSize: "11px", textAlign: "center", marginTop: "10px", color: "#9CA3AF" }}>
-                        🔒 Your details are shared only via WhatsApp
-                      </p>
+                      {CheckoutBtn}
                     </div>
                   </div>
                 </motion.div>
@@ -870,7 +1106,7 @@ export default function CartPage() {
                       boxShadow: "0 -4px 20px rgba(0,0,0,0.06)",
                     }}
                   >
-                    {WhatsAppBtn}
+                    {CheckoutBtn}
                   </div>
                 </motion.div>
               )}
