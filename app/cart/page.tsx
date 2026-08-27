@@ -29,6 +29,12 @@ const WHATSAPP_NUMBER = "917728009522";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 const PHONEPE_CHECKOUT_SCRIPT_SRC = "https://mercury.phonepe.com/web/bundle/checkout.js";
 
+// ── Feature flag: pause online payments ─────────────────────────────────────
+// Set to true to bring UPI / Card / Net Banking checkout back. While false,
+// only Cash on Delivery is offered — none of the PhonePe code below runs,
+// but nothing has been deleted, so re-enabling is a one-line change.
+const ONLINE_PAYMENTS_ENABLED = false;
+
 type PaymentMethod = "cod" | "upi" | "card" | "netbanking";
 // PhonePe's paymentModeConfig vocabulary — what we send to /api/payment/initiate
 // so their embedded PayPage shows ONLY the instrument matching the tab the
@@ -42,12 +48,16 @@ const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   netbanking: "Net Banking",
 };
 
-const PAYMENT_METHOD_TABS: Array<{ value: PaymentMethod; icon: typeof Truck; label: string }> = [
+const ALL_PAYMENT_METHOD_TABS: Array<{ value: PaymentMethod; icon: typeof Truck; label: string }> = [
   { value: "cod", icon: Truck, label: "Cash on Delivery" },
   { value: "upi", icon: Smartphone, label: "UPI" },
   { value: "card", icon: CreditCard, label: "Credit/Debit Card" },
   { value: "netbanking", icon: Landmark, label: "Net Banking" },
 ];
+
+const PAYMENT_METHOD_TABS = ONLINE_PAYMENTS_ENABLED
+  ? ALL_PAYMENT_METHOD_TABS
+  : ALL_PAYMENT_METHOD_TABS.filter((tab) => tab.value === "cod");
 
 // ── Meta Pixel + PhonePe Checkout script types ──────────────────────────────
 declare global {

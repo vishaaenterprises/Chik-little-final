@@ -964,17 +964,11 @@
         "type": "number"
       },
       {
-        "options": {
-          "hotspot": true
-        },
-        "name": "customerImage",
-        "type": "image"
-      },
-      {
         "name": "location",
         "type": "string"
       },
       {
+        "description": "Optional. Leave empty to show this review on the home page and on every product page as a general review.",
         "to": [
           {
             "type": "product"
