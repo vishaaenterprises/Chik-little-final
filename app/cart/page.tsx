@@ -29,10 +29,13 @@ const WHATSAPP_NUMBER = "917728009522";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 const PHONEPE_CHECKOUT_SCRIPT_SRC = "https://mercury.phonepe.com/web/bundle/checkout.js";
 
-// ── Feature flag: pause online payments ─────────────────────────────────────
-// Set to true to bring UPI / Card / Net Banking checkout back. While false,
-// only Cash on Delivery is offered — none of the PhonePe code below runs,
-// but nothing has been deleted, so re-enabling is a one-line change.
+// ── Feature flag: pause the real PhonePe payment gateway ───────────────────
+// While false: all 4 methods (COD / UPI / Card / Net Banking) stay visible
+// and selectable, but choosing ANY of them just sends the order + chosen
+// method via WhatsApp (same flow as COD) — no real PhonePe API call is made,
+// so nothing can error out from missing gateway credentials.
+// Set to true once PhonePe is fully configured to switch UPI/Card/Net
+// Banking back to real online payment via the PhonePe checkout.
 const ONLINE_PAYMENTS_ENABLED = false;
 
 type PaymentMethod = "cod" | "upi" | "card" | "netbanking";
@@ -48,16 +51,12 @@ const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   netbanking: "Net Banking",
 };
 
-const ALL_PAYMENT_METHOD_TABS: Array<{ value: PaymentMethod; icon: typeof Truck; label: string }> = [
+const PAYMENT_METHOD_TABS: Array<{ value: PaymentMethod; icon: typeof Truck; label: string }> = [
   { value: "cod", icon: Truck, label: "Cash on Delivery" },
   { value: "upi", icon: Smartphone, label: "UPI" },
   { value: "card", icon: CreditCard, label: "Credit/Debit Card" },
   { value: "netbanking", icon: Landmark, label: "Net Banking" },
 ];
-
-const PAYMENT_METHOD_TABS = ONLINE_PAYMENTS_ENABLED
-  ? ALL_PAYMENT_METHOD_TABS
-  : ALL_PAYMENT_METHOD_TABS.filter((tab) => tab.value === "cod");
 
 // ── Meta Pixel + PhonePe Checkout script types ──────────────────────────────
 declare global {
@@ -362,20 +361,27 @@ export default function CartPage() {
   const handleCheckout = () => {
     if (!validateForm()) return;
 
-    if (formData.paymentMethod === "upi") {
-      handlePayOnline("UPI");
-      return;
-    }
-    if (formData.paymentMethod === "card") {
-      handlePayOnline("CARD");
-      return;
-    }
-    if (formData.paymentMethod === "netbanking") {
-      handlePayOnline("NET_BANKING");
-      return;
+    // Real PhonePe gateway is paused for now (ONLINE_PAYMENTS_ENABLED = false
+    // above). Every method — including UPI/Card/Net Banking — falls through
+    // to the same WhatsApp order flow as COD until the gateway is turned
+    // back on.
+    if (ONLINE_PAYMENTS_ENABLED) {
+      if (formData.paymentMethod === "upi") {
+        handlePayOnline("UPI");
+        return;
+      }
+      if (formData.paymentMethod === "card") {
+        handlePayOnline("CARD");
+        return;
+      }
+      if (formData.paymentMethod === "netbanking") {
+        handlePayOnline("NET_BANKING");
+        return;
+      }
     }
 
-    // ── Cash on Delivery — unchanged WhatsApp order flow ──────────────────
+    // ── WhatsApp order flow — used for COD always, and for every other
+    // method while the online gateway is paused ─────────────────────────
     const orderId = `order_${Date.now()}`;
     const purchaseData = {
       content_ids: cartItems.map((item) => item.id),
@@ -467,27 +473,49 @@ export default function CartPage() {
     e.target.style.boxShadow = "none";
   };
 
-  const isOnlinePayment = formData.paymentMethod !== "cod";
+  const isOnlinePayment = ONLINE_PAYMENTS_ENABLED && formData.paymentMethod !== "cod";
 
   // ── Payment method panel copy (right side of the sidebar) ──────────────────
-  const PANEL_COPY: Record<PaymentMethod, { title: string; body: string }> = {
-    cod: {
-      title: "Cash on Delivery",
-      body: "Pay in cash when your order arrives at your doorstep. No online payment needed.",
-    },
-    upi: {
-      title: "Pay using UPI",
-      body: "Scan a QR code or pay with any UPI app — PhonePe, Google Pay, Paytm, Amazon Pay and more.",
-    },
-    card: {
-      title: "Credit / Debit Card",
-      body: "Enter your card details on the next secure step. Make sure your card is enabled for online transactions.",
-    },
-    netbanking: {
-      title: "Net Banking",
-      body: "Pick your bank on the next secure step to complete the payment.",
-    },
-  };
+  // While the online gateway is paused, every method's copy explains that
+  // we'll confirm the order via WhatsApp — same as COD — instead of
+  // describing a PhonePe redirect that won't actually happen.
+  const PANEL_COPY: Record<PaymentMethod, { title: string; body: string }> = ONLINE_PAYMENTS_ENABLED
+    ? {
+        cod: {
+          title: "Cash on Delivery",
+          body: "Pay in cash when your order arrives at your doorstep. No online payment needed.",
+        },
+        upi: {
+          title: "Pay using UPI",
+          body: "Scan a QR code or pay with any UPI app — PhonePe, Google Pay, Paytm, Amazon Pay and more.",
+        },
+        card: {
+          title: "Credit / Debit Card",
+          body: "Enter your card details on the next secure step. Make sure your card is enabled for online transactions.",
+        },
+        netbanking: {
+          title: "Net Banking",
+          body: "Pick your bank on the next secure step to complete the payment.",
+        },
+      }
+    : {
+        cod: {
+          title: "Cash on Delivery",
+          body: "Pay in cash when your order arrives at your doorstep. No online payment needed.",
+        },
+        upi: {
+          title: "UPI",
+          body: "We'll confirm your order and payment details over WhatsApp — just tap the button below.",
+        },
+        card: {
+          title: "Credit / Debit Card",
+          body: "We'll confirm your order and payment details over WhatsApp — just tap the button below.",
+        },
+        netbanking: {
+          title: "Net Banking",
+          body: "We'll confirm your order and payment details over WhatsApp — just tap the button below.",
+        },
+      };
 
   // ── Form fields ───────────────────────────────────────────────────────────
   const FormFields = (
@@ -694,12 +722,19 @@ export default function CartPage() {
   );
 
   // ── Checkout CTA button ────────────────────────────────────────────────────
-  const CHECKOUT_BTN_LABEL: Record<PaymentMethod, string> = {
-    cod: "Place Order via WhatsApp",
-    upi: "Pay with UPI",
-    card: "Pay with Card",
-    netbanking: "Pay with Net Banking",
-  };
+  const CHECKOUT_BTN_LABEL: Record<PaymentMethod, string> = ONLINE_PAYMENTS_ENABLED
+    ? {
+        cod: "Place Order via WhatsApp",
+        upi: "Pay with UPI",
+        card: "Pay with Card",
+        netbanking: "Pay with Net Banking",
+      }
+    : {
+        cod: "Place Order via WhatsApp",
+        upi: "Confirm Order via WhatsApp",
+        card: "Confirm Order via WhatsApp",
+        netbanking: "Confirm Order via WhatsApp",
+      };
 
   const CheckoutBtn = (
     <div>
