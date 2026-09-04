@@ -31,7 +31,7 @@ export default function ProductJsonLd({
   reviewCount,
   slug,
 }: ProductJsonLdProps) {
-  const productUrl = `${SITE_URL}/products/${slug}`;
+  const productUrl = `${SITE_URL}/product/${slug}`;
 
   const absoluteImages = images.filter(
     (url) => typeof url === "string" && /^https?:\/\//i.test(url)

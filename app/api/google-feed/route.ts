@@ -31,7 +31,7 @@ export async function GET() {
   try {
     const products = await client.fetch(FEED_QUERY)
 
-    const baseUrl = 'https://www.littlechiku.com'
+    const baseUrl = 'https://littlechiku.com'
 
     const rows: string[] = []
 

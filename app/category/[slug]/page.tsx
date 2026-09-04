@@ -666,16 +666,16 @@ export async function generateMetadata({
 
   const ogImageUrl = category?.image ? getImageUrl(category.image) : undefined
 
-  const canonicalUrl = `https://yourdomain.com/category/${slug}`
+  const canonicalUrl = `https://littlechiku.com/category/${slug}`
 
   return {
-    title: `${title} | Your Store Name`,
+    title: `${title} | Little Chiku`,
     description,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${title} | Your Store Name`,
+      title: `${title} | Little Chiku`,
       description,
       url: canonicalUrl,
       type: 'website',
@@ -746,13 +746,13 @@ function buildJsonLd(
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://yourdomain.com',
+        item: 'https://littlechiku.com',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Shop',
-        item: 'https://yourdomain.com/category/all',
+        item: 'https://littlechiku.com/category/all',
       },
       ...(slug !== 'all'
         ? [
@@ -760,7 +760,7 @@ function buildJsonLd(
               '@type': 'ListItem',
               position: 3,
               name: title,
-              item: `https://yourdomain.com/category/${slug}`,
+              item: `https://littlechiku.com/category/${slug}`,
             },
           ]
         : []),
@@ -780,7 +780,7 @@ function buildJsonLd(
         '@type': 'Product',
         name: p.name,
         description: p.shortDescription,
-        url: `https://yourdomain.com/products/${p.slug}`,
+        url: `https://littlechiku.com/product/${p.slug}`,
         image: p.image,
         offers: {
           '@type': 'Offer',

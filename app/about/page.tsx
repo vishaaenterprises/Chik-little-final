@@ -46,19 +46,19 @@ export const metadata: Metadata = {
     "hooded baby towel India",
   ],
   alternates: {
-    canonical: "https://www.littlechiku.com/about",
+    canonical: "https://littlechiku.com/about",
   },
   openGraph: {
     title: "About Little Chiku | Handmade Organic Baby Essentials India",
     description:
       "Handcrafted organic baby bedding, bath linen & gifting hampers from Jaipur. Made with love for 10,000+ modern Indian families.",
-    url: "https://www.littlechiku.com/about",
+    url: "https://littlechiku.com/about",
     siteName: "Little Chiku",
     locale: "en_IN",
     type: "website",
     images: [
       {
-        url: "https://www.littlechiku.com/images/about/og-about.jpg",
+        url: "https://littlechiku.com/images/about/og-about.jpg",
         width: 1200,
         height: 630,
         alt: "Little Chiku — Handmade Organic Baby Essentials from Jaipur, India",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     title: "About Little Chiku | Handmade Organic Baby Essentials India",
     description:
       "Handcrafted organic baby bedding, bath linen & gifting hampers from Jaipur. Made with love for 10,000+ Indian families.",
-    images: ["https://www.littlechiku.com/images/about/og-about.jpg"],
+    images: ["https://littlechiku.com/images/about/og-about.jpg"],
   },
   robots: {
     index: true,
@@ -208,12 +208,12 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://www.littlechiku.com/#organization",
+      "@id": "https://littlechiku.com/#organization",
       name: "Little Chiku",
-      url: "https://www.littlechiku.com",
+      url: "https://littlechiku.com",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.littlechiku.com/images/logo.png",
+        url: "https://littlechiku.com/images/logo.png",
         width: 200,
         height: 60,
       },
@@ -250,13 +250,13 @@ const jsonLd = {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://www.littlechiku.com",
+          item: "https://littlechiku.com",
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "About Little Chiku",
-          item: "https://www.littlechiku.com/about",
+          item: "https://littlechiku.com/about",
         },
       ],
     },
