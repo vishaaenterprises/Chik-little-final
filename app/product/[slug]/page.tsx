@@ -66,7 +66,7 @@ declare global {
   }
 }
 
-export default function ProductPage() {
+export default function ProductPageClient() {
   const params = useParams();
   const slug = Array.isArray(params.slug)
     ? params.slug[0]

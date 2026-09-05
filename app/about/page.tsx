@@ -25,7 +25,7 @@ import type { Metadata } from "next";
 // ✅ FIX 4: Twitter card — about-specific
 // ─────────────────────────────────────────────
 export const metadata: Metadata = {
-  title: "About Little Chiku | Handmade Organic Baby Essentials India",
+  title: "About Little Chiku | Handmade Organic Baby Essentials India | Little Chiku",
   description:
     "Little Chiku is India's trusted handcrafted baby brand from Jaipur. We make organic cotton baby bedding, bath linen, gifting hampers & kids accessories — loved by 10,000+ families.",
   keywords: [
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     canonical: "https://littlechiku.com/about",
   },
   openGraph: {
-    title: "About Little Chiku | Handmade Organic Baby Essentials India",
+    title: "About Little Chiku | Handmade Organic Baby Essentials India | Little Chiku",
     description:
       "Handcrafted organic baby bedding, bath linen & gifting hampers from Jaipur. Made with love for 10,000+ modern Indian families.",
     url: "https://littlechiku.com/about",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "About Little Chiku | Handmade Organic Baby Essentials India",
+    title: "About Little Chiku | Handmade Organic Baby Essentials India | Little Chiku",
     description:
       "Handcrafted organic baby bedding, bath linen & gifting hampers from Jaipur. Made with love for 10,000+ Indian families.",
     images: ["https://littlechiku.com/images/about/og-about.jpg"],
@@ -350,9 +350,9 @@ export default function AboutPage() {
               {/* ✅ FIX 7: H1 — keyword-rich, primary keyword first */}
               <h1 className="mt-6 font-serif text-5xl font-bold leading-[1.1] tracking-tight md:text-6xl">
                 Premium Handcrafted{" "}
-                <em className="italic text-[#58c7bd]">Baby Essentials</em>
+                <em className="italic text-[#58c7bd]">Baby Essentials</em>{" "}
                 <br />
-                Made With Love
+                Made With Love{" "}
                 <br />
                 For Every Little Moment
               </h1>

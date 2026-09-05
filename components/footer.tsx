@@ -48,7 +48,6 @@ const PAYMENT_BADGES: Array<{ key: string; file: string; label: string }> = [
   { key: 'visa', file: '/logo/VISA-logo.png', label: 'VISA' },
   { key: 'mastercard', file: '/logo/Mastercard-Logo.png', label: 'Mastercard' },
   { key: 'rupay', file: '/logo/Rupay-Logo.png', label: 'RuPay' },
-  { key: 'upi', file: '/logo/upi.png', label: 'UPI' },
   { key: 'netbanking', file: '/logo/Net-Banking.png', label: 'Net Banking' },
   { key: 'bhim', file: '/logo/bhim.png', label: 'BHIM' },
 ]

@@ -659,6 +659,11 @@ export async function generateMetadata({
     sanityFetch<SanityCategory[]>({ query: categoriesQuery, revalidate: 3600 }),
   ])
 
+  // Invalid category slug — don't generate fake metadata for it, 404 instead
+  if (slug !== 'all' && !category) {
+    notFound()
+  }
+
   const title = category?.title ?? (slug === 'all' ? 'All Products' : slugToTitle(slug))
   const description =
     category?.description ??
@@ -685,7 +690,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | Your Store Name`,
+      title: `${title} | Little Chiku`,
       description,
       ...(ogImageUrl && { images: [ogImageUrl] }),
     },
@@ -841,8 +846,10 @@ export default async function CategoryPage({
   ])
 
   // ── 404 for unknown slugs ────────────────────────────────────
-  // Agar slug exist nahi karta aur 'all' bhi nahi, to 404
-  if (slug !== 'all' && !currentCategory && sanityProducts.length === 0) {
+  // Agar category Sanity mein exist nahi karti (aur 'all' bhi nahi), to 404
+  // Product count pe depend nahi karte — ek valid category ke 0 products
+  // hone se 404 nahi hona chahiye, lekin invalid slug hamesha 404 hona chahiye
+  if (slug !== 'all' && !currentCategory) {
     notFound()
   }
 

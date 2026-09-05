@@ -31,15 +31,13 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL('https://littlechiku.com'),
 
-  title: {
-    default:
-      'Little Chiku | Organic Handmade Baby Products India',
-
-    template: '%s | Little Chiku',
-  },
+  // Note: no `template` here on purpose — every page sets its own full
+  // title including " | Little Chiku" itself. A template here would
+  // double the suffix on pages that already append it.
+  title: 'Little Chiku | Organic Handmade Baby Products India',
 
   description:
-    'Discover handcrafted organic cotton baby products including baby towels, baby bedding, gift hampers, blankets, bibs, and premium baby essentials made with love in India by Little Chiku.',
+    'Handcrafted organic cotton baby essentials — towels, bedding, gift hampers, blankets & bibs, made with love in India by Little Chiku.',
 
   keywords: [
     'Little Chiku',
@@ -170,8 +168,8 @@ const organizationSchema = {
     'Little Chiku is an Indian baby brand offering handcrafted organic cotton baby essentials and premium kids products.',
 
   sameAs: [
-    'https://instagram.com/',
-    'https://facebook.com/',
+    'https://www.instagram.com/littlechikukids/',
+    'https://www.facebook.com/profile.php?id=61581014138999',
   ],
 
   contactPoint: {

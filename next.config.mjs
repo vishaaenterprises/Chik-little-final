@@ -13,6 +13,16 @@ const nextConfig = {
         destination: '/product/:slug',
         permanent: true,
       },
+      {
+        source: '/product/kids-dinosaur-print-backpack',
+        destination: '/product/kids-owl-bird-print-backpack',
+        permanent: true,
+      },
+      {
+        source: '/product/kids-dinosaur-print-backpack-2',
+        destination: '/product/kids-owl-bird-print-backpack-gift',
+        permanent: true,
+      },
     ]
   },
 }

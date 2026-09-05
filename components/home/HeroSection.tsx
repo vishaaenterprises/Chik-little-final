@@ -49,18 +49,16 @@ export default function HeroSection({ banner }: HeroSectionProps) {
             {/* HEADING */}
             <div className="mt-4">
               <h1 className="text-[#2B2B2B] text-[34px] sm:text-[42px] lg:text-[60px] leading-[1.02] font-black tracking-[-1px] lg:tracking-[-2px]">
-                {banner?.title || 'Premium Quality.'}
-                <br />
-                
+                {banner?.title || 'Premium Handcrafted Organic Baby Products'}
               </h1>
 
                <p className="mt-5 text-[15px] sm:text-[17px] leading-8 text-[#5C5C5C] max-w-full sm:max-w-xl mx-auto lg:mx-0 px-2 sm:px-0 break-words">
-              Thoughtfully made for Kids, Babies & Moms at
+              Thoughtfully made for kids, babies & moms
               <span className="text-[#D79B2D] font-bold italic">
                 {" "}
-                made with care & value{" "}
+                with care and love{" "}
               </span>
-              crafted with love and care.
+              in every little detail.
             </p>
 
             {/* FEATURES */}
@@ -135,4 +133,3 @@ export default function HeroSection({ banner }: HeroSectionProps) {
     </section>
   )
 }
-
