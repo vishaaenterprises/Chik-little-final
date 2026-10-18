@@ -34,12 +34,15 @@ export function giftFirst<T>(
 
 /**
  * The image that should represent a gift product on the Gifts listing card:
- * the gift-box photo of the first variant (or of mainImage + gallery when the
+ * the Gift Image picked in Sanity, otherwise the gift-box photo of the first variant (or of mainImage + gallery when the
  * product has no variants).
  */
 export function giftCardImageSource(
   product: SanityProduct | SanityProductCard
 ): SanityImageAsset | undefined {
+  // An explicitly chosen Gift Image always wins.
+  if (product.giftImage?.asset) return product.giftImage
+
   const firstVariantImages = product.variants?.[0]?.images
   if (firstVariantImages && firstVariantImages.length > 0) {
     return giftFirst(firstVariantImages, product.giftImageIndex)[0]
