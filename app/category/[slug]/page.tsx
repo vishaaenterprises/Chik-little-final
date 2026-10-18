@@ -609,7 +609,8 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/lib/sanity/client'
-import { categoryBySlugQuery, productsByCategoryQuery, productsQuery, categoriesQuery } from '@/lib/sanity/queries'
+import { categoryBySlugQuery, productsByCategoryQuery, productsQuery, categoriesQuery, giftProductsQuery } from '@/lib/sanity/queries'
+import { GIFT_CATEGORY_SLUG, giftCardImageSource } from '@/lib/sanity/gift'
 import { getImageUrl } from '@/lib/sanity/image'
 import MainLayout from '@/components/layout/MainLayout'
 import CategoryBanner from '@/components/banners/CategoryBanner'
@@ -708,14 +709,21 @@ function slugToTitle(slug: string): string {
     .join(' ')
 }
 
-function toLegacy(product: SanityProduct): LegacyProduct {
+function toLegacy(product: SanityProduct, isGiftPage = false): LegacyProduct {
+  // On the Gifts page, products flagged "Show in Gifts section" show their
+  // gift-box photo first (card image) and link to the product page with
+  // ?from=gift so the product gallery also opens on the gift-box photo.
+  const isGiftFlagged = isGiftPage && product.showInGifts === true
+
   return {
     id:               product._id,
     slug:             product.slug ?? '',
     name:             product.productName ?? 'Untitled Product',
     price:            product.price ?? 0,
     originalPrice:    product.originalPrice,
-    image:            getImageUrl(product.mainImage),
+    image:            getImageUrl(
+                        isGiftFlagged ? giftCardImageSource(product) : product.mainImage
+                      ),
     category:         product.category?.title ?? '',
     categorySlug:     product.category?.slug  ?? 'all',
     subcategory:      product.subcategory ?? '',
@@ -729,6 +737,7 @@ function toLegacy(product: SanityProduct): LegacyProduct {
     stock:            product.stock ?? 0,
     variants:         product.variants ?? [],
     outOfStock:       product.outOfStock ?? false,
+    fromGift:         isGiftFlagged,
   }
 }
 
@@ -822,13 +831,19 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const isGiftPage = slug === GIFT_CATEGORY_SLUG
 
   // ── Parallel server-side fetches ─────────────────────────────
   // Promise.all = dono ek saath chalte hain, sequential nahi
   // Total time = max(categoriesTime, productsTime) instead of sum
   const [sanityProducts, sanityCategories, currentCategory] = await Promise.all([
     sanityFetch<SanityProduct[]>({
-      query: slug === 'all' ? productsQuery : productsByCategoryQuery,
+      query:
+        slug === 'all'
+          ? productsQuery
+          : isGiftPage
+          ? giftProductsQuery
+          : productsByCategoryQuery,
       params: slug === 'all' ? {} : { categorySlug: slug },
       revalidate: 60,
     }),
@@ -855,7 +870,7 @@ export default async function CategoryPage({
 
   // ── Server-side adapter ──────────────────────────────────────
   // Convert once on server, client ko raw Sanity data nahi milta
-  const baseProducts = sanityProducts.map(toLegacy)
+  const baseProducts = sanityProducts.map((p) => toLegacy(p, isGiftPage))
 
   const bannerTitle =
     currentCategory?.title ?? (slug === 'all' ? 'All Products' : slugToTitle(slug))
@@ -868,10 +883,15 @@ export default async function CategoryPage({
     subcategories: cat.subcategories ?? [],
   }))
 
-  const currentCategorySubcategories =
-    currentCategory?.subcategories ??
-    categoryList.find((c) => c.slug === slug)?.subcategories ??
-    []
+  // Gifts page mixes products from many categories, so its "Type" filter is
+  // built from the subcategories of the products actually shown.
+  const currentCategorySubcategories = isGiftPage
+    ? Array.from(
+        new Set(baseProducts.map((p) => p.subcategory).filter((s): s is string => !!s))
+      )
+    : currentCategory?.subcategories ??
+      categoryList.find((c) => c.slug === slug)?.subcategories ??
+      []
 
   // ── JSON-LD ──────────────────────────────────────────────────
   const jsonLd = buildJsonLd(slug, bannerTitle, bannerDesc, baseProducts)
