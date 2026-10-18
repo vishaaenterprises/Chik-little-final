@@ -102,6 +102,12 @@ export interface SanityProductCard {
   /** When true, Add to Cart and purchase actions are disabled */
   outOfStock?: boolean
   mainImage: SanityImageAsset
+  /** Only fetched on the Gifts listing — used to find the gift-box image */
+  galleryImages?: SanityImageAsset[]
+  /** When true, product is also listed on the Gifts page */
+  showInGifts?: boolean
+  /** 1-based position of the gift-box photo in the image list (default 6) */
+  giftImageIndex?: number
   /** Legacy color dots — used on cards when no variants present */
   colors?: ProductColor[]
   sizes?: string[]
@@ -155,6 +161,11 @@ export interface SanityProduct {
   // Product-level image fallback (used when no variants)
   mainImage: SanityImageAsset
   galleryImages?: SanityImageAsset[]
+
+  /** When true, product is also listed on the Gifts page */
+  showInGifts?: boolean
+  /** 1-based position of the gift-box photo in the image list (default 6) */
+  giftImageIndex?: number
 
   // ── NEW: Color variants — the primary source of truth ────────
   // When variants is non-empty, the product detail page uses
@@ -214,6 +225,8 @@ export interface LegacyProduct {
   stock?: number
   /** Full variants array — passed through so ProductCard can render color dots + hover images */
   variants?: ProductVariant[]
+  /** True when shown in the Gifts section — card links to the product page with ?from=gift */
+  fromGift?: boolean
 }
 
 export type Product = LegacyProduct

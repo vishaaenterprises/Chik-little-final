@@ -19,6 +19,7 @@ import {
   computeDiscount,
 } from "@/lib/sanity/types";
 import { getImageUrl } from "@/lib/sanity/image";
+import { giftFirst } from "@/lib/sanity/gift";
 import {
   Heart,
   Check,
@@ -88,6 +89,10 @@ export default function ProductPageClient() {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
 
+  // True when the visitor came from the Gifts section (?from=gift).
+  // Then the gift-box photo is shown first in the gallery.
+  const [isGiftView, setIsGiftView] = useState(false);
+
   // Non-variant state
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -117,6 +122,9 @@ export default function ProductPageClient() {
           const firstVariant = product.variants?.[0] ?? null;
           setSelectedVariant(firstVariant);
           setSelectedImage(0);
+          setIsGiftView(
+            new URLSearchParams(window.location.search).get("from") === "gift"
+          );
 
           setSelectedSize(
             firstVariant?.size ??
@@ -143,7 +151,8 @@ export default function ProductPageClient() {
   }, []);
 
   // ── Derived: resolved display images ──────────────────────────
-  const images = useMemo<string[]>(() => {
+  // baseImages = images in their normal order (used for cart + SEO).
+  const baseImages = useMemo<string[]>(() => {
     if (!sanityProduct) return [];
     if (selectedVariant) {
       return variantImageUrls(selectedVariant);
@@ -153,6 +162,13 @@ export default function ProductPageClient() {
       ...(sanityProduct.galleryImages?.map((img) => getImageUrl(img)) ?? []),
     ].filter(Boolean);
   }, [sanityProduct, selectedVariant]);
+
+  // images = what the gallery shows. From the Gifts section, a product flagged
+  // "Show in Gifts section" gets its gift-box photo moved to the front.
+  const images = useMemo<string[]>(() => {
+    if (!isGiftView || !sanityProduct?.showInGifts) return baseImages;
+    return giftFirst(baseImages, sanityProduct.giftImageIndex);
+  }, [baseImages, isGiftView, sanityProduct?.showInGifts, sanityProduct?.giftImageIndex]);
 
   // ── Derived: display values (variant-first, product fallback) ──
   const displayPrice         = selectedVariant?.price         ?? sanityProduct?.price         ?? 0;
@@ -263,7 +279,7 @@ export default function ProductPageClient() {
         name:          displayProduct.name,
         price:         displayPrice,
         originalPrice: displayOriginalPrice,
-        image:         images[0] ?? displayProduct.image,
+        image:         baseImages[0] ?? displayProduct.image,
         category:      displayProduct.category,
         size:          selectedSize,
         color:         displayColorName ?? selectedVariant?.colorName ?? "Default",
@@ -278,7 +294,7 @@ export default function ProductPageClient() {
     isOOS,
     displayPrice,
     displayOriginalPrice,
-    images,
+    baseImages,
     selectedSize,
     displayColorName,
     selectedVariant,
@@ -369,7 +385,7 @@ export default function ProductPageClient() {
         <ProductJsonLd
           name={displayProduct.name}
           description={displayDescription}
-          images={images}
+          images={baseImages}
           sku={selectedVariant?.sku}
           price={displayPrice}
           originalPrice={displayOriginalPrice}

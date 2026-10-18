@@ -41,6 +41,8 @@ const PRODUCT_CARD_FIELDS = groq`
   featuredProduct,
   newArrival,
   outOfStock,
+  showInGifts,
+  giftImageIndex,
   mainImage,
   colors,
   sizes,
@@ -71,6 +73,8 @@ const PRODUCT_DETAIL_FIELDS = groq`
   featuredProduct,
   newArrival,
   outOfStock,
+  showInGifts,
+  giftImageIndex,
   mainImage,
   galleryImages,
   colors,
@@ -155,6 +159,19 @@ export const productsByCategoryAndSubcategoryQuery = groq`
     && subcategory == $subcategory
   ] | order(_createdAt desc) {
     ${PRODUCT_CARD_FIELDS}
+  }
+`
+
+// Gifts page: products that live in the Gifts category itself PLUS any product
+// flagged "Show in Gifts section". galleryImages is needed here so the card can
+// pick the gift-box photo for products that have no color variants.
+export const giftProductsQuery = groq`
+  *[
+    _type == "product"
+    && (category->slug.current == $categorySlug || showInGifts == true)
+  ] | order(_createdAt desc) {
+    ${PRODUCT_CARD_FIELDS},
+    galleryImages
   }
 `
 

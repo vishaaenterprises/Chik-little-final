@@ -122,6 +122,29 @@ export const product = defineType({
       initialValue: false,
     }),
 
+    // ── Gift section ───────────────────────────────────────────
+    // Turn ON to also list this product on the Gifts page
+    // (/category/return-gifts). The product keeps its normal category.
+    defineField({
+      name: 'showInGifts',
+      title: 'Show in Gifts section',
+      description:
+        'ON karoge to ye product Gifts page par bhi dikhega (apni normal category me bhi rahega).',
+      type: 'boolean',
+      initialValue: false,
+    }),
+
+    defineField({
+      name: 'giftImageIndex',
+      title: 'Gift box image number',
+      description:
+        'Images list me gift box wali photo kaunse number par hai (1 = pehli). Default 6. Gifts page par ye photo sabse pehle dikhegi.',
+      type: 'number',
+      initialValue: 6,
+      hidden: ({ document }) => !document?.showInGifts,
+      validation: (Rule) => Rule.min(1).integer(),
+    }),
+
     // ── Out of Stock Toggle (product-level fallback) ───────────
     defineField({
       name: 'outOfStock',

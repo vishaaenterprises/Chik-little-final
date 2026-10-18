@@ -53,6 +53,9 @@ export default function ProductCard({
       ? product.slug
       : (product.slug as any)?.current ?? ''
 
+  // Gift-section cards open the product page with the gift-box photo first.
+  const productHref = `/product/${slugStr}${product.fromGift ? '?from=gift' : ''}`
+
   const wishlisted = isInWishlist(id)
   const inCart = isInCart(id)
 
@@ -256,7 +259,7 @@ export default function ProductCard({
             </motion.button>
 
             {/* View detail — always navigable */}
-            <Link href={`/product/${slugStr}`}>
+            <Link href={productHref}>
               <motion.div
                 className="p-2.5 rounded-xl bg-white/90 text-[#2B2B2B] hover:bg-white backdrop-blur-md border border-white/40 shadow-md transition-all cursor-pointer"
                 whileHover={{ scale: 1.08 }}
@@ -297,7 +300,7 @@ export default function ProductCard({
         </div>
 
         {/* ── Content area (fills remaining height) ──────────── */}
-        <Link href={`/product/${slugStr}`} className="flex flex-1 flex-col min-h-0">
+        <Link href={productHref} className="flex flex-1 flex-col min-h-0">
           <div className="flex flex-1 flex-col p-4 md:p-5">
 
             {/* Category + name — name clamped to exactly 2 lines */}
