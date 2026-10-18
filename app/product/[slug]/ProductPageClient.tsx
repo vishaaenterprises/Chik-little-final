@@ -167,8 +167,20 @@ export default function ProductPageClient() {
   // "Show in Gifts section" gets its gift-box photo moved to the front.
   const images = useMemo<string[]>(() => {
     if (!isGiftView || !sanityProduct?.showInGifts) return baseImages;
+    // A Gift Image picked in Sanity goes first (without a duplicate if the
+    // same photo is also in the list); otherwise fall back to the image number.
+    if (sanityProduct.giftImage?.asset) {
+      const giftUrl = getImageUrl(sanityProduct.giftImage);
+      return [giftUrl, ...baseImages.filter((u) => u !== giftUrl)];
+    }
     return giftFirst(baseImages, sanityProduct.giftImageIndex);
-  }, [baseImages, isGiftView, sanityProduct?.showInGifts, sanityProduct?.giftImageIndex]);
+  }, [
+    baseImages,
+    isGiftView,
+    sanityProduct?.showInGifts,
+    sanityProduct?.giftImage,
+    sanityProduct?.giftImageIndex,
+  ]);
 
   // ── Derived: display values (variant-first, product fallback) ──
   const displayPrice         = selectedVariant?.price         ?? sanityProduct?.price         ?? 0;

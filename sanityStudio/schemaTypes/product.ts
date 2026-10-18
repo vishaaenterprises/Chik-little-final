@@ -135,10 +135,20 @@ export const product = defineType({
     }),
 
     defineField({
-      name: 'giftImageIndex',
-      title: 'Gift box image number',
+      name: 'giftImage',
+      title: 'Gift Image',
       description:
-        'Images list me gift box wali photo kaunse number par hai (1 = pehli). Default 6. Gifts page par ye photo sabse pehle dikhegi.',
+        'Is product ki gift box wali photo yahan choose/upload karo. Gifts page ke card par aur Gifts se product kholne par gallery me ye photo sabse pehle dikhegi.',
+      type: 'image',
+      options: { hotspot: true },
+      hidden: ({ document }) => !document?.showInGifts,
+    }),
+
+    defineField({
+      name: 'giftImageIndex',
+      title: 'Gift box image number (fallback)',
+      description:
+        'Sirf tab kaam aata hai jab upar Gift Image khali ho: images list me gift box wali photo kaunse number par hai (default 6).',
       type: 'number',
       initialValue: 6,
       hidden: ({ document }) => !document?.showInGifts,

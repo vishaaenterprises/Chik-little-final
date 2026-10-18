@@ -106,7 +106,9 @@ export interface SanityProductCard {
   galleryImages?: SanityImageAsset[]
   /** When true, product is also listed on the Gifts page */
   showInGifts?: boolean
-  /** 1-based position of the gift-box photo in the image list (default 6) */
+  /** Photo picked in Sanity to lead the product in the Gifts section */
+  giftImage?: SanityImageAsset
+  /** Fallback: 1-based position of the gift-box photo in the image list (default 6) */
   giftImageIndex?: number
   /** Legacy color dots — used on cards when no variants present */
   colors?: ProductColor[]
@@ -164,7 +166,9 @@ export interface SanityProduct {
 
   /** When true, product is also listed on the Gifts page */
   showInGifts?: boolean
-  /** 1-based position of the gift-box photo in the image list (default 6) */
+  /** Photo picked in Sanity to lead the product in the Gifts section */
+  giftImage?: SanityImageAsset
+  /** Fallback: 1-based position of the gift-box photo in the image list (default 6) */
   giftImageIndex?: number
 
   // ── NEW: Color variants — the primary source of truth ────────
