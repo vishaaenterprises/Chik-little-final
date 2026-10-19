@@ -19,7 +19,6 @@ import {
   computeDiscount,
 } from "@/lib/sanity/types";
 import { getImageUrl } from "@/lib/sanity/image";
-import { giftFirst } from "@/lib/sanity/gift";
 import {
   Heart,
   Check,
@@ -89,10 +88,6 @@ export default function ProductPageClient() {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // True when the visitor came from the Gifts section (?from=gift).
-  // Then the gift-box photo is shown first in the gallery.
-  const [isGiftView, setIsGiftView] = useState(false);
-
   // Non-variant state
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -122,9 +117,6 @@ export default function ProductPageClient() {
           const firstVariant = product.variants?.[0] ?? null;
           setSelectedVariant(firstVariant);
           setSelectedImage(0);
-          setIsGiftView(
-            new URLSearchParams(window.location.search).get("from") === "gift"
-          );
 
           setSelectedSize(
             firstVariant?.size ??
@@ -151,8 +143,7 @@ export default function ProductPageClient() {
   }, []);
 
   // ── Derived: resolved display images ──────────────────────────
-  // baseImages = images in their normal order (used for cart + SEO).
-  const baseImages = useMemo<string[]>(() => {
+  const images = useMemo<string[]>(() => {
     if (!sanityProduct) return [];
     if (selectedVariant) {
       return variantImageUrls(selectedVariant);
@@ -162,25 +153,6 @@ export default function ProductPageClient() {
       ...(sanityProduct.galleryImages?.map((img) => getImageUrl(img)) ?? []),
     ].filter(Boolean);
   }, [sanityProduct, selectedVariant]);
-
-  // images = what the gallery shows. From the Gifts section, a product flagged
-  // "Show in Gifts section" gets its gift-box photo moved to the front.
-  const images = useMemo<string[]>(() => {
-    if (!isGiftView || !sanityProduct?.showInGifts) return baseImages;
-    // A Gift Image picked in Sanity goes first (without a duplicate if the
-    // same photo is also in the list); otherwise fall back to the image number.
-    if (sanityProduct.giftImage?.asset) {
-      const giftUrl = getImageUrl(sanityProduct.giftImage);
-      return [giftUrl, ...baseImages.filter((u) => u !== giftUrl)];
-    }
-    return giftFirst(baseImages, sanityProduct.giftImageIndex);
-  }, [
-    baseImages,
-    isGiftView,
-    sanityProduct?.showInGifts,
-    sanityProduct?.giftImage,
-    sanityProduct?.giftImageIndex,
-  ]);
 
   // ── Derived: display values (variant-first, product fallback) ──
   const displayPrice         = selectedVariant?.price         ?? sanityProduct?.price         ?? 0;
@@ -291,7 +263,7 @@ export default function ProductPageClient() {
         name:          displayProduct.name,
         price:         displayPrice,
         originalPrice: displayOriginalPrice,
-        image:         baseImages[0] ?? displayProduct.image,
+        image:         images[0] ?? displayProduct.image,
         category:      displayProduct.category,
         size:          selectedSize,
         color:         displayColorName ?? selectedVariant?.colorName ?? "Default",
@@ -306,7 +278,7 @@ export default function ProductPageClient() {
     isOOS,
     displayPrice,
     displayOriginalPrice,
-    baseImages,
+    images,
     selectedSize,
     displayColorName,
     selectedVariant,
@@ -397,7 +369,7 @@ export default function ProductPageClient() {
         <ProductJsonLd
           name={displayProduct.name}
           description={displayDescription}
-          images={baseImages}
+          images={images}
           sku={selectedVariant?.sku}
           price={displayPrice}
           originalPrice={displayOriginalPrice}

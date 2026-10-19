@@ -711,8 +711,7 @@ function slugToTitle(slug: string): string {
 
 function toLegacy(product: SanityProduct, isGiftPage = false): LegacyProduct {
   // On the Gifts page, products flagged "Show in Gifts section" show their
-  // gift-box photo first (card image) and link to the product page with
-  // ?from=gift so the product gallery also opens on the gift-box photo.
+  // Gift Image on the card. The product page itself is not affected.
   const isGiftFlagged = isGiftPage && product.showInGifts === true
 
   return {
@@ -737,7 +736,6 @@ function toLegacy(product: SanityProduct, isGiftPage = false): LegacyProduct {
     stock:            product.stock ?? 0,
     variants:         product.variants ?? [],
     outOfStock:       product.outOfStock ?? false,
-    fromGift:         isGiftFlagged,
   }
 }
 

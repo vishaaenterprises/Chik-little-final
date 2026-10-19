@@ -4,9 +4,8 @@
 //
 // Products flagged with `showInGifts` in Sanity also appear on the Gifts page.
 // Every product keeps its gift-box photo at a fixed position in its image list
-// (default: 6th). In the Gifts section that photo is shown FIRST; the remaining
-// images keep their original order after it. Everywhere else the order is
-// untouched.
+// (default: 6th). On the Gifts listing CARD only, the Gift Image picked in
+// Sanity (or that fallback photo) is shown. The product page is untouched.
 
 import type { SanityImageAsset, SanityProduct, SanityProductCard } from './types'
 
