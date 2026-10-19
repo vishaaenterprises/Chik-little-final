@@ -53,8 +53,7 @@ export default function ProductCard({
       ? product.slug
       : (product.slug as any)?.current ?? ''
 
-  // Gift-section cards open the product page with the gift-box photo first.
-  const productHref = `/product/${slugStr}${product.fromGift ? '?from=gift' : ''}`
+  const productHref = `/product/${slugStr}`
 
   const wishlisted = isInWishlist(id)
   const inCart = isInCart(id)

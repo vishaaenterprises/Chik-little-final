@@ -229,8 +229,6 @@ export interface LegacyProduct {
   stock?: number
   /** Full variants array — passed through so ProductCard can render color dots + hover images */
   variants?: ProductVariant[]
-  /** True when shown in the Gifts section — card links to the product page with ?from=gift */
-  fromGift?: boolean
 }
 
 export type Product = LegacyProduct
