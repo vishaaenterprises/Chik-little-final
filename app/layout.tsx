@@ -226,6 +226,24 @@ export default function RootLayout({
           `}
         </Script>
 
+        {/*
+          Google tag (gtag.js) — Google Ads account AW-18508267296
+          Powers Performance Max conversion tracking. Script tag loads
+          the library, inline config tag below initializes it.
+        */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18508267296"
+          strategy="afterInteractive"
+        />
+        <Script id="google-tag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-18508267296');
+          `}
+        </Script>
+
         {/* Preconnect Fonts */}
         <link
           rel="preconnect"
