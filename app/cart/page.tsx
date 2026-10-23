@@ -9,6 +9,7 @@ import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
 import { useCart } from "@/context/cart-context";
 import { sendCapiEventFromClient } from "@/lib/meta-capi-client";
+import { fireGoogleAdsPurchase } from "@/lib/gtag";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -411,6 +412,18 @@ export default function CartPage() {
       numItems: purchaseData.num_items,
       phone: formData.phone,
       name: formData.name,
+    });
+
+    // Google Ads "Purchase" conversion — fired alongside the Meta Pixel +
+    // CAPI events above. This is the only reliable purchase-intent moment
+    // for this store, since the checkout hands off to WhatsApp instead of
+    // a real on-site order-confirmation page. orderId doubles as the
+    // transaction_id so Google Ads de-dupes this if the button is ever
+    // clicked twice for the same order.
+    fireGoogleAdsPurchase({
+      value: purchaseData.value,
+      currency: purchaseData.currency,
+      transactionId: orderId,
     });
 
     const lines: string[] = [];
