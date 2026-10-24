@@ -6,6 +6,7 @@ import Link from "next/link";
 import MainLayout from "@/components/layout/MainLayout";
 import { useCart } from "@/context/cart-context";
 import { sendCapiEventFromClient } from "@/lib/meta-capi-client";
+import { fireGoogleAdsPurchase } from "@/lib/gtag";
 import { CheckCircle2, XCircle, Loader2, MessageCircle } from "lucide-react";
 
 const WHATSAPP_NUMBER = "917728009522";
@@ -112,6 +113,14 @@ function PaymentStatusPageContent() {
       numItems: purchaseData.num_items,
       phone: data.order?.customer?.phone,
       name: data.order?.customer?.name,
+    });
+
+    // Google Ads "Purchase" conversion for confirmed online payments.
+    // orderId = transaction_id so Google de-dupes page refreshes.
+    fireGoogleAdsPurchase({
+      value: purchaseData.value,
+      currency: purchaseData.currency,
+      transactionId: orderId,
     });
   };
 
