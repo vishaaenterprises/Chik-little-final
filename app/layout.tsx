@@ -19,11 +19,12 @@ const baloo = Baloo_2({
   weight: ['400', '500', '600', '700', '800'],
 })
 
+// DM Sans is a variable font: no `weight` array needed.
+// All weights (100–1000) are available automatically.
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans',
   display: 'swap',
-  weight: ['300', '400', '500', '700'],
 })
 
 /* ---------------- SEO Metadata ---------------- */
@@ -116,8 +117,7 @@ export const metadata: Metadata = {
 
     siteName: 'Little Chiku',
 
-    title:
-      'Little Chiku | Organic Handmade Baby Products India',
+    title: 'Little Chiku | Organic Handmade Baby Products India',
 
     description:
       'Premium handcrafted organic baby essentials including towels, blankets, bedding, and baby gift hampers crafted with love.',
@@ -137,8 +137,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
 
-    title:
-      'Little Chiku | Organic Handmade Baby Products',
+    title: 'Little Chiku | Organic Handmade Baby Products',
 
     description:
       'Premium handcrafted organic cotton baby essentials crafted with love in India.',
@@ -203,10 +202,7 @@ export default function RootLayout({
           no race condition with ViewContent/AddToCart/InitiateCheckout/Purchase
           calls elsewhere in the app, even though this uses "afterInteractive".
         */}
-        <Script
-          id="facebook-pixel"
-          strategy="afterInteractive"
-        >
+        <Script id="facebook-pixel" strategy="afterInteractive">
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -244,30 +240,11 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* Preconnect Fonts */}
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-        />
-
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-
         {/* Favicon */}
-        <link
-          rel="icon"
-          href="/icon.png"
-          sizes="32x32"
-        />
+        <link rel="icon" href="/icon.png" sizes="32x32" />
 
         {/* Theme */}
-        <meta
-          name="theme-color"
-          content="#7CC9C5"
-        />
+        <meta name="theme-color" content="#7CC9C5" />
 
         {/* JSON-LD Structured Data */}
         <script
@@ -293,9 +270,7 @@ export default function RootLayout({
         <CartProvider>
           <Navbar />
 
-          <main className="min-h-screen overflow-hidden">
-            {children}
-          </main>
+          <main className="min-h-screen overflow-hidden">{children}</main>
 
           <Footer />
         </CartProvider>
