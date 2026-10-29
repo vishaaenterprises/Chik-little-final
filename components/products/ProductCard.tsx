@@ -6,6 +6,7 @@ import { useState, useCallback } from 'react'
 import Link from 'next/link'
 
 import { useCart } from '@/context/cart-context'
+import { withWidth } from '@/lib/sanity/image'
 import type { LegacyProduct } from '@/lib/sanity/types'
 
 interface ProductCardProps {
@@ -36,11 +37,17 @@ export default function ProductCard({
     originalPrice,
     image,
     category,
-    rating = 4.5,
+    rating = 0,
     isNew,
     isBestseller,
     outOfStock = false,
   } = product
+
+  // Only show a rating when there are real reviews behind it. Previously a
+  // default 4.5★ and "128 reviews" were shown when the data was missing, and
+  // "4.5 (0 reviews)" when the count was 0.
+  const reviewsCount = product.reviewsCount ?? 0
+  const hasReviews = reviewsCount > 0 && rating > 0
 
   // Collect all images: mainImage + any extras stored in product
   // ProductCard receives a single `image` string; multi-image is only on detail page.
@@ -148,8 +155,10 @@ export default function ProductCard({
           <AnimatePresence mode="wait" initial={false}>
             <motion.img
               key={currentImageIndex}
-              src={images[currentImageIndex] ?? image}
+              src={withWidth(images[currentImageIndex] ?? image, 640)}
               alt={name}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-contain p-3"
               initial={{ opacity: 0, scale: 1.02 }}
               animate={{ opacity: 1, scale: isHovered ? 1.03 : 1 }}
@@ -258,7 +267,7 @@ export default function ProductCard({
             </motion.button>
 
             {/* View detail — always navigable */}
-            <Link href={productHref}>
+            <Link href={productHref} aria-label={`View ${name}`}>
               <motion.div
                 className="p-2.5 rounded-xl bg-white/90 text-[#2B2B2B] hover:bg-white backdrop-blur-md border border-white/40 shadow-md transition-all cursor-pointer"
                 whileHover={{ scale: 1.08 }}
@@ -314,15 +323,20 @@ export default function ProductCard({
 
             {/* Bottom block — rating + price + mobile CTA always pinned */}
             <div className="mt-3 md:mt-4 space-y-2.5">
-              {/* Rating */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-[#F6C453] text-[#F6C453]" />
-                  <span className="text-xs md:text-sm font-semibold text-[#2B2B2B]">{rating}</span>
-                </div>
-                <span className="hidden sm:inline text-[11px] md:text-xs text-[#6B6B6B]">
-                  ({product.reviewsCount ?? 128} reviews)
-                </span>
+              {/* Rating — fixed-height row so cards stay aligned even when a
+                  product has no reviews yet */}
+              <div className="flex items-center gap-2 min-h-[20px]">
+                {hasReviews && (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-[#F6C453] text-[#F6C453]" />
+                      <span className="text-xs md:text-sm font-semibold text-[#2B2B2B]">{rating}</span>
+                    </div>
+                    <span className="hidden sm:inline text-[11px] md:text-xs text-[#6B6B6B]">
+                      ({reviewsCount} {reviewsCount === 1 ? 'review' : 'reviews'})
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Price */}

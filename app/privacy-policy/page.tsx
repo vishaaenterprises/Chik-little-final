@@ -1,3 +1,14 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Little Chiku',
+  description:
+    'How Little Chiku collects, uses and protects your personal information when you shop with us.',
+  alternates: {
+    canonical: 'https://littlechiku.com/privacy-policy',
+  },
+}
+
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FDF8F3' }}>

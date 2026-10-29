@@ -26,25 +26,9 @@ import type { Metadata } from "next";
 // ─────────────────────────────────────────────
 export const metadata: Metadata = {
   title: "About Little Chiku | Handmade Organic Baby Essentials India | Little Chiku",
+  // Kept under ~160 chars so Google doesn't truncate it in results.
   description:
-    "Little Chiku is India's trusted handcrafted baby brand from Jaipur. We make organic cotton baby bedding, bath linen, gifting hampers & kids accessories — loved by 10,000+ families.",
-  keywords: [
-    "handcrafted baby products India",
-    "organic cotton baby essentials",
-    "premium baby brand India",
-    "handmade baby bedding",
-    "kids lifestyle brand India",
-    "baby bath linen",
-    "organic baby clothing",
-    "baby gifting hampers India",
-    "newborn essentials India",
-    "baby accessories India",
-    "baby products Jaipur",
-    "organic baby gifts India",
-    "handmade baby shower gifts India",
-    "cotton baby quilt India",
-    "hooded baby towel India",
-  ],
+    "Little Chiku is a handcrafted baby brand from Jaipur — organic cotton bedding, bath linen, gift hampers & kids accessories, loved by 10,000+ families.",
   alternates: {
     canonical: "https://littlechiku.com/about",
   },

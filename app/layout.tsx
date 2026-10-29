@@ -38,25 +38,10 @@ export const metadata: Metadata = {
   title: 'Little Chiku | Organic Handmade Baby Products India',
 
   description:
-    'Handcrafted organic cotton baby essentials — towels, bedding, gift hampers, blankets & bibs, made with love in India by Little Chiku.',
+    'Handcrafted organic cotton baby & kids essentials — bath towels, bathrobes, bedding, bags, clothing and gift hampers, made with love in India by Little Chiku.',
 
-  keywords: [
-    'Little Chiku',
-    'organic baby products',
-    'handmade baby products',
-    'organic cotton baby products',
-    'baby towels India',
-    'baby gift hampers',
-    'baby bedding India',
-    'newborn essentials',
-    'premium baby essentials',
-    'baby accessories India',
-    'baby blankets',
-    'hooded baby towels',
-    'kids bath linen',
-    'Jaipur baby brand',
-    'baby products online India',
-  ],
+  // `keywords` meta removed on purpose: Google ignores it, and the same
+  // list on every page only adds noise.
 
   authors: [{ name: 'Little Chiku' }],
 
@@ -66,9 +51,10 @@ export const metadata: Metadata = {
 
   category: 'Ecommerce',
 
-  alternates: {
-    canonical: 'https://littlechiku.com',
-  },
+  // NOTE: no site-wide `alternates.canonical` here. A static canonical in the
+  // root layout is inherited by every page that doesn't define its own and
+  // makes Google treat those pages as duplicates of the homepage. Each route
+  // sets its own canonical (home: app/page.tsx).
 
   robots: {
     index: true,
@@ -113,14 +99,12 @@ export const metadata: Metadata = {
 
     locale: 'en_IN',
 
-    url: 'https://littlechiku.com',
-
     siteName: 'Little Chiku',
 
     title: 'Little Chiku | Organic Handmade Baby Products India',
 
     description:
-      'Premium handcrafted organic baby essentials including towels, blankets, bedding, and baby gift hampers crafted with love.',
+      'Premium handcrafted organic baby essentials including towels, bathrobes, bedding and baby gift hampers crafted with love.',
 
     images: [
       {
@@ -174,9 +158,19 @@ const organizationSchema = {
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'customer support',
+    telephone: '+91-7728009522',
+    email: 'vishaaenterprises@gmail.com',
     areaServed: 'IN',
     availableLanguage: ['English', 'Hindi'],
   },
+}
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Little Chiku',
+  url: 'https://littlechiku.com',
+  inLanguage: 'en-IN',
 }
 
 /* ---------------- Root Layout ---------------- */
@@ -240,17 +234,20 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* Favicon */}
-        <link rel="icon" href="/icon.png" sizes="32x32" />
-
-        {/* Theme */}
-        <meta name="theme-color" content="#7CC9C5" />
+        {/* Favicon + theme-color come from `metadata.icons` / `viewport`
+            above — no duplicate <link>/<meta> tags needed here. */}
 
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
           }}
         />
       </head>

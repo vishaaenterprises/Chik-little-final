@@ -66,7 +66,20 @@ declare global {
   }
 }
 
-export default function ProductPageClient() {
+// Data fetched on the server (app/product/[slug]/page.tsx) and passed in, so
+// the product is part of the first HTML response instead of being loaded
+// client-side after hydration.
+export interface ProductPageInitialData {
+  product: SanityProduct;
+  relatedProducts: SanityProduct[];
+  reviews: SanityTestimonial[];
+}
+
+export default function ProductPageClient({
+  initialData = null,
+}: {
+  initialData?: ProductPageInitialData | null;
+}) {
   const params = useParams();
   const slug = Array.isArray(params.slug)
     ? params.slug[0]
@@ -75,26 +88,45 @@ export default function ProductPageClient() {
   const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } =
     useCart();
 
-  const [sanityProduct, setSanityProduct] = useState<SanityProduct | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>([]);
-  const [loading, setLoading] = useState(true);
+  const initialVariant = initialData?.product.variants?.[0] ?? null;
+
+  const [sanityProduct, setSanityProduct] = useState<SanityProduct | null>(
+    initialData?.product ?? null
+  );
+  const [relatedProducts, setRelatedProducts] = useState<SanityProduct[]>(
+    initialData?.relatedProducts ?? []
+  );
+  // Nothing to wait for when the server already supplied the product.
+  const [loading, setLoading] = useState(!initialData);
 
   // ── Reviews state ────────────────────────────────────────────
   // Reviews shown on this product page — every active review site-wide,
   // regardless of which product (if any) it was originally written for.
-  const [reviews, setReviews] = useState<SanityTestimonial[]>([]);
+  const [reviews, setReviews] = useState<SanityTestimonial[]>(
+    initialData?.reviews ?? []
+  );
 
   // ── Variant state ─────────────────────────────────────────────
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    initialVariant
+  );
   const [selectedImage, setSelectedImage] = useState(0);
 
   // Non-variant state
-  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedSize, setSelectedSize] = useState(
+    initialData
+      ? initialVariant?.size ??
+          initialData.product.sizes?.[0] ??
+          DEFAULT_SIZES[0]
+      : ""
+  );
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  // ── Fetch ─────────────────────────────────────────────────────
+  // ── Fetch (fallback only) ─────────────────────────────────────
+  // Skipped when the server already provided the product.
   useEffect(() => {
+    if (initialData) return;
     if (!slug) return;
     async function fetchProduct() {
       setLoading(true);
@@ -133,7 +165,7 @@ export default function ProductPageClient() {
       }
     }
     fetchProduct();
-  }, [slug]);
+  }, [slug, initialData]);
 
   // ── Handle variant change ─────────────────────────────────────
   const handleVariantChange = useCallback((variant: ProductVariant) => {
@@ -158,7 +190,7 @@ export default function ProductPageClient() {
   const displayPrice         = selectedVariant?.price         ?? sanityProduct?.price         ?? 0;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? sanityProduct?.originalPrice;
   const displayStock         = selectedVariant?.stock         ?? sanityProduct?.stock         ?? 0;
-  const displayRating        = selectedVariant?.rating        ?? sanityProduct?.rating        ?? 4.9;
+  const displayRating        = selectedVariant?.rating        ?? sanityProduct?.rating        ?? 0;
   const displayReviews       = selectedVariant?.reviews       ?? sanityProduct?.reviewsCount  ?? 0;
   const displayDescription   = selectedVariant?.shortDescription ?? sanityProduct?.shortDescription;
   const displayColorName     = selectedVariant?.colorName;
@@ -506,7 +538,7 @@ export default function ProductPageClient() {
                     >
                       <img
                         src={img}
-                        alt={`${displayColorName ?? ''} view ${idx + 1}`}
+                        alt={`${displayProduct.name}${displayColorName ? ` – ${displayColorName}` : ''} – view ${idx + 1}`}
                         className="w-full h-full object-contain p-2"
                       />
                     </button>
@@ -552,24 +584,31 @@ export default function ProductPageClient() {
 
               {/* Rating row */}
               <div className="flex items-center gap-3 flex-wrap mt-4">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-[15px] h-[15px] ${
-                        i < Math.floor(displayRating)
-                          ? "fill-[#F6C453] text-[#F6C453]"
-                          : "text-[#E7EEEE] fill-[#E7EEEE]"
-                      }`}
-                    />
-                  ))}
-                  <span className="font-bold text-sm text-[#2B2B2B] ml-1">
-                    {displayRating}
-                  </span>
-                </div>
-                <span className="text-sm text-[#8A8A8A]">
-                  ({displayReviews} {displayReviews === 1 ? "Review" : "Reviews"})
-                </span>
+                {displayReviews > 0 && displayRating > 0 ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-[15px] h-[15px] ${
+                            i < Math.floor(displayRating)
+                              ? "fill-[#F6C453] text-[#F6C453]"
+                              : "text-[#E7EEEE] fill-[#E7EEEE]"
+                          }`}
+                        />
+                      ))}
+                      <span className="font-bold text-sm text-[#2B2B2B] ml-1">
+                        {displayRating}
+                      </span>
+                    </div>
+                    <span className="text-sm text-[#8A8A8A]">
+                      ({displayReviews} {displayReviews === 1 ? "Review" : "Reviews"})
+                    </span>
+                  </>
+                ) : (
+                  // No real reviews yet — don't show a made-up star rating.
+                  <span className="text-sm text-[#8A8A8A]">No reviews yet</span>
+                )}
                 <span className="w-1 h-1 rounded-full bg-[#DADFDF]" />
                 <span
                   className="inline-flex items-center gap-1.5 text-[13px] font-semibold"
@@ -871,7 +910,7 @@ export default function ProductPageClient() {
                   {
                     icon: RefreshCw,
                     title: "Easy Returns",
-                    desc: "3-day return policy",
+                    desc: "7-day return policy",
                     color: "bg-[#FFF4D6] text-[#F6C453]",
                   },
                   {

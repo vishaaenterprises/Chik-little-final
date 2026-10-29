@@ -24,6 +24,8 @@ interface CategoryData {
 
 interface HomeProps {
   products: LegacyProduct[]
+  /** Products for the Return Gifts row (category + `showInGifts` products) */
+  giftProducts?: LegacyProduct[]
   categories: CategoryData[]
   testimonials: SanityTestimonial[]
   heroBanner: SanityBanner | null
@@ -41,6 +43,7 @@ const getProductsByCategory = (
 
 export default function Home({
   products,
+  giftProducts: giftProductsProp,
   categories,
   testimonials,
   heroBanner,
@@ -76,10 +79,10 @@ export default function Home({
     "Mom's Corner"
   )
 
-  const giftProducts = getProductsByCategory(
-    products,
-    'Return Gifts'
-  )
+  const giftProducts =
+    giftProductsProp && giftProductsProp.length > 0
+      ? giftProductsProp
+      : getProductsByCategory(products, 'Return Gifts')
 
   return (
     <main className="bg-[#F6FBFB] overflow-hidden">

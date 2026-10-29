@@ -117,13 +117,15 @@ export default function FeaturedCategories({ categories }: FeaturedCategoriesPro
 
         {/* Categories Grid */}
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5"
+          className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 md:gap-5"
           variants={staggerContainer}
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
         >
-          {displayCategories.slice(0, 6).map((cat) => (
+          {/* Show every category — the old `.slice(0, 6)` silently cut off the
+              7th one (Clothing). */}
+          {displayCategories.map((cat) => (
             <motion.div key={cat.name} variants={fadeInUp}>
               <Link href={cat.href}>
                 <motion.div
@@ -137,7 +139,9 @@ export default function FeaturedCategories({ categories }: FeaturedCategoriesPro
                   <div className="relative w-20 h-20 mx-auto mb-5 rounded-2xl overflow-hidden border border-white/70 shadow-md">
                     <img
                       src={cat.image}
-                      alt={cat.name}
+                      alt={`${cat.name} collection`}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                   </div>

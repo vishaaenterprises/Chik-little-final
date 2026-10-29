@@ -202,6 +202,7 @@ export default function Navbar() {
               {/* SEARCH */}
               <button
                 onClick={() => setIsSearchOpen(true)}
+                aria-label="Search products"
                 className="p-2 hover:bg-[#EDF6F6] rounded-full transition-colors"
               >
                 <Search className="hidden md:block w-5 h-5 text-black" />
@@ -210,6 +211,7 @@ export default function Navbar() {
               {/* WISHLIST */}
               <Link
                 href="/wishlist"
+                aria-label="Wishlist"
                 className="p-2 hover:bg-[#EDF6F6] rounded-full transition-colors relative hidden sm:flex"
               >
                 <Heart className="w-5 h-5 text-[#2B2B2B]" />
@@ -223,6 +225,7 @@ export default function Navbar() {
               {/* CART */}
               <Link
                 href="/cart"
+                aria-label="Cart"
                 className="p-2 hover:bg-[#EDF6F6] rounded-full transition-colors relative"
               >
                 <ShoppingCart className="w-5 h-5 text-[#2B2B2B]" />
@@ -235,6 +238,7 @@ export default function Navbar() {
 
               {/* MOBILE MENU */}
               <button
+                aria-label="Open menu"
                 className="md:hidden p-2 hover:bg-[#EDF6F6] rounded-full transition-colors"
                 onClick={() => setIsMenuOpen(true)}
               >
