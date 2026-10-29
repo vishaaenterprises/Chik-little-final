@@ -58,6 +58,25 @@ export function getImageUrl(
 }
 
 // ─────────────────────────────────────────────
+// Cap the width of an already-built Sanity CDN URL
+// ─────────────────────────────────────────────
+//
+// getImageUrl() returns the full-resolution asset (up to ~1500px). Cards only
+// display ~300px, so request a smaller rendition from the Sanity image CDN.
+// Non-Sanity URLs (local /public files, placeholders) are returned untouched.
+
+export function withWidth(url: string, width: number): string {
+  if (!url || !url.includes('cdn.sanity.io/images/')) return url
+  try {
+    const parsed = new URL(url)
+    parsed.searchParams.set('w', String(width))
+    return parsed.toString()
+  } catch {
+    return url
+  }
+}
+
+// ─────────────────────────────────────────────
 // Sized image URL
 // ─────────────────────────────────────────────
 

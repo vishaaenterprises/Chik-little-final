@@ -63,15 +63,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
 
+    // /cart and /wishlist are intentionally NOT listed: they are per-user,
+    // noindex pages and don't belong in a sitemap.
     {
-      url: `${baseUrl}/wishlist`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.5,
-    },
-
-    {
-      url: `${baseUrl}/cart`,
+      url: `${baseUrl}/reviews`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.5,

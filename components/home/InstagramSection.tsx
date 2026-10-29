@@ -3,13 +3,15 @@
 import { motion } from 'framer-motion'
 import { Instagram } from 'lucide-react'
 
+// Each image gets its own descriptive alt text (was the same generic
+// "Little Chiku Instagram" on all six).
 const images = [
-  '/kids-1.jpg',
-  '/mom-1.jpg',
-  '/home-1.jpg',
-  '/gift-1.jpg',
-  '/kids-2.jpg',
-  '/mom-2.jpg',
+  { src: '/kids-1.jpg', alt: 'Kids wearing handcrafted Little Chiku cotton wear' },
+  { src: '/mom-1.jpg', alt: 'Mother and baby with Little Chiku organic cotton essentials' },
+  { src: '/home-1.jpg', alt: 'Little Chiku hand block print bath linen and bedding' },
+  { src: '/gift-1.jpg', alt: 'Little Chiku handcrafted return gift hamper' },
+  { src: '/kids-2.jpg', alt: 'Little Chiku quilted bags and kids accessories' },
+  { src: '/mom-2.jpg', alt: "Little Chiku Mom's Corner collection" },
 ]
 
 export default function InstagramSection() {
@@ -64,8 +66,10 @@ export default function InstagramSection() {
             >
               {/* Image */}
               <img
-                src={img}
-                alt="Little Chiku Instagram"
+                src={img.src}
+                alt={img.alt}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
 

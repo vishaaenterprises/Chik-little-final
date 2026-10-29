@@ -27,6 +27,9 @@ export default function CategorySection({
   accentColor,
   reversed = false,
 }: CategorySectionProps) {
+  // Never render a section header with an empty product grid.
+  if (!products || products.length === 0) return null
+
   return (
     <section
       className={`relative overflow-hidden py-20 md:py-28 ${bgColor}`}

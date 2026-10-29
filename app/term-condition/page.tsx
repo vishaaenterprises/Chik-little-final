@@ -1,3 +1,14 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms & Conditions | Little Chiku',
+  description:
+    'Terms of use, shipping, returns and refund policy for orders placed on littlechiku.com.',
+  alternates: {
+    canonical: 'https://littlechiku.com/term-condition',
+  },
+}
+
 export default function TermsAndConditionsPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FDF8F3' }}>

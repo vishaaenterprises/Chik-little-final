@@ -1,4 +1,16 @@
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
+// Fall back to the production origin: with an empty SITE_URL the offer `url`
+// became a relative "/product/..." which is invalid in Product structured data.
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://littlechiku.com"
+).replace(/\/$/, "");
+
+// Must match what the cart actually charges (app/cart/page.tsx):
+// free shipping above ₹1,499, flat ₹99 otherwise.
+const FREE_SHIPPING_ABOVE = 1499;
+const FLAT_SHIPPING_FEE = 99;
+
+// Must match the Returns & Refunds section of /term-condition.
+const RETURN_WINDOW_DAYS = 7;
 
 export interface ProductJsonLdProps {
   name: string;
@@ -58,7 +70,7 @@ export default function ProductJsonLd({
     mpn: mpn || undefined,
     brand: {
       "@type": "Brand",
-      name: "LittleChiku",
+      name: "Little Chiku",
     },
     ...(hasValidRating && {
       aggregateRating: {
@@ -79,13 +91,13 @@ export default function ProductJsonLd({
       itemCondition: "https://schema.org/NewCondition",
       seller: {
         "@type": "Organization",
-        name: "LittleChiku",
+        name: "Little Chiku",
       },
       shippingDetails: {
         "@type": "OfferShippingDetails",
         shippingRate: {
           "@type": "MonetaryAmount",
-          value: 0,
+          value: price > FREE_SHIPPING_ABOVE ? 0 : FLAT_SHIPPING_FEE,
           currency: "INR",
         },
         shippingDestination: [
@@ -116,9 +128,11 @@ export default function ProductJsonLd({
         applicableCountry: "IN",
         returnPolicyCountry: "IN",
         returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7,
+        merchantReturnDays: RETURN_WINDOW_DAYS,
         returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn",
+        // /term-condition: return shipping is paid by the customer unless the
+        // product is defective — so this is NOT a free-return policy.
+        returnFees: "https://schema.org/ReturnShippingFees",
       },
     },
   });

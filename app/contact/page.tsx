@@ -20,12 +20,12 @@ const faqs = [
   {
     question: 'What is your return policy?',
     answer:
-      'We offer a 3-day hassle-free return policy. If you are not completely satisfied with your purchase, you can return it within 3 days for a full refund or exchange. Items must be unused and in their original packaging.',
+      'Returns are accepted within 7 days of delivery for eligible items. Products must be unused, unwashed and returned in their original packaging. Damaged or defective products must be reported within 48 hours of delivery. See our Terms & Conditions for full details.',
   },
   {
     question: 'How long does shipping take?',
     answer:
-      'Standard shipping within India takes 5-7 business days. Express shipping (available for select locations) takes 2-3 business days. We also offer free shipping on all orders above Rs. 499.',
+      'Standard shipping within India takes 5-7 business days. Express shipping (available for select locations) takes 2-3 business days. Shipping is free on orders above Rs. 1,499; a flat Rs. 99 applies below that.',
   },
   {
     question: 'Are your products safe for newborns?',
@@ -45,7 +45,7 @@ const faqs = [
   {
     question: 'How do I track my order?',
     answer:
-      'Once your order is shipped, you will receive a tracking link via email and SMS. You can also track your order by logging into your account on our website.',
+      'Once your order is shipped, you will receive a tracking link via email and SMS. You can also WhatsApp us your order number and we will share the latest status.',
   },
 ]
 
@@ -67,7 +67,7 @@ const contactCards = [
     title: 'Call Us',
     description: 'Mon–Sat, 10am–7pm',
     value: '+91 7728009522',
-    link: 'tel:+91 7728009522',
+    link: 'tel:+917728009522',
     accent: '#F6C453',
     bg: '#FFF4D6',
     shadow: 'rgba(246,196,83,0.2)',
@@ -451,7 +451,8 @@ export default function ContactPage() {
 </section>
 
       {/* ── FAQ ── */}
-      <section className="py-20 bg-white">
+      {/* id="faq" — footer links (/contact#faq) now actually scroll here */}
+      <section id="faq" className="py-20 bg-white scroll-mt-24">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="text-center mb-12"

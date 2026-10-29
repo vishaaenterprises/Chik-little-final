@@ -29,14 +29,15 @@ const footerLinks = {
     { label: 'FAQ', href: '/contact#faq' },
     { label: 'Track Order', href: '/contact#faq' },
   ],
+  // "Sustainability", "Artisan Partners" and "Blog" were removed: all three
+  // pointed at the homepage ("/") because those pages don't exist yet. Add
+  // them back once the real pages are live.
   company: [
-  { label: 'Our Story', href: '/about' },
-  { label: 'Sustainability', href: '/' },
-  { label: 'Artisan Partners', href: '/' },
-  { label: 'Blog', href: '/' },
-  { label: 'Privacy Policy', href: '/privacy-policy' },
-  { label: 'Terms & Conditions', href: '/term-condition' },
-],
+    { label: 'Our Story', href: '/about' },
+    { label: 'Customer Reviews', href: '/reviews' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
+    { label: 'Terms & Conditions', href: '/term-condition' },
+  ],
 }
 
 // ── "We Accept" payment badges ──────────────────────────────────────────────
@@ -169,14 +170,17 @@ export default function Footer() {
             {/* Social */}
             <div className="flex gap-3 mt-5">
               {[
-                { icon: Instagram, href: 'https://www.instagram.com/littlechikukids/' },
-                { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61581014138999' },
+                { icon: Instagram, label: 'Little Chiku on Instagram', href: 'https://www.instagram.com/littlechikukids/' },
+                { icon: Facebook, label: 'Little Chiku on Facebook', href: 'https://www.facebook.com/profile.php?id=61581014138999' },
               ].map((social, idx) => {
                 const Icon = social.icon
                 return (
                   <motion.a
                     key={idx}
                     href={social.href}
+                    aria-label={social.label}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:bg-[#4FBDBA] hover:text-white transition-all duration-300"
                     whileHover={{ scale: 1.08 }}
                     whileTap={{ scale: 0.95 }}
