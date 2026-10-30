@@ -1,8 +1,8 @@
 import type { CategoryContent } from '@/lib/category-content'
 
-// Server component: renders visible, crawlable answer-first copy plus FAQs,
-// and the matching FAQPage JSON-LD (content in schema == content on page).
-export default function CategoryIntro({
+// Server component: visible FAQs after the product grid (so they don't push
+// products down) plus the matching FAQPage JSON-LD (schema == page content).
+export function CategoryFaqs({
   title,
   content,
 }: {
@@ -19,31 +19,6 @@ export default function CategoryIntro({
     })),
   }
 
-  return (
-    <section
-      aria-label={`About ${title}`}
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8"
-    >
-      <p className="max-w-3xl text-[15px] md:text-base leading-relaxed text-[#4B5563]">
-        {content.intro}
-      </p>
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-    </section>
-  )
-}
-
-// FAQs are rendered after the product grid so they don't push products down.
-export function CategoryFaqs({
-  title,
-  content,
-}: {
-  title: string
-  content: CategoryContent
-}) {
   return (
     <section
       aria-label={`${title} FAQs`}
@@ -70,6 +45,11 @@ export function CategoryFaqs({
           </details>
         ))}
       </div>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
     </section>
   )
 }
