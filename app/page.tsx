@@ -25,9 +25,9 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: 'https://littlechiku.com',
     siteName: 'Little Chiku',
-    title: 'Little Chiku | Organic Handmade Baby Products India',
+    title: "Little Chiku | Kids Towels, Bathrobes, Gift Sets & Mom's Bags India",
     description:
-      'Premium handcrafted organic baby essentials including towels, bathrobes, bedding and baby gift hampers crafted with love.',
+      "Kids bath towels, hand towels, bathrobes, bedding, bags, Diwali and return gift sets, and Mom's Corner bags — handcrafted cotton by Little Chiku.",
     images: [
       {
         url: '/og-image.png',

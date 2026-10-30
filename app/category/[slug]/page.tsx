@@ -59,7 +59,11 @@ export async function generateMetadata({
   }
 
   const title = category?.title ?? (slug === 'all' ? 'All Products' : slugToTitle(slug))
-  const description = buildMetaDescription(title, category?.description)
+  // Curated, keyword-rich meta (lib/category-content.ts) wins over the short
+  // one-liner stored in Sanity; unknown/new categories fall back to the old logic.
+  const seo = getCategoryContent(slug)
+  const fullTitle = seo?.metaTitle ?? `${title} | Little Chiku`
+  const description = seo?.metaDescription ?? buildMetaDescription(title, category?.description)
 
   // Real 1200×630 rendition so the declared og:image size is accurate
   // (the raw category image is e.g. 1024×796).
@@ -70,13 +74,13 @@ export async function generateMetadata({
   const canonicalUrl = `https://littlechiku.com/category/${slug}`
 
   return {
-    title: `${title} | Little Chiku`,
+    title: fullTitle,
     description,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${title} | Little Chiku`,
+      title: fullTitle,
       description,
       url: canonicalUrl,
       type: 'website',
@@ -86,7 +90,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | Little Chiku`,
+      title: fullTitle,
       description,
       ...(ogImageUrl && { images: [ogImageUrl] }),
     },
