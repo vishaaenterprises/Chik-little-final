@@ -8,7 +8,7 @@ import { getImageUrl, getImageUrlWithSize } from '@/lib/sanity/image'
 import MainLayout from '@/components/layout/MainLayout'
 import CategoryBanner from '@/components/banners/CategoryBanner'
 import CategoryPageClient from '@/components/category/CategoryPageClient'
-import CategoryIntro, { CategoryFaqs } from '@/components/category/CategoryIntro'
+import { CategoryFaqs } from '@/components/category/CategoryIntro'
 import { getCategoryContent } from '@/lib/category-content'
 import type { SanityProduct, SanityCategory, LegacyProduct } from '@/lib/sanity/types'
 
@@ -283,10 +283,16 @@ export default async function CategoryPage({
   // Convert once on server, client ko raw Sanity data nahi milta
   const baseProducts = sanityProducts.map((p) => toLegacy(p, isGiftPage))
 
+  const seoContent = getCategoryContent(slug)
+
   const bannerTitle =
     currentCategory?.title ?? (slug === 'all' ? 'All Products' : slugToTitle(slug))
+  // The curated, answer-first intro (SEO / AEO / GEO) lives in the banner
+  // tagline slot, so there is one clean description instead of a second block.
   const bannerDesc =
-    currentCategory?.description ?? `Explore our curated ${bannerTitle} collection`
+    seoContent?.intro ??
+    currentCategory?.description ??
+    `Explore our curated ${bannerTitle} collection`
 
   const categoryList = sanityCategories.map((cat) => ({
     slug:          cat.slug,
@@ -306,7 +312,6 @@ export default async function CategoryPage({
 
   // ── JSON-LD ──────────────────────────────────────────────────
   const jsonLd = buildJsonLd(slug, bannerTitle, bannerDesc, baseProducts)
-  const seoContent = getCategoryContent(slug)
 
   return (
     <MainLayout>
@@ -331,8 +336,6 @@ export default async function CategoryPage({
         color='#4FBDBA'
       />
 
-      {/* Answer-first intro (SEO / AEO / GEO) */}
-      {seoContent && <CategoryIntro title={bannerTitle} content={seoContent} />}
 
       {/* 
         CategoryPageClient = thin client shell

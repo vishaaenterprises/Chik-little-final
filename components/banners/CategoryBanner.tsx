@@ -59,7 +59,11 @@ export default function CategoryBanner({
             </h1>
 
             {/* Description */}
-            <p className="text-base md:text-lg text-[#6B6B6B] max-w-2xl leading-relaxed">
+            <p
+              className={`text-[#6B6B6B] max-w-2xl leading-relaxed ${
+                description.length > 140 ? 'text-[15px] md:text-base' : 'text-base md:text-lg'
+              }`}
+            >
               {description}
             </p>
 
@@ -81,7 +85,7 @@ export default function CategoryBanner({
 
               <div className="hidden sm:flex items-center gap-2 text-sm text-[#6B6B6B]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#F6C453]" />
-                Premium organic fabrics
+                Handcrafted cotton
               </div>
             </div>
           </motion.div>
