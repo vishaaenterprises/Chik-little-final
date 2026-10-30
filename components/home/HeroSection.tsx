@@ -49,7 +49,7 @@ export default function HeroSection({ banner }: HeroSectionProps) {
             {/* HEADING */}
             <div className="mt-4">
               <h1 className="text-[#2B2B2B] text-[34px] sm:text-[42px] lg:text-[60px] leading-[1.02] font-black tracking-[-1px] lg:tracking-[-2px]">
-                {banner?.title || 'Premium Handcrafted Organic Baby Products'}
+                {banner?.title || 'Handcrafted Kids Towels, Bathrobes, Gift Sets & Mom\'s Bags'}
               </h1>
 
                <p className="mt-5 text-[15px] sm:text-[17px] leading-8 text-[#5C5C5C] max-w-full sm:max-w-xl mx-auto lg:mx-0 px-2 sm:px-0 break-words">
