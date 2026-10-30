@@ -30,7 +30,7 @@ const faqs = [
   {
     question: 'Are your products safe for newborns?',
     answer:
-      'Absolutely! All our products are made from 100% GOTS certified organic cotton, are hypoallergenic, and free from harmful chemicals. They are safe for even the most delicate newborn skin.',
+      'Our products are made from soft, breathable cotton and are designed for comfortable everyday use. If your baby has very sensitive skin, we suggest washing a product once before first use and patch-testing; message us on WhatsApp if you have questions about a specific item.',
   },
   {
     question: 'Do you offer gift wrapping?',

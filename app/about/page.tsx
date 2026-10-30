@@ -80,8 +80,8 @@ const values = [
   },
   {
     icon: Leaf,
-    title: "Organic Fabrics",
-    desc: "Premium breathable organic cotton that feels incredibly gentle on your baby's delicate, sensitive skin.",
+    title: "Soft Cotton Fabrics",
+    desc: "Premium breathable cotton that feels incredibly gentle on your baby's delicate, sensitive skin.",
   },
   {
     icon: ShieldCheck,
@@ -97,7 +97,7 @@ const values = [
 
 const features = [
   "Handcrafted Premium Quality",
-  "Organic Cotton Fabrics",
+  "Soft Cotton Fabrics",
   "Modern Minimal Design",
   "Soft & Baby Friendly",
   "Elegant Gifting Collections",
@@ -121,7 +121,7 @@ const collections = [
   {
     icon: Truck,
     title: "Baby Bedding",
-    desc: "Organic cotton quilts, dohars, and crib sheets — soft, breathable, and beautifully crafted.",
+    desc: "Cotton quilts, dohars, and crib sheets — soft, breathable, and beautifully crafted.",
     href: "/category/bedding",
   },
   {
@@ -136,7 +136,7 @@ const steps = [
   {
     num: "01",
     title: "Premium Fabric Sourcing",
-    desc: "We source only the finest organic cotton and baby-safe fabrics — soft, breathable, and gentle on newborn skin.",
+    desc: "We source only the finest cotton and baby-safe fabrics — soft, breathable, and gentle on newborn skin.",
   },
   {
     num: "02",
@@ -157,7 +157,7 @@ const steps = [
 
 const testimonials = [
   {
-    text: "Little Chiku products are incredibly soft and beautifully made. The organic cotton baby quilt is amazing — premium quality that's totally worth it!",
+    text: "Little Chiku products are incredibly soft and beautifully made. The cotton baby quilt is amazing — premium quality that's totally worth it!",
     name: "Priya Sharma",
     role: "New Mum, Mumbai",
     initial: "P",
@@ -202,7 +202,7 @@ const jsonLd = {
         height: 60,
       },
       description:
-        "Little Chiku is India's premium handcrafted baby and kids lifestyle brand based in Jaipur. We create organic cotton baby bedding, bath linen, gifting hampers and accessories for modern Indian families.",
+        "Little Chiku is India's premium handcrafted baby and kids lifestyle brand based in Jaipur. We create cotton baby bedding, bath linen, gifting hampers and accessories for modern Indian families.",
       foundingLocation: {
         "@type": "Place",
         name: "Jaipur, Rajasthan, India",
@@ -248,15 +248,15 @@ const jsonLd = {
           name: "Where is Little Chiku based in India?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Little Chiku is a handcrafted baby brand based in Jaipur, Rajasthan, India. We deliver our organic baby essentials pan India.",
+            text: "Little Chiku is a handcrafted baby brand based in Jaipur, Rajasthan, India. We deliver our handcrafted baby essentials pan India.",
           },
         },
         {
           "@type": "Question",
-          name: "Are Little Chiku baby products made from organic cotton?",
+          name: "What fabric are Little Chiku products made from?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes, all Little Chiku products are made from premium organic cotton that is soft, breathable, and completely safe for newborn and baby skin.",
+            text: "Little Chiku products are made from soft, breathable cotton designed for comfortable everyday use on babies and kids. For newborns or very sensitive skin, we suggest washing once before first use.",
           },
         },
         {
@@ -272,7 +272,7 @@ const jsonLd = {
           name: "What baby products does Little Chiku sell?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Little Chiku sells a wide range of handcrafted baby essentials including organic cotton baby bedding (quilts, dohars), bath linen (hooded towels, washcloths), kids accessories (bags, pouches), baby clothing, and premium return gift hampers for baby showers and naming ceremonies.",
+            text: "Little Chiku sells a wide range of handcrafted baby essentials including cotton baby bedding (quilts, dohars), bath linen (hooded towels, washcloths), kids accessories (bags, pouches), baby clothing, and premium return gift hampers for baby showers and naming ceremonies.",
           },
         },
         {
@@ -340,7 +340,7 @@ export default function AboutPage() {
               <p className="mt-6 max-w-xl text-lg font-light leading-relaxed text-[#667085]">
                 Little Chiku creates{" "}
                 <strong className="font-medium text-[#4a5c63]">
-                  handcrafted organic cotton baby essentials
+                  handcrafted cotton baby essentials
                 </strong>{" "}
                 — baby bedding, bath linen, accessories, and gifting collections
                 designed with softness, comfort, and timeless aesthetics for{" "}
@@ -392,7 +392,7 @@ export default function AboutPage() {
                       {
                         emoji: "🧸",
                         title: "Baby Bedding Collection",
-                        sub: "Organic cotton quilts & dohars",
+                        sub: "Cotton quilts & dohars",
                       },
                       {
                         emoji: "🛁",
@@ -476,7 +476,7 @@ export default function AboutPage() {
             {[
               { num: "10,000+", label: "Happy Families" },
               { num: "100%", label: "Handcrafted Products" },
-              { num: "Organic", label: "Premium Fabrics" },
+              { num: "Cotton", label: "Soft, Breathable Fabrics" },
               { num: "4.5 ★", label: "Average Rating" },
             ].map((s, i) => (
               <div key={i} className="px-6 py-4 text-center">
@@ -502,7 +502,7 @@ export default function AboutPage() {
                 {/* ✅ FIX 9: Alt text corrected — "Jaipur" not "made in India" */}
                 <Image
                   src="/about.png"
-                  alt="Little Chiku founder crafting handmade organic cotton baby products in Jaipur, India"
+                  alt="Little Chiku founder crafting handmade cotton baby products in Jaipur, India"
                   width={600}
                   height={750}
                   priority
@@ -513,7 +513,7 @@ export default function AboutPage() {
               <div className="absolute -bottom-4 -right-5 w-[190px] rounded-[20px] border border-[#edf2f2] bg-white p-5 shadow-xl">
                 {[
                   { color: "bg-[#58c7bd]", label: "Handcrafted", val: "100%" },
-                  { color: "bg-[#e0a348]", label: "Organic Fabrics", val: "✓" },
+                  { color: "bg-[#e0a348]", label: "Soft Cotton Fabrics", val: "✓" },
                   { color: "bg-[#7c4dcc]", label: "Pan India", val: "✓" },
                 ].map((row, i) => (
                   <div
@@ -541,12 +541,12 @@ export default function AboutPage() {
                 Our Story
               </span>
 
-              {/* ✅ FIX 10: H2 includes keyword "organic baby essentials" */}
+              {/* ✅ FIX 10: H2 includes keyword "handcrafted baby essentials" */}
               <h2
                 id="story-heading"
                 className="mt-5 font-serif text-4xl font-bold leading-tight tracking-tight md:text-5xl"
               >
-                Organic Baby Essentials{" "}
+                Handcrafted Baby Essentials{" "}
                 <em className="italic text-[#58c7bd]">
                   Designed For Modern Parenting
                 </em>
@@ -571,7 +571,7 @@ export default function AboutPage() {
                 that bring warmth and joy into everyday family life across
                 India. From{" "}
                 <strong className="font-medium text-[#4a5c63]">
-                  organic baby bedding
+                  cotton baby bedding
                 </strong>{" "}
                 and{" "}
                 <strong className="font-medium text-[#4a5c63]">
@@ -592,7 +592,7 @@ export default function AboutPage() {
               <div className="mt-10 grid grid-cols-2 gap-5">
                 {[
                   { num: "100%", label: "Handcrafted Premium Quality" },
-                  { num: "Organic", label: "Soft Sustainable Fabrics" },
+                  { num: "Cotton", label: "Soft Breathable Fabrics" },
                 ].map((m, i) => (
                   <div
                     key={i}
@@ -619,18 +619,18 @@ export default function AboutPage() {
               <span className="inline-block rounded-full bg-[#dff5f2] px-5 py-2 text-xs font-bold uppercase tracking-widest text-[#3dada3]">
                 Why Little Chiku
               </span>
-              {/* ✅ FIX 12: H2 includes "organic baby products India" keyword */}
+              {/* H2 includes "handcrafted baby products India" keyword */}
               <h2
                 id="values-heading"
                 className="mt-5 font-serif text-4xl font-bold tracking-tight md:text-5xl"
               >
                 Why Parents Choose Our{" "}
                 <em className="italic text-[#58c7bd]">
-                  Organic Baby Products India
+                  Handcrafted Baby Products India
                 </em>
               </h2>
               <p className="mx-auto mt-5 max-w-2xl text-lg font-light leading-relaxed text-[#667085]">
-                Our handcrafted collections use premium organic cotton, elegant
+                Our handcrafted collections use premium cotton, elegant
                 aesthetics, and comfort-first design for modern parents and
                 little ones across India.
               </p>
@@ -775,8 +775,8 @@ export default function AboutPage() {
                 {[
                   {
                     emoji: "🌱",
-                    title: "Organic & Eco-Friendly Baby Products",
-                    desc: "Committed to sustainability — our organic cotton fabrics are gentle on babies and kinder to our planet.",
+                    title: "Handcrafted Baby Products",
+                    desc: "Handcrafted with care in Jaipur using soft, breathable cotton fabrics.",
                   },
                   {
                     emoji: "🚚",
@@ -942,11 +942,11 @@ export default function AboutPage() {
               {[
                 {
                   q: "Where is Little Chiku based in India?",
-                  a: "Little Chiku is a handcrafted baby brand based in Jaipur, Rajasthan. We lovingly create all our organic baby essentials in Jaipur and deliver pan India.",
+                  a: "Little Chiku is a handcrafted baby brand based in Jaipur, Rajasthan. We lovingly create all our handcrafted baby essentials in Jaipur and deliver pan India.",
                 },
                 {
-                  q: "Are Little Chiku baby products made from organic cotton?",
-                  a: "Yes! All Little Chiku products are crafted from premium organic cotton — soft, breathable, and 100% safe for newborn and baby skin.",
+                  q: "What fabric are Little Chiku products made from?",
+                  a: "Little Chiku products are crafted from soft, breathable cotton designed for comfortable everyday use. For newborns or very sensitive skin, we suggest washing once before first use.",
                 },
                 {
                   q: "Does Little Chiku offer pan India delivery?",
@@ -954,7 +954,7 @@ export default function AboutPage() {
                 },
                 {
                   q: "What baby products does Little Chiku sell?",
-                  a: "Little Chiku offers organic baby bedding (quilts, dohars), hooded bath towels, washcloths, kids accessories (bags, pouches), baby clothing, and handcrafted return gift hampers for baby showers and naming ceremonies.",
+                  a: "Little Chiku offers cotton baby bedding (quilts, dohars), hooded bath towels, washcloths, kids accessories (bags, pouches), baby clothing, and handcrafted return gift hampers for baby showers and naming ceremonies.",
                 },
                 {
                   q: "Are Little Chiku products good for gifting?",
@@ -1000,7 +1000,7 @@ export default function AboutPage() {
                 </h2>
                 <p className="mt-5 text-lg font-light text-white/60">
                   Discover India's most loved handcrafted baby and kids
-                  lifestyle brand — organic cotton, beautiful designs, and made
+                  lifestyle brand — cotton, beautiful designs, and made
                   with love in Jaipur.
                 </p>
               </div>

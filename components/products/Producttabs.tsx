@@ -16,21 +16,21 @@ import type { SanityProduct, ProductMaterial } from '@/lib/sanity/types'
 // ── Fallback content (shown only when CMS field is empty) ─────
 
 const FALLBACK_STORY =
-  'Each product is lovingly crafted by skilled artisans using traditional techniques. The organic cotton is sourced from certified farms, ensuring the softest, purest fabric for your little one.'
+  'Each product is lovingly crafted by skilled artisans using traditional techniques. We use soft, breathable cotton for a gentle feel on your little one.'
 
 const FALLBACK_FEATURES: string[] = [
-  '100% GOTS certified organic cotton',
+  'Soft, breathable cotton',
   'Extra absorbent and quick-drying',
   'Adorable animal-inspired designs',
   'Generous size that grows with your child',
   'Pre-washed for ultimate softness',
-  'Hypoallergenic and gentle on sensitive skin',
+  'Soft and gentle feel',
 ]
 
 const FALLBACK_MATERIALS: ProductMaterial[] = [
   {
-    title: '100% Organic Cotton',
-    description: 'GOTS certified, sustainably grown',
+    title: 'Soft Cotton',
+    description: 'Breathable and comfortable',
   },
   {
     title: 'Natural Plant-Based Dyes',
