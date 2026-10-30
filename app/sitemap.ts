@@ -4,23 +4,32 @@ import { client } from '@/lib/sanity/client'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const baseUrl = 'https://littlechiku.com'
+  // Update this date when static page content actually changes.
+  const STATIC_LASTMOD = new Date('2026-10-30')
 
   // Fetch products from Sanity
-  const products = await client.fetch(`
-    *[_type == "product"]{
+  // A Sanity outage must not turn /sitemap.xml into a 500 (Search Console
+  // would flag it) — fall back to the static URLs instead.
+  const products = await client
+    .fetch(`
+    *[_type == "product" && defined(slug.current)]{
       "slug": slug.current,
+      "image": mainImage.asset->url,
       _updatedAt
     }
   `)
+    .catch(() => [])
 
   // Fetch categories from Sanity — dynamic, so a new/renamed category
   // is picked up automatically instead of needing a hardcoded edit here
-  const categories = await client.fetch(`
-    *[_type == "category"]{
+  const categories = await client
+    .fetch(`
+    *[_type == "category" && defined(slug.current)]{
       "slug": slug.current,
       _updatedAt
     }
   `)
+    .catch(() => [])
 
   // Product URLs
   const productUrls = products.map((product: any) => ({
@@ -28,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(product._updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
+    ...(product.image ? { images: [product.image as string] } : {}),
   }))
 
   // Category URLs
@@ -43,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Homepage
     {
       url: baseUrl,
-      lastModified: new Date(),
+      lastModified: STATIC_LASTMOD,
       changeFrequency: 'daily',
       priority: 1,
     },
@@ -51,14 +61,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Static Pages
     {
       url: `${baseUrl}/about`,
-      lastModified: new Date(),
+      lastModified: STATIC_LASTMOD,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
 
     {
       url: `${baseUrl}/contact`,
-      lastModified: new Date(),
+      lastModified: STATIC_LASTMOD,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
@@ -67,21 +77,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // noindex pages and don't belong in a sitemap.
     {
       url: `${baseUrl}/reviews`,
-      lastModified: new Date(),
+      lastModified: STATIC_LASTMOD,
       changeFrequency: 'weekly',
       priority: 0.5,
     },
 
     {
       url: `${baseUrl}/privacy-policy`,
-      lastModified: new Date(),
+      lastModified: STATIC_LASTMOD,
       changeFrequency: 'yearly',
       priority: 0.4,
     },
 
     {
       url: `${baseUrl}/term-condition`,
-      lastModified: new Date(),
+      lastModified: STATIC_LASTMOD,
       changeFrequency: 'yearly',
       priority: 0.4,
     },
@@ -89,7 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // All Products listing
     {
       url: `${baseUrl}/category/all`,
-      lastModified: new Date(),
+      lastModified: STATIC_LASTMOD,
       changeFrequency: 'daily',
       priority: 0.8,
     },

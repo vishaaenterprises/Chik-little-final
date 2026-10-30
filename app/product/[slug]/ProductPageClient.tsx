@@ -409,6 +409,7 @@ export default function ProductPageClient({
           rating={displayRating}
           reviewCount={displayReviews}
           slug={displayProduct.slug}
+          category={displayProduct.category}
         />
       )}
 

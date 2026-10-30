@@ -44,3 +44,16 @@
 //     return NextResponse.json({ ok: false, error: "status_check_failed" }, { status: 502 });
 //   }
 // }
+
+// ── Currently disabled ────────────────────────────────────────────────────
+// The handler above is commented out, which left this file with no exports
+// ("is not a module") — a build error that `ignoreBuildErrors` was hiding.
+// Until online payment is re-enabled, answer explicitly instead of a vague 404/405.
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  return NextResponse.json(
+    { ok: false, error: "online_payment_disabled" },
+    { status: 503 }
+  );
+}

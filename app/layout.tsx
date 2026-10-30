@@ -35,10 +35,10 @@ export const metadata: Metadata = {
   // Note: no `template` here on purpose — every page sets its own full
   // title including " | Little Chiku" itself. A template here would
   // double the suffix on pages that already append it.
-  title: 'Little Chiku | Organic Handmade Baby Products India',
+  title: 'Little Chiku | Kids Towels, Bathrobes, Gift Sets & Mom\'s Bags India',
 
   description:
-    'Handcrafted organic cotton baby & kids essentials — bath towels, bathrobes, bedding, bags, clothing and gift hampers, made with love in India by Little Chiku.',
+    "Buy kids bath towels, hand towels, face towels, bathrobes, bedding, bags, clothing, Diwali & return gift sets and Mom's Corner bags — handcrafted cotton by Little Chiku, delivered across India.",
 
   // `keywords` meta removed on purpose: Google ignores it, and the same
   // list on every page only adds noise.
@@ -101,10 +101,10 @@ export const metadata: Metadata = {
 
     siteName: 'Little Chiku',
 
-    title: 'Little Chiku | Organic Handmade Baby Products India',
+    title: 'Little Chiku | Kids Towels, Bathrobes, Gift Sets & Mom\'s Bags India',
 
     description:
-      'Premium handcrafted organic baby essentials including towels, bathrobes, bedding and baby gift hampers crafted with love.',
+      "Kids bath towels, hand towels, bathrobes, bedding, bags, Diwali and return gift sets, and Mom's Corner bags — handcrafted cotton by Little Chiku.",
 
     images: [
       {
@@ -121,10 +121,10 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
 
-    title: 'Little Chiku | Organic Handmade Baby Products',
+    title: 'Little Chiku | Kids Towels, Bathrobes & Gift Sets',
 
     description:
-      'Premium handcrafted organic cotton baby essentials crafted with love in India.',
+      'Handcrafted cotton towels, bathrobes, bedding, bags and gift sets for kids and moms, made in India.',
 
     images: ['/og-image.png'],
   },
@@ -144,11 +144,27 @@ export const viewport: Viewport = {
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  // Stable @id so the Organization on /about and every other page resolve to
+  // ONE entity — this is what AI engines and Google use to connect facts.
+  '@id': 'https://littlechiku.com/#organization',
   name: 'Little Chiku',
+  legalName: 'Vishaa Enterprises',
   url: 'https://littlechiku.com',
-  logo: 'https://littlechiku.com/icon.png',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://littlechiku.com/icon.png',
+  },
+  foundingLocation: { '@type': 'Place', name: 'Jaipur, Rajasthan, India' },
+  knowsAbout: [
+    'kids bath towels, hand towels and face towels',
+    'kids bathrobes',
+    'hand block print cotton bath linen',
+    'kids bedding',
+    'Diwali and return gift sets',
+    "mom's bags and pouches",
+  ],
   description:
-    'Little Chiku is an Indian baby brand offering handcrafted organic cotton baby essentials and premium kids products.',
+    "Little Chiku is an Indian brand from Jaipur selling handcrafted cotton essentials for babies, kids and mothers: bath towels, hand towels, face towels, bathrobes, bedding, bags, clothing, Diwali and return gift sets, and Mom's Corner bags.",
 
   sameAs: [
     'https://www.instagram.com/littlechikukids/',
@@ -168,6 +184,8 @@ const organizationSchema = {
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': 'https://littlechiku.com/#website',
+  publisher: { '@id': 'https://littlechiku.com/#organization' },
   name: 'Little Chiku',
   url: 'https://littlechiku.com',
   inLanguage: 'en-IN',
@@ -182,7 +200,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-IN"
       suppressHydrationWarning
       className={`${baloo.variable} ${dmSans.variable}`}
     >

@@ -166,6 +166,26 @@ export default function Home({
         accentColor="text-[#F6C453]"
       />
 
+      {/* Brand summary — plain, quotable text for search + AI answer engines */}
+      <section
+        aria-label="About Little Chiku"
+        className="bg-white py-12 md:py-16"
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold text-[#2B2B2B] mb-4">
+            What is Little Chiku?
+          </h2>
+          <p className="text-[#4B5563] leading-relaxed text-base md:text-lg">
+            Little Chiku is an Indian brand from Jaipur that sells handcrafted,
+            hand block printed cotton products for kids and mothers: bath towels,
+            hand towels, face towels and kids bathrobes, towel and gift sets for
+            birthdays and Diwali, bedding, clothing, kids bags and Mom&apos;s
+            Corner bags. Orders ship across India, free above Rs. 1,499, and
+            unused items can be returned within 7 days of delivery.
+          </p>
+        </div>
+      </section>
+
       {/* Trust */}
       <TrustSection />
 

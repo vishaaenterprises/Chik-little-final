@@ -8,6 +8,8 @@ import { getImageUrl, getImageUrlWithSize } from '@/lib/sanity/image'
 import MainLayout from '@/components/layout/MainLayout'
 import CategoryBanner from '@/components/banners/CategoryBanner'
 import CategoryPageClient from '@/components/category/CategoryPageClient'
+import CategoryIntro, { CategoryFaqs } from '@/components/category/CategoryIntro'
+import { getCategoryContent } from '@/lib/category-content'
 import type { SanityProduct, SanityCategory, LegacyProduct } from '@/lib/sanity/types'
 
 // ─────────────────────────────────────────────────────────────
@@ -57,7 +59,11 @@ export async function generateMetadata({
   }
 
   const title = category?.title ?? (slug === 'all' ? 'All Products' : slugToTitle(slug))
-  const description = buildMetaDescription(title, category?.description)
+  // Curated, keyword-rich meta (lib/category-content.ts) wins over the short
+  // one-liner stored in Sanity; unknown/new categories fall back to the old logic.
+  const seo = getCategoryContent(slug)
+  const fullTitle = seo?.metaTitle ?? `${title} | Little Chiku`
+  const description = seo?.metaDescription ?? buildMetaDescription(title, category?.description)
 
   // Real 1200×630 rendition so the declared og:image size is accurate
   // (the raw category image is e.g. 1024×796).
@@ -68,13 +74,13 @@ export async function generateMetadata({
   const canonicalUrl = `https://littlechiku.com/category/${slug}`
 
   return {
-    title: `${title} | Little Chiku`,
+    title: fullTitle,
     description,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${title} | Little Chiku`,
+      title: fullTitle,
       description,
       url: canonicalUrl,
       type: 'website',
@@ -84,7 +90,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | Little Chiku`,
+      title: fullTitle,
       description,
       ...(ogImageUrl && { images: [ogImageUrl] }),
     },
@@ -133,7 +139,7 @@ function toLegacy(product: SanityProduct, isGiftPage = false): LegacyProduct {
     category:         product.category?.title ?? '',
     categorySlug:     product.category?.slug  ?? 'all',
     subcategory:      product.subcategory ?? '',
-    rating:           product.rating  ?? 4.5,
+    rating:           product.rating  ?? 0,
     isNew:            product.newArrival === true || product.badge === 'new',
     isBestseller:     product.badge === 'bestseller',
     shortDescription: product.shortDescription ?? '',
@@ -300,6 +306,7 @@ export default async function CategoryPage({
 
   // ── JSON-LD ──────────────────────────────────────────────────
   const jsonLd = buildJsonLd(slug, bannerTitle, bannerDesc, baseProducts)
+  const seoContent = getCategoryContent(slug)
 
   return (
     <MainLayout>
@@ -324,6 +331,9 @@ export default async function CategoryPage({
         color='#4FBDBA'
       />
 
+      {/* Answer-first intro (SEO / AEO / GEO) */}
+      {seoContent && <CategoryIntro title={bannerTitle} content={seoContent} />}
+
       {/* 
         CategoryPageClient = thin client shell
         Sirf filter state aur interactions handle karta hai
@@ -336,6 +346,8 @@ export default async function CategoryPage({
         currentCategorySubcategories={currentCategorySubcategories}
         bannerTitle={bannerTitle}
       />
+
+      {seoContent && <CategoryFaqs title={bannerTitle} content={seoContent} />}
     </MainLayout>
   )
 }

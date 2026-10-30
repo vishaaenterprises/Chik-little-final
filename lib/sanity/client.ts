@@ -7,7 +7,7 @@ import { createClient } from 'next-sanity'
 // ─────────────────────────────────────────────
 
 const projectId =
-  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'rapjrk3z'
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'at4opa5a'
 
 const dataset =
   process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
