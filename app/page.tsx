@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: 'https://littlechiku.com',
     siteName: 'Little Chiku',
-    title: "Little Chiku | Kids Towels, Bathrobes, Gift Sets & Mom's Bags India",
+    title: "Little Chiku | Kids Towels, Bathrobes & Gift Sets India",
     description:
       "Kids bath towels, hand towels, bathrobes, bedding, bags, Diwali and return gift sets, and Mom's Corner bags — handcrafted cotton by Little Chiku.",
     images: [

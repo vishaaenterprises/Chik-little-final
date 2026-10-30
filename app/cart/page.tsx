@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 const WHATSAPP_NUMBER = "917728009522";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://littlechiku.com").replace(/\/$/, "");
 const PHONEPE_CHECKOUT_SCRIPT_SRC = "https://mercury.phonepe.com/web/bundle/checkout.js";
 
 // ── Feature flag: pause the real PhonePe payment gateway ───────────────────

@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   // Note: no `template` here on purpose — every page sets its own full
   // title including " | Little Chiku" itself. A template here would
   // double the suffix on pages that already append it.
-  title: 'Little Chiku | Kids Towels, Bathrobes, Gift Sets & Mom\'s Bags India',
+  title: 'Little Chiku | Kids Towels, Bathrobes & Gift Sets India',
 
   description:
     "Buy kids bath towels, hand towels, face towels, bathrobes, bedding, bags, clothing, Diwali & return gift sets and Mom's Corner bags — handcrafted cotton by Little Chiku, delivered across India.",
@@ -101,7 +101,7 @@ export const metadata: Metadata = {
 
     siteName: 'Little Chiku',
 
-    title: 'Little Chiku | Kids Towels, Bathrobes, Gift Sets & Mom\'s Bags India',
+    title: 'Little Chiku | Kids Towels, Bathrobes & Gift Sets India',
 
     description:
       "Kids bath towels, hand towels, bathrobes, bedding, bags, Diwali and return gift sets, and Mom's Corner bags — handcrafted cotton by Little Chiku.",
