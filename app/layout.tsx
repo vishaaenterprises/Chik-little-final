@@ -144,9 +144,23 @@ export const viewport: Viewport = {
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  // Stable @id so the Organization on /about and every other page resolve to
+  // ONE entity — this is what AI engines and Google use to connect facts.
+  '@id': 'https://littlechiku.com/#organization',
   name: 'Little Chiku',
+  legalName: 'Vishaa Enterprises',
   url: 'https://littlechiku.com',
-  logo: 'https://littlechiku.com/icon.png',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://littlechiku.com/icon.png',
+  },
+  foundingLocation: { '@type': 'Place', name: 'Jaipur, Rajasthan, India' },
+  knowsAbout: [
+    'handcrafted organic cotton baby products',
+    'hand block print kids bath linen',
+    'kids bedding',
+    'baby and kids gift hampers',
+  ],
   description:
     'Little Chiku is an Indian baby brand offering handcrafted organic cotton baby essentials and premium kids products.',
 
@@ -168,6 +182,8 @@ const organizationSchema = {
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': 'https://littlechiku.com/#website',
+  publisher: { '@id': 'https://littlechiku.com/#organization' },
   name: 'Little Chiku',
   url: 'https://littlechiku.com',
   inLanguage: 'en-IN',

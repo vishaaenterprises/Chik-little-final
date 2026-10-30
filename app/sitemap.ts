@@ -6,21 +6,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://littlechiku.com'
 
   // Fetch products from Sanity
-  const products = await client.fetch(`
-    *[_type == "product"]{
+  // A Sanity outage must not turn /sitemap.xml into a 500 (Search Console
+  // would flag it) — fall back to the static URLs instead.
+  const products = await client
+    .fetch(`
+    *[_type == "product" && defined(slug.current)]{
       "slug": slug.current,
       _updatedAt
     }
   `)
+    .catch(() => [])
 
   // Fetch categories from Sanity — dynamic, so a new/renamed category
   // is picked up automatically instead of needing a hardcoded edit here
-  const categories = await client.fetch(`
-    *[_type == "category"]{
+  const categories = await client
+    .fetch(`
+    *[_type == "category" && defined(slug.current)]{
       "slug": slug.current,
       _updatedAt
     }
   `)
+    .catch(() => [])
 
   // Product URLs
   const productUrls = products.map((product: any) => ({

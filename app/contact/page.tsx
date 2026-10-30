@@ -84,6 +84,21 @@ const contactCards = [
   },
 ]
 
+// FAQPage structured data for AI answer engines. The "safe for newborns"
+// answer is intentionally NOT included: it makes a certification claim that
+// should be verified before it is published as structured data.
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs
+    .filter((f) => !f.question.toLowerCase().includes('newborn'))
+    .map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+}
+
 export default function ContactPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [formState, setFormState] = useState({
@@ -141,6 +156,10 @@ export default function ContactPage() {
 
   return (
     <MainLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* ── Hero ── */}
       <section className="relative overflow-hidden bg-[#F6FBFB]">
         {/* Decorative blobs */}

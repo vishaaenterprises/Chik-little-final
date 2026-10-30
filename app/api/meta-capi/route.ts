@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendCapiEvent, CapiEventInput } from "@/lib/meta-capi";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const ALLOWED_EVENTS = ["PageView", "ViewContent", "AddToCart", "InitiateCheckout", "Purchase"];
+const ALLOWED_HOSTS = ["littlechiku.com", "www.littlechiku.com", "localhost"];
 
 /**
  * POST /api/meta-capi
@@ -16,6 +20,14 @@ import { sendCapiEvent, CapiEventInput } from "@/lib/meta-capi";
  * never be trusted from the client.
  */
 export async function POST(request: NextRequest) {
+  // This endpoint is public and forwards to Meta with our access token, so
+  // throttle it and only accept events for our own pages — otherwise anyone
+  // could pollute the pixel dataset with fake events.
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRateLimit(`meta-capi:${ip}`, 60, 60_000)) {
+    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+  }
+
   let body: Omit<CapiEventInput, "customerData"> & {
     customerData?: CapiEventInput["customerData"];
   };
@@ -31,6 +43,17 @@ export async function POST(request: NextRequest) {
       { ok: false, error: "eventName, eventId, and eventSourceUrl are required" },
       { status: 400 }
     );
+  }
+
+  if (!ALLOWED_EVENTS.includes(body.eventName)) {
+    return NextResponse.json({ ok: false, error: "invalid_event" }, { status: 400 });
+  }
+  try {
+    if (!ALLOWED_HOSTS.includes(new URL(body.eventSourceUrl).hostname)) {
+      return NextResponse.json({ ok: false, error: "invalid_source" }, { status: 400 });
+    }
+  } catch {
+    return NextResponse.json({ ok: false, error: "invalid_source" }, { status: 400 });
   }
 
   // Real client IP: Vercel/most proxies set x-forwarded-for as "client, proxy1, proxy2"

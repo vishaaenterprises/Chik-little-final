@@ -11,7 +11,7 @@
 //   2. Get a token: sanity.io/manage → your project → API →
 //      Tokens → "Add API token" → name it "bulk-import" →
 //      permission "Editor" → Save → copy the token (shown once).
-//   3. Paste that token below where it says PASTE_YOUR_TOKEN_HERE
+//   3. Export it as SANITY_WRITE_TOKEN (do NOT paste it into this file)
 //   4. Put testimonials-bulk.ndjson in the SAME folder as this
 //      script (sanityStudio folder).
 //   5. Run:  node import-reviews.js
@@ -21,8 +21,9 @@ const fs = require('fs')
 const path = require('path')
 const { createClient } = require('@sanity/client')
 
-// ── 1. Paste your token here ────────────────────────────────
-const SANITY_TOKEN = 'skonfOuhB427IbeVY9EF4fuWMNAdLQNj6XnPbl0KzHhr5lTQZtQoflO6DGloM7rHNGRk3xCCNxUQ2qUnSr4RNLQBjBU1K1diZwcoy5ypZYQWRhbOlQNiM09R6hDh1GRHtaAtQ3Yg1hJoIL1rscqTK9NhyYUvStqGnOLuFtvys63Fpfci1yRO'
+// ── 1. Token comes from the environment (never commit it) ──
+//    Run:  SANITY_WRITE_TOKEN=xxxx node import-reviews.js
+const SANITY_TOKEN = process.env.SANITY_WRITE_TOKEN
 
 // ── 2. Project details (already correct for this project) ───
 const client = createClient({
@@ -39,7 +40,7 @@ const FILE_NAME = 'testimonials-bulk.ndjson'
 async function main() {
   if (!SANITY_TOKEN || SANITY_TOKEN === 'PASTE_YOUR_TOKEN_HERE') {
     console.error(
-      '\n❌ Please paste your Sanity API token into import-reviews.js first (see the SANITY_TOKEN line near the top).\n'
+      '\n❌ Set SANITY_WRITE_TOKEN in your environment first.\n'
     )
     process.exit(1)
   }

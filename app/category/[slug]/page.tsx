@@ -8,6 +8,8 @@ import { getImageUrl, getImageUrlWithSize } from '@/lib/sanity/image'
 import MainLayout from '@/components/layout/MainLayout'
 import CategoryBanner from '@/components/banners/CategoryBanner'
 import CategoryPageClient from '@/components/category/CategoryPageClient'
+import CategoryIntro, { CategoryFaqs } from '@/components/category/CategoryIntro'
+import { getCategoryContent } from '@/lib/category-content'
 import type { SanityProduct, SanityCategory, LegacyProduct } from '@/lib/sanity/types'
 
 // ─────────────────────────────────────────────────────────────
@@ -133,7 +135,7 @@ function toLegacy(product: SanityProduct, isGiftPage = false): LegacyProduct {
     category:         product.category?.title ?? '',
     categorySlug:     product.category?.slug  ?? 'all',
     subcategory:      product.subcategory ?? '',
-    rating:           product.rating  ?? 4.5,
+    rating:           product.rating  ?? 0,
     isNew:            product.newArrival === true || product.badge === 'new',
     isBestseller:     product.badge === 'bestseller',
     shortDescription: product.shortDescription ?? '',
@@ -300,6 +302,7 @@ export default async function CategoryPage({
 
   // ── JSON-LD ──────────────────────────────────────────────────
   const jsonLd = buildJsonLd(slug, bannerTitle, bannerDesc, baseProducts)
+  const seoContent = getCategoryContent(slug)
 
   return (
     <MainLayout>
@@ -324,6 +327,9 @@ export default async function CategoryPage({
         color='#4FBDBA'
       />
 
+      {/* Answer-first intro (SEO / AEO / GEO) */}
+      {seoContent && <CategoryIntro title={bannerTitle} content={seoContent} />}
+
       {/* 
         CategoryPageClient = thin client shell
         Sirf filter state aur interactions handle karta hai
@@ -336,6 +342,8 @@ export default async function CategoryPage({
         currentCategorySubcategories={currentCategorySubcategories}
         bannerTitle={bannerTitle}
       />
+
+      {seoContent && <CategoryFaqs title={bannerTitle} content={seoContent} />}
     </MainLayout>
   )
 }

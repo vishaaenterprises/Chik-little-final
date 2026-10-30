@@ -216,16 +216,12 @@ const jsonLd = {
         availableLanguage: ["English", "Hindi"],
       },
       sameAs: [
-        "https://www.instagram.com/littlechiku",
-        "https://www.facebook.com/littlechiku",
+        "https://www.instagram.com/littlechikukids/",
+        "https://www.facebook.com/profile.php?id=61581014138999",
       ],
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.5",
-        bestRating: "5",
-        worstRating: "1",
-        reviewCount: "10000",
-      },
+      // aggregateRating removed: a hardcoded "10000 reviews" on the Organization
+      // is unverifiable self-serving review markup (Google policy risk). Real
+      // ratings belong on Product schema, driven by actual reviews.
     },
     {
       "@type": "BreadcrumbList",

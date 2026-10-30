@@ -251,7 +251,7 @@ export function sanityProductToLegacy(
     name:           product.productName,
     price:          firstVariant?.price ?? product.price,
     originalPrice:  firstVariant?.originalPrice ?? product.originalPrice,
-    rating:         firstVariant?.rating ?? product.rating ?? 4.5,
+    rating:         firstVariant?.rating ?? product.rating ?? 0,
     image:          imageUrl,
     hoverImage:     secondVariant
                       ? undefined   // card handles hover via variants array

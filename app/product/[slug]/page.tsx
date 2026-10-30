@@ -128,6 +128,33 @@ export default async function ProductPage({ params }: Props) {
 
   const initialData = await getProductPageData(slug, product)
 
+  const crumbs = [
+    { name: 'Home', url: SITE_URL },
+    { name: 'Shop', url: `${SITE_URL}/category/all` },
+    ...(product.category?.slug
+      ? [{ name: product.category.title, url: `${SITE_URL}/category/${product.category.slug}` }]
+      : []),
+    { name: product.productName, url: `${SITE_URL}/product/${slug}` },
+  ]
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: crumbs.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.name,
+      item: c.url,
+    })),
+  }
+
   // `key` resets client state when navigating between two product pages.
-  return <ProductPageClient key={slug} initialData={initialData} />
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+      <ProductPageClient key={slug} initialData={initialData} />
+    </>
+  )
 }
