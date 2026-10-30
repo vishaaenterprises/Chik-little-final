@@ -25,36 +25,36 @@ import type { Metadata } from "next";
 // ✅ FIX 4: Twitter card — about-specific
 // ─────────────────────────────────────────────
 export const metadata: Metadata = {
-  title: "About Little Chiku | Handmade Organic Baby Essentials India | Little Chiku",
+  title: "About Little Chiku | Handmade Cotton Kids Products, Jaipur",
   // Kept under ~160 chars so Google doesn't truncate it in results.
   description:
-    "Little Chiku is a handcrafted baby brand from Jaipur — organic cotton bedding, bath linen, gift hampers & kids accessories, loved by 10,000+ families.",
+    "Little Chiku is a Jaipur brand making handcrafted cotton kids towels, bathrobes, bedding, bags and gift sets, delivered across India.",
   alternates: {
     canonical: "https://littlechiku.com/about",
   },
   openGraph: {
-    title: "About Little Chiku | Handmade Organic Baby Essentials India | Little Chiku",
+    title: "About Little Chiku | Handmade Cotton Kids Products, Jaipur",
     description:
-      "Handcrafted organic baby bedding, bath linen & gifting hampers from Jaipur. Made with love for 10,000+ modern Indian families.",
+      "Handcrafted cotton kids towels, bathrobes, bedding, bags and gift sets from Jaipur, delivered across India.",
     url: "https://littlechiku.com/about",
     siteName: "Little Chiku",
     locale: "en_IN",
     type: "website",
     images: [
       {
-        url: "https://littlechiku.com/images/about/og-about.jpg",
+        url: "https://littlechiku.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Little Chiku — Handmade Organic Baby Essentials from Jaipur, India",
+        alt: "Little Chiku — handcrafted cotton kids towels, bathrobes, gift sets and Mom's bags",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "About Little Chiku | Handmade Organic Baby Essentials India | Little Chiku",
+    title: "About Little Chiku | Handmade Cotton Kids Products, Jaipur",
     description:
-      "Handcrafted organic baby bedding, bath linen & gifting hampers from Jaipur. Made with love for 10,000+ Indian families.",
-    images: ["https://littlechiku.com/images/about/og-about.jpg"],
+      "Handcrafted cotton kids towels, bathrobes, bedding, bags and gift sets from Jaipur, delivered across India.",
+    images: ["https://littlechiku.com/og-image.png"],
   },
   robots: {
     index: true,

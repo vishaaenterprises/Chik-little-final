@@ -10,8 +10,11 @@ const ALLOW = [
   '/api/meta-feed',
   '/api/facebook-feed',
 ]
-// Keep crawlers out of the remaining API routes and per-user / transactional pages.
-const DISALLOW = ['/api/', '/cart', '/wishlist', '/payment/']
+// Only the API is blocked. /cart, /wishlist and /payment/ are deliberately NOT
+// disallowed: they carry a `noindex` meta tag, and a crawler that is blocked
+// by robots.txt can never read that tag — which is exactly how "Wishlist -
+// Little Chiku" ended up indexed. Let them be crawled so noindex is honoured.
+const DISALLOW = ['/api/']
 
 // AI search / answer-engine crawlers (AEO / GEO). Listed explicitly so the
 // intent is unambiguous: public catalogue pages may be read, cited and

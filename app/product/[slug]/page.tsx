@@ -73,7 +73,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  const title = `${product.productName} | Little Chiku`
+  // Product names carry long keyword tails after a "|" (~100 chars), which
+  // Google truncates. Use the lead segment and trim on a word boundary so the
+  // full title stays near 60 characters.
+  const lead = product.productName.split('|')[0].trim()
+  const maxLead = 60 - ' | Little Chiku'.length
+  const shortName =
+    lead.length > maxLead ? lead.slice(0, maxLead).replace(/\s+\S*$/, '').trim() : lead
+  const title = `${shortName} | Little Chiku`
   const rawDescription =
     product.shortDescription || `${product.productName} — handcrafted by Little Chiku.`
   const description =

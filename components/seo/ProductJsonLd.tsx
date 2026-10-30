@@ -24,6 +24,7 @@ export interface ProductJsonLdProps {
   rating?: number;
   reviewCount?: number;
   slug: string;
+  category?: string;
 }
 
 function compact<T extends object>(obj: T): T {
@@ -42,6 +43,7 @@ export default function ProductJsonLd({
   rating,
   reviewCount,
   slug,
+  category,
 }: ProductJsonLdProps) {
   const productUrl = `${SITE_URL}/product/${slug}`;
 
@@ -66,6 +68,7 @@ export default function ProductJsonLd({
     name,
     description: description || undefined,
     image: absoluteImages.length > 0 ? absoluteImages : undefined,
+    category: category || undefined,
     sku: sku || undefined,
     mpn: mpn || undefined,
     brand: {
