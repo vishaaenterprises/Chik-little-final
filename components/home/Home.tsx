@@ -96,7 +96,7 @@ export default function Home({
       <CategorySection
         title="Bath Linen"
         subtitle="Soft & Fresh"
-        description="Breathable, absorbent towels and robes crafted from the finest organic cotton"
+        description="Breathable, absorbent towels and robes crafted from soft, absorbent cotton"
         products={bathLinenProducts}
         href="/category/bath-linen"
         bgColor="bg-[#F3FAFA]"

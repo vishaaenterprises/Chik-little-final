@@ -7,7 +7,7 @@ import { Instagram } from 'lucide-react'
 // "Little Chiku Instagram" on all six).
 const images = [
   { src: '/kids-1.jpg', alt: 'Kids wearing handcrafted Little Chiku cotton wear' },
-  { src: '/mom-1.jpg', alt: 'Mother and baby with Little Chiku organic cotton essentials' },
+  { src: '/mom-1.jpg', alt: 'Mother and baby with Little Chiku cotton essentials' },
   { src: '/home-1.jpg', alt: 'Little Chiku hand block print bath linen and bedding' },
   { src: '/gift-1.jpg', alt: 'Little Chiku handcrafted return gift hamper' },
   { src: '/kids-2.jpg', alt: 'Little Chiku quilted bags and kids accessories' },

@@ -15,9 +15,9 @@ const features = [
   },
   {
     icon: Shield,
-    title: '100% Organic Cotton',
+    title: 'Soft Cotton Fabrics',
     description:
-      'We use only certified organic cotton that is gentle on delicate skin and kind to our planet.',
+      'Soft, breathable cotton fabrics chosen for comfort on delicate skin.',
     iconBg: 'bg-[#FFF4D6]',
     iconColor: 'text-[#D89B1D]',
     glow: 'shadow-[0_12px_30px_rgba(246,196,83,0.18)]',
@@ -71,7 +71,7 @@ export default function TrustSection() {
 
           <p className="text-[#6B6B6B] text-lg leading-relaxed max-w-2xl mx-auto">
             Every Little Chiku product reflects our commitment to
-            premium craftsmanship, sustainability, and timeless comfort
+            premium craftsmanship and timeless comfort
             for growing families.
           </p>
         </motion.div>

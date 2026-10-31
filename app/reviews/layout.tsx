@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Customer Reviews | Little Chiku',
   description:
-    'Read what parents across India say about Little Chiku handcrafted organic cotton baby towels, bedding, bags and gift hampers.',
+    'Read what parents across India say about Little Chiku handcrafted cotton baby towels, bedding, bags and gift hampers.',
   alternates: {
     canonical: 'https://littlechiku.com/reviews',
   },
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
     url: 'https://littlechiku.com/reviews',
     title: 'Customer Reviews | Little Chiku',
     description:
-      'Read what parents across India say about Little Chiku handcrafted organic cotton baby essentials.',
+      'Read what parents across India say about Little Chiku handcrafted cotton baby essentials.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Little Chiku Organic Baby Products',
+        alt: 'Little Chiku handcrafted cotton kids products',
       },
     ],
   },
