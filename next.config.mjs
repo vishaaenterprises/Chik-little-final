@@ -24,6 +24,27 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // ── Google Search Console 404 cleanup (Oct 2026): old/removed product URLs
+      // mapped to the closest live product or category. Must stay above the
+      // generic /products/:slug rule so they redirect in one hop.
+      { source: '/product/kids-travel-duffle-bag-cartoon-print-watermelon', destination: '/product/kids-mini-duffel-bag-blue-fish-print', permanent: true },
+      { source: '/product/little-chiku-quilted-printed-tote-bag', destination: '/category/bags', permanent: true },
+      { source: '/product/kids-apron-cooking-baking-painting-kitchen-art', destination: '/product/kids-cooking-baking-apron-school-activities', permanent: true },
+      { source: '/products/little-chiku-quilted-printed-tote-bag-2', destination: '/category/bags', permanent: true },
+      { source: '/products/floral-mini-backpack-kids-quilted-cotton-school-travel-bag', destination: '/product/kids-floral-backpack-for-school-play', permanent: true },
+      { source: '/products/vintage-floral-quilted-tote-bag-multicolor-4', destination: '/product/vintage-floral-quilted-tote-bag-multicolor', permanent: true },
+      { source: '/products/kids-rocket-print-waffle-bathrobe-set-yellow', destination: '/product/kids-yellow-rocket-print-waffle-bathrobe-set-with-belt-or-soft-cotton-bathrobe-for-kids', permanent: true },
+      { source: '/products/baby-dohar-lightweight-cozy-cotton-blanket-4', destination: '/product/baby-dohar-cotton-blanket-crib', permanent: true },
+      { source: '/products/honeybee-kids-towel-blue-rocket', destination: '/product/honeybee-kids-towel-multi-animal', permanent: true },
+      { source: '/products/kids-apron-cooking-baking-painting-adjustable-child-apron-2', destination: '/product/kids-cooking-baking-apron-school-activities', permanent: true },
+      { source: '/products/kids-apron-cooking-baking-painting-adjustable-child-apron-3', destination: '/product/kids-cooking-baking-apron-school-activities', permanent: true },
+      { source: '/products/kids-cotton-bathrobe-design-2', destination: '/category/bath-linen', permanent: true },
+      { source: '/products/kids-sling-bag-boys-girls-quilted-crossbody-backpack-3', destination: '/product/kids-floral-sling-bag-crossbody-backpack-travel', permanent: true },
+      { source: '/products/kids-play-mat-forest-animals-green-3', destination: '/product/kids-play-mat-forest-animals-green', permanent: true },
+      { source: '/products/little-chicken-print-kids-bath-towel', destination: '/category/bath-linen', permanent: true },
+      { source: '/products/reversible-baby-quilt-soft-breathable-red-blue-1', destination: '/product/reversible-baby-quilt-red-blue-daily-use', permanent: true },
+      { source: '/products/reversible-baby-quilt-soft-breathable-red-blue-5', destination: '/product/reversible-baby-quilt-red-blue-daily-use', permanent: true },
+      { source: '/products/kids-travel-duffle-bag-design-4', destination: '/product/kids-mini-duffel-bag-blue-fish-print', permanent: true },
       {
         source: '/products/:slug',
         destination: '/product/:slug',
@@ -74,22 +95,22 @@ const nextConfig = {
       },
       {
         source: '/product/decorative-floral-photo-frame-handmade-diary-gift-set-peach-2',
-        destination: '/product/decorative-photo-frame-diary-gift-set-ivory-floral',
+        destination: '/category/return-gifts',
         permanent: true,
       },
       {
         source: '/product/decorative-floral-photo-frame-handmade-diary-gift-set-peach-3',
-        destination: '/product/decorative-photo-frame-diary-gift-set-multi-stripe',
+        destination: '/category/return-gifts',
         permanent: true,
       },
       {
         source: '/product/decorative-floral-photo-frame-handmade-diary-gift-set-peach-4',
-        destination: '/product/decorative-photo-frame-diary-gift-set-pink-floral',
+        destination: '/category/return-gifts',
         permanent: true,
       },
       {
         source: '/product/decorative-floral-photo-frame-handmade-diary-gift-set-peach-5',
-        destination: '/product/decorative-photo-frame-diary-gift-set-white-blue-stripe',
+        destination: '/category/return-gifts',
         permanent: true,
       },
       {
@@ -109,7 +130,7 @@ const nextConfig = {
       },
       {
         source: '/product/kids-apron-cooking-baking-painting-adjustable-child-apron-1',
-        destination: '/product/kids-apron-cooking-baking-painting-kitchen-art',
+        destination: '/product/kids-cooking-baking-apron-school-activities',
         permanent: true,
       },
       {
@@ -119,12 +140,12 @@ const nextConfig = {
       },
       {
         source: '/product/kids-apron-cooking-baking-painting-adjustable-child-apron-3',
-        destination: '/product/kids-apron-cooking-baking-painting-craft-time',
+        destination: '/product/kids-cooking-baking-apron-school-activities',
         permanent: true,
       },
       {
         source: '/product/kids-apron-cooking-baking-painting-adjustable-child-apron-4',
-        destination: '/product/kids-chef-painting-apron-gift-edition',
+        destination: '/product/kids-cooking-baking-apron-school-activities',
         permanent: true,
       },
       {
@@ -144,12 +165,12 @@ const nextConfig = {
       },
       {
         source: '/product/kids-sling-bag-boys-girls-quilted-crossbody-backpack-1',
-        destination: '/product/kids-floral-sling-bag-crossbody-backpack',
+        destination: '/product/kids-floral-sling-bag-crossbody-backpack-travel',
         permanent: true,
       },
       {
         source: '/product/kids-sling-bag-boys-girls-quilted-crossbody-backpack-2',
-        destination: '/product/kids-floral-sling-bag-crossbody-backpack-school',
+        destination: '/product/kids-floral-sling-bag-crossbody-backpack-travel',
         permanent: true,
       },
       {
@@ -159,22 +180,22 @@ const nextConfig = {
       },
       {
         source: '/product/kids-travel-duffle-bag-design-4',
-        destination: '/product/kids-travel-duffle-bag-teddy-sheep-print',
+        destination: '/product/kids-mini-duffel-bag-blue-fish-print',
         permanent: true,
       },
       {
         source: '/product/kids-travel-duffle-bag-design-5',
-        destination: '/product/kids-travel-duffle-bag-cartoon-print-weekend',
+        destination: '/product/kids-mini-duffel-bag-blue-fish-print',
         permanent: true,
       },
       {
         source: '/product/kids-travel-duffle-bag-design-6',
-        destination: '/product/kids-travel-duffle-bag-cartoon-print-watermelon',
+        destination: '/product/kids-mini-duffel-bag-blue-fish-print',
         permanent: true,
       },
       {
         source: '/product/little-chiku-quilted-printed-tote-bag-2',
-        destination: '/product/little-chiku-quilted-printed-tote-bag-school',
+        destination: '/category/bags',
         permanent: true,
       },
       {
@@ -219,7 +240,7 @@ const nextConfig = {
       },
       {
         source: '/product/soft-cotton-kids-backpack-beige-pink-1',
-        destination: '/product/soft-cotton-kids-backpack-beige-pink',
+        destination: '/product/soft-cotton-kids-backpack-beige-pink-gift',
         permanent: true,
       },
       {
@@ -229,12 +250,12 @@ const nextConfig = {
       },
       {
         source: '/product/soft-cotton-kids-backpack-beige-pink-3',
-        destination: '/product/soft-cotton-kids-backpack-beige-pink-everyday',
+        destination: '/product/soft-cotton-kids-backpack-beige-pink-gift',
         permanent: true,
       },
       {
         source: '/product/stylish-floral-print-shoulder-bag-with-front-1',
-        destination: '/product/stylish-maroon-floral-shoulder-bag-weekend',
+        destination: '/product/stylish-maroon-floral-shoulder-bag-gift',
         permanent: true,
       },
       {
