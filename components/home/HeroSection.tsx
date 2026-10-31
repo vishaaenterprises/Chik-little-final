@@ -20,7 +20,7 @@ export default function HeroSection({ banner }: HeroSectionProps) {
     <section className="relative overflow-hidden bg-[#F6FBFB]">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-4 lg:py-6">
         {/* MAIN GRID */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-2 items-center min-h-[78vh]">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-2 items-center lg:min-h-[64vh]">
           {/* LEFT CONTENT */}
           <div className="max-w-[540px] mx-auto lg:mx-0 text-center lg:text-left">
             {/* LOGO */}
@@ -47,12 +47,12 @@ export default function HeroSection({ banner }: HeroSectionProps) {
             </div>
 
             {/* HEADING */}
-            <div className="mt-4">
-              <h1 className="text-[#2B2B2B] text-[34px] sm:text-[42px] lg:text-[60px] leading-[1.02] font-black tracking-[-1px] lg:tracking-[-2px]">
+            <div className="mt-3">
+              <h1 className="text-[#2B2B2B] text-[28px] sm:text-[36px] lg:text-[42px] xl:text-[46px] leading-[1.1] font-black tracking-[-0.5px] lg:tracking-[-1px]">
                 {banner?.title || 'Handcrafted Kids Towels, Bathrobes, Gift Sets & Mom\'s Bags'}
               </h1>
 
-               <p className="mt-5 text-[15px] sm:text-[17px] leading-8 text-[#5C5C5C] max-w-full sm:max-w-xl mx-auto lg:mx-0 px-2 sm:px-0 break-words">
+               <p className="mt-3 text-[15px] sm:text-[16px] leading-7 text-[#5C5C5C] max-w-full sm:max-w-xl mx-auto lg:mx-0 px-2 sm:px-0 break-words">
               Thoughtfully made for kids, babies & moms
               <span className="text-[#D79B2D] font-bold italic">
                 {" "}
@@ -62,7 +62,7 @@ export default function HeroSection({ banner }: HeroSectionProps) {
             </p>
 
             {/* FEATURES */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-8 border-y border-[#ECECEC] py-5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-5 border-y border-[#ECECEC] py-4">
 
               {/* FEATURE 1 */}
               <div className="flex flex-col items-center px-2">
@@ -100,7 +100,7 @@ export default function HeroSection({ banner }: HeroSectionProps) {
             </div>
 
             {/* BUTTON */}
-            <div className="mt-7 flex justify-center lg:justify-start">
+            <div className="mt-5 flex justify-center lg:justify-start">
               <Link href={buttonLink}>
                 <button className="group bg-[#4FBDBA] hover:bg-[#2F7F7C] transition-all duration-300 text-white text-[15px] sm:text-[16px] font-semibold px-8 py-3 rounded-full flex items-center gap-3 shadow-[0_8px_25px_rgba(79,189,186,0.3)] hover:scale-[1.02]">
                   {buttonText}
